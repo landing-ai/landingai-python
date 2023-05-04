@@ -1,6 +1,7 @@
 class Predictor:
     import numpy as np
     from typing import Any
+    url = 'https://predict.app.landing.ai/inference/v1/predict'
 
     def __init__(self, endpoint_id: str, api_key: str, api_secret: str):
         self._endpoint_id = endpoint_id
@@ -17,7 +18,6 @@ class Predictor:
             'apikey': self._api_key,
             'apisecret': self._api_secret,
         }
-        url = 'https://predict.app.landing.ai/inference/v1/predict'
         payload = {'endpoint_id': self._endpoint_id}
-        response = requests.post(url, headers=headers, files=files, params=payload)
+        response = requests.post(Predictor.url, headers=headers, files=files, params=payload)
         return response.json()
