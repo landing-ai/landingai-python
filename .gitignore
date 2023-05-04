@@ -55,3 +55,4 @@ __pycache__
 */.terraform
 terraform.*
 .terraform.*
+shinobi-dvr/*
