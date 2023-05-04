@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "landingai"
+version = "0.0.1"
+authors = [
+  { name="Landing AI", email="dev@landing.ai" },
+]
+description = "Helper library for interacting with Landing AI LandingLens"
+requires-python = ">=3.8"
+dependencies = [ 'opencv-python', 'numpy', 'requests' ]
+
+[project.urls]
+"Homepage" = "https://landing.ai"
