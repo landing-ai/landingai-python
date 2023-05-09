@@ -14,3 +14,7 @@ dependencies = [ 'opencv-python', 'numpy', 'requests' ]
 
 [project.urls]
 "Homepage" = "https://landing.ai"
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"

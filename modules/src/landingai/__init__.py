@@ -1,1 +1,1 @@
-from landingai.interface import Predictor
+from landingai.predict import Predictor

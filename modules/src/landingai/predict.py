@@ -28,7 +28,7 @@ class Predictor:
             backoff_factor=3,
             status_forcelist=[408, 413, 429, 500, 502, 503, 504],
         )
-        session.mount(self._url, HTTPAdapter(max_retries=retries))
+        session.mount(api_url, HTTPAdapter(max_retries=retries))
         session.headers.update(
             {
                 "apikey": self._api_key,
@@ -44,20 +44,19 @@ class Predictor:
         files = [("file", ("image.jpg", img, "image/jpg"))]
         s = self._create_session(self._url)
         payload = {"endpoint_id": self._endpoint_id}
-        response = s.post(Predictor._url, files=files, params=payload)
-        try:
-            response.raise_for_status()
-        except Exception as e:
-            _LOGGER.error(
-                f"Failed calling predict endpoint ({self._url}) due to error: {e}"
-            )
-            return []
+        headers = {
+                "apikey": self._api_key,
+                "apisecret": self._api_secret,
+                "contentType": "application/json",
+            }
+        response = s.post(Predictor._url, headers=headers, files=files, params=payload)
+        response.raise_for_status()
         json_dict = response.json()
         return _extract_prediction(json_dict)
 
 
 def _extract_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
-    response_type = response["type"]
+    response_type = response["backbonetype"]
     predictions = PREDICTION_EXTRACTOR[response_type](response)
 
     return predictions
@@ -71,37 +70,70 @@ def _extract_od_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
     response: response from the prediction API
     Example example input:
     {
-        "backbonetype": "None",
-        "backbonepredictions": "None",
-        "predictions":
+        "backbonetype": "ObjectDetectionPrediction",
+        "backbonepredictions":
         {
-            "e2a909fb-5d65-44c9-8cf1-09f999a3bc96":
+            "196f6705-4486-42e4-8b48-325bba622f18":
             {
-                "score": 0.9830147624015808,
-                "defect_id": 2525478,
+                "score": 0.9939298629760742,
+                "defect_id": 72558,
                 "coordinates":
                 {
-                    "xmin": 1332,
-                    "ymin": 200,
-                    "xmax": 1916,
-                    "ymax": 784
+                    "xmin": 1523,
+                    "ymin": 1417,
+                    "xmax": 1982,
+                    "ymax": 1801
                 },
                 "labelIndex": 1,
-                "labelName": "Garage open"
+                "labelName": "Screw"
+            },
+            "ca576098-5d97-4d6e-87e5-e3c93e0187d3":
+            {
+                "score": 0.9845893383026123,
+                "defect_id": 72558,
+                "coordinates":
+                {
+                    "xmin": 429,
+                    "ymin": 1035,
+                    "xmax": 651,
+                    "ymax": 1207
+                },
+                "labelIndex": 1,
+                "labelName": "Screw"
+            },
+            "cdb4941b-db69-4952-8769-e057a470a94a":
+            {
+                "score": 0.9666865468025208,
+                "defect_id": 72558,
+                "coordinates":
+                {
+                    "xmin": 948,
+                    "ymin": 1595,
+                    "xmax": 1123,
+                    "ymax": 1804
+                },
+                "labelIndex": 1,
+                "labelName": "Screw"
             }
         },
-        "type": "ObjectDetectionPrediction",
+        "predictions":
+        {
+            "score": 0.9939298629760742,
+            "labelIndex": 1,
+            "labelName": "NG"
+        },
+        "type": "ClassificationPrediction",
         "latency":
         {
-            "preprocess_s": 0.004376649856567383,
-            "infer_s": 0.1019594669342041,
-            "postprocess_s": 0.000013589859008789062,
-            "serialize_s": 0.003810882568359375,
-            "input_conversion_s": 0.03130197525024414,
-            "model_loading_s": 0.00025391578674316406
+            "preprocess_s": 0.005197763442993164,
+            "infer_s": 0.16716742515563965,
+            "postprocess_s": 0.0006124973297119141,
+            "serialize_s": 0.015230655670166016,
+            "input_conversion_s": 0.05388998985290527,
+            "model_loading_s": 0.0002772808074951172
         },
-        "model_id": "60c19e47-36ee-4309-91c0-1bcce137edd7"
-    }
+        "model_id": "1df69515-2218-4fdb-b1be-13694cb8e162"
+    }    
 
     Returns
     -------
@@ -111,7 +143,7 @@ def _extract_od_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
         confidence_score: float
         bounding_box: Dict[str, int]
     """
-    predictions = response["predictions"]
+    predictions = response["backbonepredictions"]
     return [
         {
             "id": id,
