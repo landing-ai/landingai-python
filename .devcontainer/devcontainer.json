@@ -5,7 +5,7 @@
 	// "image": "jupyter/pyspark-notebook",
 
 	"build": {
-		"dockerfile": "../Dockerfile",
+		"dockerfile": "../Dockerfile.notebooks",
 		"context": "..",
 	},
 	

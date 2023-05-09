@@ -56,3 +56,4 @@ __pycache__
 terraform.*
 .terraform.*
 shinobi-dvr/*
+.mypy_cache/*
