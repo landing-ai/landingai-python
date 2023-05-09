@@ -1,5 +1,5 @@
 FROM jupyter/scipy-notebook:2023-05-01
-LABEL maintainer="LAI base image for Jupyter notebooks"
+LABEL maintainer="LAI image for running Jupyter notebooks"
 
 # [Optional] If your requirements rarely change, uncomment this section to add them to the image.
 #
