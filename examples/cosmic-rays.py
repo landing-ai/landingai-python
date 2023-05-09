@@ -12,9 +12,10 @@ def run():
     # connect to camera
     vid = cv2.VideoCapture(0)  # change to cv2.VideoCapture("rtsp://xxxxxx") as needed
 
-    # create a window for visualization
-    cv2.namedWindow("window", cv2.WINDOW_NORMAL)
-    cv2.setWindowProperty("window", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    # create a window for visualization, need to figure this out
+    #cv2.namedWindow("window", cv2.WINDOW_NORMAL)
+    #cv2.setWindowProperty("window", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
 
     # loop forever until ctrl+c pressed
     while True:
@@ -29,7 +30,9 @@ def run():
             visualized = result.visualize(frame)
 
             # show the predictions
-            cv2.imshow("window", visualized)
+            # this doesn't work very well:
+            #cv2.imshow("window", frame)
+            #cv2.waitKey(1)
 
             # delay slightly before running again
             time.sleep(1)
