@@ -1,8 +1,36 @@
+import logging
 import re
+from typing import Any, Dict, List
+
+import cv2
 import numpy as np
-from typing import Dict
-from PIL import Image
 from numpy.typing import NDArray
+from PIL import Image
+
+SPACING_PIXELS = -5
+
+
+def draw_bboxes(detections: List[Dict[str, Any]], image: np.ndarray) -> np.ndarray:
+    "Draw bounding boxes on the input image and return the image with bounding boxes drawn."
+    color = (255, 0, 0)
+    thickness = 2
+    for det in detections:
+        logging.debug(f"b: {det}")
+        bbox = det["bboxes"]
+        xy_min = bbox["xmin"], bbox["ymin"]
+        xy_max = bbox["xmax"], bbox["ymax"]
+        image = cv2.rectangle(image, xy_min, xy_max, color, thickness)
+        image = cv2.putText(
+            img=image,
+            text=f"{det['label']} {det['confidence_score']:.4f}",
+            org=(xy_min[0], xy_min[1] + SPACING_PIXELS),
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=1,
+            color=color,
+            thickness=thickness,
+        )
+    return image
+
 
 def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> np.ndarray:
     """
@@ -25,6 +53,7 @@ def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> np.ndarray:
         flat_mask = np.append(flat_mask, [int(map_number)] * int(num))
     return flat_mask
 
+
 def generate_segmentation_mask(mask_size, output):
     # seg_mask = np.zeros(image.shape[0:2])
     seg_mask = np.zeros(mask_size)
@@ -35,6 +64,7 @@ def generate_segmentation_mask(mask_size, output):
         seg_mask_channel = flat_bitmap_index.reshape(mask_size)
         seg_mask = seg_mask + seg_mask_channel
     return seg_mask
+
 
 def seg_map_to_rgba(
     seg_map: NDArray, color: tuple[int, int, int] = (255, 0, 0), threshold: float = 0.5
@@ -65,7 +95,10 @@ def seg_map_to_rbga_all_classes(
     image[idxs[0], idxs[1], 2] = colors[1][2]
     return image
 
-def visualize_segmentation_masks(image: Image.Image, masks_image: NDArray) -> Image.Image:
-    pil_image = Image.fromarray(image.astype('uint8'), 'RGB')
+
+def visualize_segmentation_masks(
+    image: Image.Image, masks_image: NDArray
+) -> Image.Image:
+    pil_image = Image.fromarray(image.astype("uint8"), "RGB")
     pil_image = Image.alpha_composite(pil_image, masks_image)
     return pil_image

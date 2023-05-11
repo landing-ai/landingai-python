@@ -10,7 +10,13 @@ authors = [
 ]
 description = "Helper library for interacting with Landing AI LandingLens"
 requires-python = ">=3.8"
-dependencies = [ 'opencv-python', 'numpy', 'requests' ]
+dependencies = [
+  'opencv-python',
+  'numpy',
+  'requests',
+  "pydantic",
+  "Pillow",
+]
 
 [project.urls]
 "Homepage" = "https://landing.ai"
