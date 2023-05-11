@@ -5,7 +5,7 @@ import time
 
 import cv2
 from landingai.predict import Predictor
-from landingai.visualize import draw_bboxes
+from landingai.visualize import overlay_bboxes
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -56,7 +56,7 @@ def stream(capture_frame=False, inference_mode=True):
         if inference_mode and fps_count % _INFERENCE_FREQUENCY_SECONDS == 0:
             _LOGGER.info(f"Predicting...")
             dets = predictor.predict(frame)
-            frame = draw_bboxes(dets, image=frame)
+            frame = overlay_bboxes(dets, image=frame)
             filename = datetime.now().strftime("%Y-%m-%d_%H%M%S")
             write_succeed = cv2.imwrite(f"captured_frames/infer_{filename}.jpg", frame)
             assert write_succeed, f"Failed to save the image to file: {filename}"

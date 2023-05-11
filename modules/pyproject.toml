@@ -16,6 +16,7 @@ dependencies = [
   'requests',
   "pydantic",
   "Pillow",
+  "segmentation-mask-overlay"
 ]
 
 [project.urls]

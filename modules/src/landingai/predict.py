@@ -2,6 +2,11 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import cv2
+from landingai.common import (
+    ObjectDetectionPrediction,
+    Prediction,
+    SegmentationPrediction,
+)
 import numpy as np
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
@@ -14,7 +19,9 @@ class Predictor:
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
 
-    def __init__(self, endpoint_id: str, api_key: Optional[str], api_secret: Optional[str]) -> None:
+    def __init__(
+        self, endpoint_id: str, api_key: Optional[str], api_secret: Optional[str]
+    ) -> None:
         self._endpoint_id = endpoint_id
         self._api_key = api_key
         self._api_secret = api_secret
@@ -38,7 +45,7 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: np.ndarray) -> List[Dict[str, Any]]:
+    def predict(self, image: np.ndarray) -> List[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
@@ -56,11 +63,13 @@ class Predictor:
         s = self._create_session(self._url)
         payload = {"endpoint_id": self._endpoint_id}
         headers = {
-                "apikey": self._api_key,
-                "apisecret": self._api_secret,
-                "contentType": "application/json",
-            }
+            "apikey": self._api_key,
+            "apisecret": self._api_secret,
+            "contentType": "application/json",
+        }
         response = s.post(Predictor._url, headers=headers, files=files, params=payload)
+        #  requests.exceptions.HTTPError: 503 Server Error: Service Unavailable for url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=3d2edb1b-073d-4853-87ca-30e430f84379
+        #  429
         response.raise_for_status()
         json_dict = response.json()
         _LOGGER.debug("Response: %s", json_dict)
@@ -70,16 +79,15 @@ class Predictor:
 def _extract_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
     response_type = response["backbonetype"]
     predictions = PREDICTION_EXTRACTOR[response_type](response)
-
     return predictions
 
 
-def _extract_od_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Extract Object Detection result from response
+def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPrediction]:
+    """Extract Object Detection prediction result from response
 
     Parameters
     ----------
-    response: response from the prediction API
+    response: response from the LandingAI prediction endpoint.
     Example example input:
     {
         "backbonetype": "ObjectDetectionPrediction",
@@ -145,19 +153,19 @@ def _extract_od_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
             "model_loading_s": 0.0002772808074951172
         },
         "model_id": "1df69515-2218-4fdb-b1be-13694cb8e162"
-    }    
+    }
 
     Returns
     -------
     A list of Object Detection predictions, each prediction is a dictionary with the following keys:
         id: str
         label: str
-        confidence_score: float
+        score: float
         bboxes: Dict[str, int]
         E.g. {
             "id": "cdb4941b-db69-4952-8769-e057a470a94a",
             "label": "Screw",
-            "confidence_score": 0.9666865468025208,
+            "score": 0.9666865468025208,
             "bboxes": {
                 "xmin": 948,
                 "ymin": 1595,
@@ -168,16 +176,51 @@ def _extract_od_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     predictions = response["backbonepredictions"]
     return [
-        {
-            "id": id,
-            "label": prediction["labelName"],
-            "confidence_score": prediction["score"],
-            "bboxes": prediction["coordinates"],
-        }
-        for id, prediction in predictions.items()
+        ObjectDetectionPrediction(
+            id=id,
+            label_name=pred["labelName"],
+            label_index=pred["labelIndex"],
+            score=pred["score"],
+            bboxes=(
+                pred["coordinates"]["xmin"],
+                pred["coordinates"]["ymin"],
+                pred["coordinates"]["xmax"],
+                pred["coordinates"]["ymax"],
+            ),
+        )
+        for id, pred in predictions.items()
+    ]
+
+
+def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+    """Extract Segmentation prediction result from response
+
+    Parameters
+    ----------
+    response: response from the LandingAI prediction endpoint.
+
+    """
+    encoded_predictions = response["backbonepredictions"]["bitmaps"]
+    encoding_map = response["backbonepredictions"]["encoding"]["options"]["map"]
+    mask_shape = (
+        response["backbonepredictions"]["imageHeight"],
+        response["backbonepredictions"]["imageWidth"],
+    )
+    return [
+        SegmentationPrediction(
+            id=id,
+            label_name=bitmap_info["label_name"],
+            label_index=bitmap_info["label_index"],
+            score=bitmap_info["score"],
+            encoded_mask=bitmap_info["bitmap"],
+            encoding_map=encoding_map,
+            mask_shape=mask_shape,
+        )
+        for id, bitmap_info in encoded_predictions.items()
     ]
 
 
 PREDICTION_EXTRACTOR = {
     "ObjectDetectionPrediction": _extract_od_prediction,
+    "SegmentationPrediction": _extract_seg_prediction,
 }
