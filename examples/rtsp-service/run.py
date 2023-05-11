@@ -2,6 +2,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 import time
+# Load LandingLens library from the local repo
+import sys, os
+sys.path.append("../../src")
 
 import cv2
 from landingai.predict import Predictor
@@ -16,19 +19,17 @@ logging.basicConfig(
 _LOGGER = logging.getLogger(__name__)
 
 _FRAME_FOLDER_NAME = "captured_frames"
-_CAPUTURE_FREQUENCY_SECONDS = 1
-_INFERENCE_FREQUENCY_SECONDS = 1
+_CAPTURE_FREQUENCY_SECONDS = 10
+_INFERENCE_FREQUENCY_SECONDS = 10
 
-# TODO: polish this example with more documentations
-
-api_key = ""
-api_secret = ""
-endpoint_id = ""
+api_key = "dvkyqd942h90wn1t3fsbjshsud3xdgs"
+api_secret = "gj95e8antnkhcduuwrgok3efrtwpzqojykc05l8yiuxnaecxdqxvawrir0d3yw"
+endpoint_id = "c0791de7-66e3-4970-9a87-064e5e3b07ee"
+stream_url = "rtsp://172.25.101.151/ch0_0.h264"  # Yi Dome Camera
+# stream_url = 0
 
 def stream(capture_frame=False, inference_mode=True):
     """Enable camera and start streaming."""
-    # stream_url = "rtsp://172.25.101.151/ch0_0.h264"  # Yi Dome Camera
-    stream_url = 0
     cap = cv2.VideoCapture(stream_url)
     if not cap.isOpened():
         print(f"Stream connection is not opened...: {stream_url}")
@@ -49,7 +50,7 @@ def stream(capture_frame=False, inference_mode=True):
         if cv2.waitKey(1) & 0xFF == ord("c"):
             capture_frame = not capture_frame
             _LOGGER.info(f"'capture_frame' set to: {capture_frame}")
-        if capture_frame and fps_count % _CAPUTURE_FREQUENCY_SECONDS == 0:
+        if capture_frame and fps_count % _CAPTURE_FREQUENCY_SECONDS == 0:
             filename = datetime.now().strftime("%Y-%m-%d_%H%M%S")
             write_succeed = cv2.imwrite(f"captured_frames/frame_{filename}.jpg", frame)
             assert write_succeed, f"Failed to save the image to file: {filename}"
