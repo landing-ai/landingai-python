@@ -8,12 +8,12 @@ version = "0.0.1"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
-packages = [{include = "src"}]
+packages = [{include = "landingai"}]
 
 [tool.poetry.urls]
 "Homepage" = "https://landing.ai"
-"repository" = "TODO"
-"documentation" = "TODO"
+"repository" = "https://github.com/landing-ai/landingai-python-v1"
+"documentation" = "https://landing-ai.github.io/landingai-python-v1/landingai.html"
 
 [tool.poetry.dependencies]  # main dependency group
 python = ">=3.8"
