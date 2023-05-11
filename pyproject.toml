@@ -1,26 +1,33 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "landingai"
 version = "0.0.1"
-authors = [
-  { name="Landing AI", email="dev@landing.ai" },
-]
 description = "Helper library for interacting with Landing AI LandingLens"
-requires-python = ">=3.8"
-dependencies = [
-  'opencv-python',
-  'numpy',
-  'requests',
-  "pydantic",
-  "Pillow",
-  "segmentation-mask-overlay"
-]
+authors = ["Landing AI <dev@landing.ai>"]
+readme = "README.md"
+packages = [{include = "src"}]
 
-[project.urls]
+[tool.poetry.urls]
 "Homepage" = "https://landing.ai"
+"repository" = "TODO"
+"documentation" = "TODO"
+
+[tool.poetry.dependencies]  # main dependency group
+python = ">=3.8"
+
+opencv-python-headless = ">=4.5"
+numpy = ">=1.21.0"
+pillow = ">=9.1.1"
+pydantic = ">=1.9.0"
+requests = "*"
+segmentation-mask-overlay = "*"
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+mypy = "*"
 
 [tool.pytest.ini_options]
 log_cli = true

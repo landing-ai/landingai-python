@@ -18,13 +18,36 @@ git clone
 pip install
 ```
 
-## Building the LandingLens library
-Most of the time you won't need to build the library since it is included on this repository and also published to pypi. 
+## Install the LandingLens library locally
 
-Building the library requires docker to be installed
+Most of the time you won't need to build the library since it is included on this repository and also published to pypi.
 
-```bash
-make build_wheel
+But if you want to contribute to the repo, you can follow the below steps:
+
+1. **Install poetry**
+
+| See more from the [official doc](https://python-poetry.org/docs/#installation).
+
+For Linux, macOS, Windows (WSL):
+
+```
+curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-will drop out the `.whl` and `.tar.gz.` file
+NOTE: if you can switch to use a different Python version by specifying the python version:
+
+```
+curl -sSL https://install.python-poetry.org | python3.10 -
+```
+
+or run below command after you have installed poetry:
+
+```
+poetry env use 3.10
+```
+
+2. **Install all the dependencies**
+
+```bash
+poetry install
+```
