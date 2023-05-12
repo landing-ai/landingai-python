@@ -18,6 +18,37 @@ This repository contains LandingLens development library and running examples sh
 pip install landingai
 ```
 
+## Quick Start
+
+**Run inference** using your deployed inference endpoint at LandingAI:
+
+- Install the library with the above command.
+- Create a `Predictor` with your inference endpoint id, landing API key and secret.
+- Call `predict()` with an image (in numpy array format).
+
+```python
+from landingai.predict import Predictor
+# Find your API key and secrets
+endpoint_id = "FILL YOUR INFERENCE ENDPOINT ID"
+api_key = "FILL YOUR API KEY"
+api_secret = "FILL YOUR API SECRET"
+# Load your image
+image = ...
+# Run inference
+predictor = Predictor(endpoint_id, api_key, api_secret)
+predictions = predictor.predict(image)
+```
+
+**Visualize your inference results** by overlaying the predictions on the input image and save it on disk:
+
+```python
+from landingai.visualize import overlay_predictions
+# continue the above example
+predictions = predictor.predict(image)
+image_with_preds = overlay_predictions(predictions, image)
+image_with_preds.save("image.jpg")
+```
+
 ## Running examples locally
 
 All the examples in this repo can be run locally. 
