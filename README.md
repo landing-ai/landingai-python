@@ -29,9 +29,9 @@ pip install landingai
 ```python
 from landingai.predict import Predictor
 # Find your API key and secrets
-endpoint_id = "FILL YOUR INFERENCE ENDPOINT ID"
-api_key = "FILL YOUR API KEY"
-api_secret = "FILL YOUR API SECRET"
+endpoint_id = "FILL_YOUR_INFERENCE_ENDPOINT_ID"
+api_key = "FILL_YOUR_API_KEY"
+api_secret = "FILL_YOUR_API_SECRET"
 # Load your image
 image = ...
 # Run inference
