@@ -3,7 +3,7 @@
 </p>
 
 # LandingLens code sample repository
-This repository contains LandingLens development library and running examples showing how to integrate LandingLens on a variety of scenarios.
+This repository contains LandingLens development library and running examples showing how to integrate LandingLens on a variety of scenarios. All the examples show different ways to acquire images from multiple sources and techniques to process the results. Jupyter notebooks focus on ease of use while Python apps include more robust and complete examples.
 
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 | example | description | language |
