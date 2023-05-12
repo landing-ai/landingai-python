@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="200" height="200" src="assets/avi-logo.png">
+  <img width="200" height="200" src="https://github.com/landing-ai/landingai-python-v1/raw/main/assets/avi-logo.png">
 </p>
 
 # LandingLens code sample repository
@@ -8,8 +8,9 @@ This repository contains LandingLens development library and running examples sh
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 | example | description | language |
 |---|---|---|
-| [Door monitoring for home automation](examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook uses an object detection model to determine whether a door is open or closed. the notebook can acquire images directly from an RTSP camera | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python-v1/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb)|
-| [Cosmic ray detector](examples/capture-service/cosmic-rays.py) | This application shows how to do continuous acquisition from an image sensor using RTSP. Images are analyzed using a segmentation model to detect cosmic rays | Python application |
+| [Company logo identification](https://github.com/landing-ai/landingai-python-v1/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook can run directly in Google collab using the web browser camera to detect Landing AI logo | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python-v1/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
+| [Door monitoring for home automation](https://github.com/landing-ai/landingai-python-v1/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook uses an object detection model to determine whether a door is open or closed. The notebook can acquire images directly from an RTSP camera | Jupyter Notebook |
+| [Streaming capture service (WIP)](examples/capture-service/run.py) | This application shows how to do continuous acquisition from an image sensor using RTSP. | Python application |
 
 ## Install the library
 

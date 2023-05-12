@@ -4,7 +4,7 @@ from pathlib import Path
 import time
 # Load LandingLens library from the local repo
 import sys, os
-sys.path.append("../../src")
+sys.path.append("../..")
 
 import cv2
 from landingai.predict import Predictor
@@ -30,6 +30,7 @@ stream_url = "rtsp://172.25.101.151/ch0_0.h264"  # Yi Dome Camera
 
 def stream(capture_frame=False, inference_mode=True):
     """Enable camera and start streaming."""
+    _LOGGER.info(f"Opening the stream: {stream_url}")
     cap = cv2.VideoCapture(stream_url)
     if not cap.isOpened():
         print(f"Stream connection is not opened...: {stream_url}")
