@@ -7,13 +7,15 @@ from pydantic import BaseModel, BaseSettings
 
 
 class Credential(BaseSettings):
-    # TODO: support env vars
+    """Landing AI API credential of a particular user."""
     api_key: str
     api_secret: str
 
 
 class Prediction(BaseModel):
-    # TODO: add docs
+    """The base/parent prediction class that stores the common shared properties of a prediction.
+    E.g, the confidence score, the predicted label.
+    """
     id: str
     score: float
     label_name: str
@@ -21,13 +23,16 @@ class Prediction(BaseModel):
 
 
 class ObjectDetectionPrediction(Prediction):
-    # TODO: add docs
-    # xmin, ymin, xmax, ymax
+    """A single bounding box prediction for an image.
+    It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score and the predicted label.
+    """
     bboxes: Tuple[int, int, int, int]
 
 
 class SegmentationPrediction(Prediction):
-    # TODO: add docs
+    """A single segmentation mask prediction for an image.
+    It includes a predicted segmentation mask, confidence score and the predicted label.
+    """
     encoded_mask: str
     encoding_map: Dict[str, int]
     mask_shape: Tuple[int, int]
@@ -52,10 +57,12 @@ class SegmentationPrediction(Prediction):
 def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
     """
     Decode bitmap string to numpy array
-    -----
-    bitmap: str
+
+    Parameters
+    ----------
+    bitmap:
         Single run-length encoded bitmap string. e.g. "5Z3N2Z"
-    encoding_map: Dict[str, int]
+    encoding_map:
         Dictionary with the enconding used to generate the bitmap. e.g. {'Z':0, 'N':1}
 
     Return
