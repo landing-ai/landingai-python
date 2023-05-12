@@ -1,15 +1,15 @@
-import logging
-from typing import Any, Dict, List
+from typing import List
 
 import cv2
 import numpy as np
+from PIL import Image
+from segmentation_mask_overlay import overlay_masks
+
 from landingai.common import (
-    Prediction,
     ObjectDetectionPrediction,
+    Prediction,
     SegmentationPrediction,
 )
-from segmentation_mask_overlay import overlay_masks
-from PIL import Image
 
 SPACING_PIXELS = -5
 

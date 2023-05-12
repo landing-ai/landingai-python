@@ -1,6 +1,6 @@
 import re
 from functools import cached_property
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings
@@ -37,8 +37,8 @@ class SegmentationPrediction(Prediction):
         # NOTE: 1 and 0, not True and False
         # TODO: add docs
         flattened_bitmap = decode_bitmap_rle(self.encoded_mask, self.encoding_map)
-        seg_mask_channel = flattened_bitmap.reshape(self.mask_shape)
-        return np.zeros(self.mask_shape) + seg_mask_channel
+        seg_mask_channel = np.array(flattened_bitmap, dtype=np.uint8).reshape(self.mask_shape)
+        return np.zeros(self.mask_shape, dtype=np.uint8) + seg_mask_channel
 
     @cached_property
     def decoded_index_mask(self) -> np.ndarray:
@@ -49,23 +49,22 @@ class SegmentationPrediction(Prediction):
         keep_untouched=(cached_property, )
 
 
-def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> np.ndarray:
+def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
     """
     Decode bitmap string to numpy array
     -----
     bitmap: str
-        Single bitmap
+        Single run-length encoded bitmap string. e.g. "5Z3N2Z"
     encoding_map: Dict[str, int]
         Dictionary with the enconding used to generate the bitmap. e.g. {'Z':0, 'N':1}
 
     Return
     -----
-    flat_mask: np.ndarray
-        Flatten segmentation mask for a single defect
+    A flattened segmentation mask (with 0s and 1s) for a single class.
     """
-    flat_mask = np.array([])
+    flat_mask = []
     bitmap_list = re.split("(Z|N)", bitmap)
     for num, map_letter in zip(*[iter(bitmap_list)] * 2):
         map_number = encoding_map[map_letter]
-        flat_mask = np.append(flat_mask, [int(map_number)] * int(num))
+        flat_mask.extend([int(map_number)] * int(num))
     return flat_mask
