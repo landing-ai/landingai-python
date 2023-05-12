@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import cv2
@@ -12,12 +13,16 @@ from landingai.common import (
 )
 
 SPACING_PIXELS = -5
+_LOGGER = logging.getLogger(__name__)
 
 
 def overlay_predictions(
     predictions: List[Prediction], image: np.ndarray
 ) -> Image.Image:
     """Overlay the prediction results on the input image and return the image with overlaid."""
+    if len(predictions) == 0:
+        _LOGGER.warning("No predictions to overlay, returning original image")
+        return Image.fromarray(image)
     types = {type(pred) for pred in predictions}
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     overlay_func = _OVERLAY_FUNC_MAP[types.pop()]

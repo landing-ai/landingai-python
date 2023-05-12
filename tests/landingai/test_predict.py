@@ -15,6 +15,7 @@ def test_od_predict():
     img = cv2.imread("tests/data/landing-logo.jpeg")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     assert img is not None
+    # Call LandingLens inference endpoint with Predictor.predict()
     res = predictor.predict(img)
     assert res, "Result should not be empty or None"
     logging.info(res)
