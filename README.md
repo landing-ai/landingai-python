@@ -30,7 +30,7 @@ NOTE: it's recommended to create a new Python virtual environment first.
 2. Install the library: `pip install landingai`
 3. Run: `landingai-python-v1/examples/rtsp-capture/run.py`
 
-## Install the LandingLens library locally
+## Building the LandingLens library locally (for developers and contributors)
 
 Most of the time you won't need to build the library since it is included on this repository and also published to pypi.
 
