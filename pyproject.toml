@@ -27,7 +27,6 @@ segmentation-mask-overlay = "*"
 
 [tool.poetry.group.test.dependencies]
 pytest = "*"
-mypy = "*"
 
 [tool.pytest.ini_options]
 log_cli = true
