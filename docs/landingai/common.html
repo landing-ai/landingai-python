@@ -36,6 +36,33 @@
                 </ul>
 
             </li>
+            <li>
+                    <a class="class" href="#Prediction">Prediction</a>
+                            <ul class="memberlist">
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#ObjectDetectionPrediction">ObjectDetectionPrediction</a>
+                            <ul class="memberlist">
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#SegmentationPrediction">SegmentationPrediction</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="class" href="#SegmentationPrediction.Config">SegmentationPrediction.Config</a>
+                                        <ul class="memberlist">
+                            </ul>
+
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="function" href="#decode_bitmap_rle">decode_bitmap_rle</a>
+            </li>
     </ul>
 
 
@@ -57,12 +84,76 @@
 
                         <label class="view-source-button" for="mod-common-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseSettings</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a><span class="k">class</span> <span class="nc">Credential</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">5</span></a>    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">6</span></a>    <span class="n">api_secret</span><span class="p">:</span> <span class="nb">str</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span> <span class="nn">re</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">BaseSettings</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="k">class</span> <span class="nc">Credential</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="c1"># TODO: support env vars</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="n">api_secret</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="k">class</span> <span class="nc">Prediction</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="c1"># TODO: add docs</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>    <span class="n">score</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="n">label_name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="n">label_index</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="k">class</span> <span class="nc">ObjectDetectionPrediction</span><span class="p">(</span><span class="n">Prediction</span><span class="p">):</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="c1"># TODO: add docs</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="c1"># xmin, ymin, xmax, ymax</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="n">bboxes</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="k">class</span> <span class="nc">SegmentationPrediction</span><span class="p">(</span><span class="n">Prediction</span><span class="p">):</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="c1"># TODO: add docs</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="n">encoded_mask</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="n">encoding_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="nd">@cached_property</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">decoded_boolean_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>        <span class="c1"># NOTE: 1 and 0, not True and False</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="c1"># TODO: add docs</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>        <span class="n">flattened_bitmap</span> <span class="o">=</span> <span class="n">decode_bitmap_rle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoded_mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoding_map</span><span class="p">)</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>        <span class="n">seg_mask_channel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flattened_bitmap</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">+</span> <span class="n">seg_mask_channel</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="nd">@cached_property</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="k">def</span> <span class="nf">decoded_index_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        <span class="c1"># TODO: add docs</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoded_boolean_mask</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="n">keep_untouched</span><span class="o">=</span><span class="p">(</span><span class="n">cached_property</span><span class="p">,</span> <span class="p">)</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="k">def</span> <span class="nf">decode_bitmap_rle</span><span class="p">(</span><span class="n">bitmap</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">encoding_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">    Decode bitmap string to numpy array</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a><span class="sd">    -----</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">    bitmap: str</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">        Single run-length encoded bitmap string. e.g. &quot;5Z3N2Z&quot;</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="sd">    encoding_map: Dict[str, int]</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="sd">        Dictionary with the enconding used to generate the bitmap. e.g. {&#39;Z&#39;:0, &#39;N&#39;:1}</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a><span class="sd">    Return</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="sd">    -----</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">    A flattened segmentation mask (with 0s and 1s) for a single class.</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>    <span class="n">flat_mask</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="n">bitmap_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(Z|N)&quot;</span><span class="p">,</span> <span class="n">bitmap</span><span class="p">)</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>    <span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">map_letter</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">iter</span><span class="p">(</span><span class="n">bitmap_list</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">):</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>        <span class="n">map_number</span> <span class="o">=</span> <span class="n">encoding_map</span><span class="p">[</span><span class="n">map_letter</span><span class="p">]</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>        <span class="n">flat_mask</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">map_number</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>    <span class="k">return</span> <span class="n">flat_mask</span>
 </span></pre></div>
 
 
@@ -78,9 +169,10 @@
 
     </div>
     <a class="headerlink" href="#Credential"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Credential-5"><a href="#Credential-5"><span class="linenos">5</span></a><span class="k">class</span> <span class="nc">Credential</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
-</span><span id="Credential-6"><a href="#Credential-6"><span class="linenos">6</span></a>    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Credential-7"><a href="#Credential-7"><span class="linenos">7</span></a>    <span class="n">api_secret</span><span class="p">:</span> <span class="nb">str</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Credential-10"><a href="#Credential-10"><span class="linenos">10</span></a><span class="k">class</span> <span class="nc">Credential</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+</span><span id="Credential-11"><a href="#Credential-11"><span class="linenos">11</span></a>    <span class="c1"># TODO: support env vars</span>
+</span><span id="Credential-12"><a href="#Credential-12"><span class="linenos">12</span></a>    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Credential-13"><a href="#Credential-13"><span class="linenos">13</span></a>    <span class="n">api_secret</span><span class="p">:</span> <span class="nb">str</span>
 </span></pre></div>
 
 
@@ -116,6 +208,217 @@ Heroku and any 12 factor app design.</p>
             </div>
                                 </dl>
                             </div>
+                </section>
+                <section id="Prediction">
+                            <input id="Prediction-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Prediction</span><wbr>(<span class="base">pydantic.main.BaseModel</span>):
+
+                <label class="view-source-button" for="Prediction-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Prediction"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Prediction-16"><a href="#Prediction-16"><span class="linenos">16</span></a><span class="k">class</span> <span class="nc">Prediction</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Prediction-17"><a href="#Prediction-17"><span class="linenos">17</span></a>    <span class="c1"># TODO: add docs</span>
+</span><span id="Prediction-18"><a href="#Prediction-18"><span class="linenos">18</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Prediction-19"><a href="#Prediction-19"><span class="linenos">19</span></a>    <span class="n">score</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="Prediction-20"><a href="#Prediction-20"><span class="linenos">20</span></a>    <span class="n">label_name</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Prediction-21"><a href="#Prediction-21"><span class="linenos">21</span></a>    <span class="n">label_index</span><span class="p">:</span> <span class="nb">int</span>
+</span></pre></div>
+
+
+    
+
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>pydantic.main.BaseModel</dt>
+                                <dd id="Prediction.__init__" class="function">BaseModel</dd>
+                <dd id="Prediction.dict" class="function">dict</dd>
+                <dd id="Prediction.json" class="function">json</dd>
+                <dd id="Prediction.parse_obj" class="function">parse_obj</dd>
+                <dd id="Prediction.parse_raw" class="function">parse_raw</dd>
+                <dd id="Prediction.parse_file" class="function">parse_file</dd>
+                <dd id="Prediction.from_orm" class="function">from_orm</dd>
+                <dd id="Prediction.construct" class="function">construct</dd>
+                <dd id="Prediction.copy" class="function">copy</dd>
+                <dd id="Prediction.schema" class="function">schema</dd>
+                <dd id="Prediction.schema_json" class="function">schema_json</dd>
+                <dd id="Prediction.validate" class="function">validate</dd>
+                <dd id="Prediction.update_forward_refs" class="function">update_forward_refs</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="ObjectDetectionPrediction">
+                            <input id="ObjectDetectionPrediction-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">ObjectDetectionPrediction</span><wbr>(<span class="base"><a href="#Prediction">Prediction</a></span>):
+
+                <label class="view-source-button" for="ObjectDetectionPrediction-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#ObjectDetectionPrediction"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="ObjectDetectionPrediction-24"><a href="#ObjectDetectionPrediction-24"><span class="linenos">24</span></a><span class="k">class</span> <span class="nc">ObjectDetectionPrediction</span><span class="p">(</span><span class="n">Prediction</span><span class="p">):</span>
+</span><span id="ObjectDetectionPrediction-25"><a href="#ObjectDetectionPrediction-25"><span class="linenos">25</span></a>    <span class="c1"># TODO: add docs</span>
+</span><span id="ObjectDetectionPrediction-26"><a href="#ObjectDetectionPrediction-26"><span class="linenos">26</span></a>    <span class="c1"># xmin, ymin, xmax, ymax</span>
+</span><span id="ObjectDetectionPrediction-27"><a href="#ObjectDetectionPrediction-27"><span class="linenos">27</span></a>    <span class="n">bboxes</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span></pre></div>
+
+
+    
+
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>pydantic.main.BaseModel</dt>
+                                <dd id="ObjectDetectionPrediction.__init__" class="function">BaseModel</dd>
+                <dd id="ObjectDetectionPrediction.dict" class="function">dict</dd>
+                <dd id="ObjectDetectionPrediction.json" class="function">json</dd>
+                <dd id="ObjectDetectionPrediction.parse_obj" class="function">parse_obj</dd>
+                <dd id="ObjectDetectionPrediction.parse_raw" class="function">parse_raw</dd>
+                <dd id="ObjectDetectionPrediction.parse_file" class="function">parse_file</dd>
+                <dd id="ObjectDetectionPrediction.from_orm" class="function">from_orm</dd>
+                <dd id="ObjectDetectionPrediction.construct" class="function">construct</dd>
+                <dd id="ObjectDetectionPrediction.copy" class="function">copy</dd>
+                <dd id="ObjectDetectionPrediction.schema" class="function">schema</dd>
+                <dd id="ObjectDetectionPrediction.schema_json" class="function">schema_json</dd>
+                <dd id="ObjectDetectionPrediction.validate" class="function">validate</dd>
+                <dd id="ObjectDetectionPrediction.update_forward_refs" class="function">update_forward_refs</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="SegmentationPrediction">
+                            <input id="SegmentationPrediction-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">SegmentationPrediction</span><wbr>(<span class="base"><a href="#Prediction">Prediction</a></span>):
+
+                <label class="view-source-button" for="SegmentationPrediction-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#SegmentationPrediction"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SegmentationPrediction-30"><a href="#SegmentationPrediction-30"><span class="linenos">30</span></a><span class="k">class</span> <span class="nc">SegmentationPrediction</span><span class="p">(</span><span class="n">Prediction</span><span class="p">):</span>
+</span><span id="SegmentationPrediction-31"><a href="#SegmentationPrediction-31"><span class="linenos">31</span></a>    <span class="c1"># TODO: add docs</span>
+</span><span id="SegmentationPrediction-32"><a href="#SegmentationPrediction-32"><span class="linenos">32</span></a>    <span class="n">encoded_mask</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="SegmentationPrediction-33"><a href="#SegmentationPrediction-33"><span class="linenos">33</span></a>    <span class="n">encoding_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="SegmentationPrediction-34"><a href="#SegmentationPrediction-34"><span class="linenos">34</span></a>    <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+</span><span id="SegmentationPrediction-35"><a href="#SegmentationPrediction-35"><span class="linenos">35</span></a>
+</span><span id="SegmentationPrediction-36"><a href="#SegmentationPrediction-36"><span class="linenos">36</span></a>    <span class="nd">@cached_property</span>
+</span><span id="SegmentationPrediction-37"><a href="#SegmentationPrediction-37"><span class="linenos">37</span></a>    <span class="k">def</span> <span class="nf">decoded_boolean_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="SegmentationPrediction-38"><a href="#SegmentationPrediction-38"><span class="linenos">38</span></a>        <span class="c1"># NOTE: 1 and 0, not True and False</span>
+</span><span id="SegmentationPrediction-39"><a href="#SegmentationPrediction-39"><span class="linenos">39</span></a>        <span class="c1"># TODO: add docs</span>
+</span><span id="SegmentationPrediction-40"><a href="#SegmentationPrediction-40"><span class="linenos">40</span></a>        <span class="n">flattened_bitmap</span> <span class="o">=</span> <span class="n">decode_bitmap_rle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoded_mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoding_map</span><span class="p">)</span>
+</span><span id="SegmentationPrediction-41"><a href="#SegmentationPrediction-41"><span class="linenos">41</span></a>        <span class="n">seg_mask_channel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flattened_bitmap</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
+</span><span id="SegmentationPrediction-42"><a href="#SegmentationPrediction-42"><span class="linenos">42</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">+</span> <span class="n">seg_mask_channel</span>
+</span><span id="SegmentationPrediction-43"><a href="#SegmentationPrediction-43"><span class="linenos">43</span></a>
+</span><span id="SegmentationPrediction-44"><a href="#SegmentationPrediction-44"><span class="linenos">44</span></a>    <span class="nd">@cached_property</span>
+</span><span id="SegmentationPrediction-45"><a href="#SegmentationPrediction-45"><span class="linenos">45</span></a>    <span class="k">def</span> <span class="nf">decoded_index_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="SegmentationPrediction-46"><a href="#SegmentationPrediction-46"><span class="linenos">46</span></a>        <span class="c1"># TODO: add docs</span>
+</span><span id="SegmentationPrediction-47"><a href="#SegmentationPrediction-47"><span class="linenos">47</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoded_boolean_mask</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span>
+</span><span id="SegmentationPrediction-48"><a href="#SegmentationPrediction-48"><span class="linenos">48</span></a>
+</span><span id="SegmentationPrediction-49"><a href="#SegmentationPrediction-49"><span class="linenos">49</span></a>    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+</span><span id="SegmentationPrediction-50"><a href="#SegmentationPrediction-50"><span class="linenos">50</span></a>        <span class="n">keep_untouched</span><span class="o">=</span><span class="p">(</span><span class="n">cached_property</span><span class="p">,</span> <span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>pydantic.main.BaseModel</dt>
+                                <dd id="SegmentationPrediction.__init__" class="function">BaseModel</dd>
+                <dd id="SegmentationPrediction.dict" class="function">dict</dd>
+                <dd id="SegmentationPrediction.json" class="function">json</dd>
+                <dd id="SegmentationPrediction.parse_obj" class="function">parse_obj</dd>
+                <dd id="SegmentationPrediction.parse_raw" class="function">parse_raw</dd>
+                <dd id="SegmentationPrediction.parse_file" class="function">parse_file</dd>
+                <dd id="SegmentationPrediction.from_orm" class="function">from_orm</dd>
+                <dd id="SegmentationPrediction.construct" class="function">construct</dd>
+                <dd id="SegmentationPrediction.copy" class="function">copy</dd>
+                <dd id="SegmentationPrediction.schema" class="function">schema</dd>
+                <dd id="SegmentationPrediction.schema_json" class="function">schema_json</dd>
+                <dd id="SegmentationPrediction.validate" class="function">validate</dd>
+                <dd id="SegmentationPrediction.update_forward_refs" class="function">update_forward_refs</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="SegmentationPrediction.Config">
+                            <input id="SegmentationPrediction.Config-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">SegmentationPrediction.Config</span>:
+
+                <label class="view-source-button" for="SegmentationPrediction.Config-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#SegmentationPrediction.Config"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SegmentationPrediction.Config-49"><a href="#SegmentationPrediction.Config-49"><span class="linenos">49</span></a>    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+</span><span id="SegmentationPrediction.Config-50"><a href="#SegmentationPrediction.Config-50"><span class="linenos">50</span></a>        <span class="n">keep_untouched</span><span class="o">=</span><span class="p">(</span><span class="n">cached_property</span><span class="p">,</span> <span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                </section>
+                <section id="decode_bitmap_rle">
+                            <input id="decode_bitmap_rle-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">decode_bitmap_rle</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">bitmap</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">encoding_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>:</span></span>
+
+                <label class="view-source-button" for="decode_bitmap_rle-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#decode_bitmap_rle"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="decode_bitmap_rle-53"><a href="#decode_bitmap_rle-53"><span class="linenos">53</span></a><span class="k">def</span> <span class="nf">decode_bitmap_rle</span><span class="p">(</span><span class="n">bitmap</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">encoding_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="decode_bitmap_rle-54"><a href="#decode_bitmap_rle-54"><span class="linenos">54</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="decode_bitmap_rle-55"><a href="#decode_bitmap_rle-55"><span class="linenos">55</span></a><span class="sd">    Decode bitmap string to numpy array</span>
+</span><span id="decode_bitmap_rle-56"><a href="#decode_bitmap_rle-56"><span class="linenos">56</span></a><span class="sd">    -----</span>
+</span><span id="decode_bitmap_rle-57"><a href="#decode_bitmap_rle-57"><span class="linenos">57</span></a><span class="sd">    bitmap: str</span>
+</span><span id="decode_bitmap_rle-58"><a href="#decode_bitmap_rle-58"><span class="linenos">58</span></a><span class="sd">        Single run-length encoded bitmap string. e.g. &quot;5Z3N2Z&quot;</span>
+</span><span id="decode_bitmap_rle-59"><a href="#decode_bitmap_rle-59"><span class="linenos">59</span></a><span class="sd">    encoding_map: Dict[str, int]</span>
+</span><span id="decode_bitmap_rle-60"><a href="#decode_bitmap_rle-60"><span class="linenos">60</span></a><span class="sd">        Dictionary with the enconding used to generate the bitmap. e.g. {&#39;Z&#39;:0, &#39;N&#39;:1}</span>
+</span><span id="decode_bitmap_rle-61"><a href="#decode_bitmap_rle-61"><span class="linenos">61</span></a>
+</span><span id="decode_bitmap_rle-62"><a href="#decode_bitmap_rle-62"><span class="linenos">62</span></a><span class="sd">    Return</span>
+</span><span id="decode_bitmap_rle-63"><a href="#decode_bitmap_rle-63"><span class="linenos">63</span></a><span class="sd">    -----</span>
+</span><span id="decode_bitmap_rle-64"><a href="#decode_bitmap_rle-64"><span class="linenos">64</span></a><span class="sd">    A flattened segmentation mask (with 0s and 1s) for a single class.</span>
+</span><span id="decode_bitmap_rle-65"><a href="#decode_bitmap_rle-65"><span class="linenos">65</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="decode_bitmap_rle-66"><a href="#decode_bitmap_rle-66"><span class="linenos">66</span></a>    <span class="n">flat_mask</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="decode_bitmap_rle-67"><a href="#decode_bitmap_rle-67"><span class="linenos">67</span></a>    <span class="n">bitmap_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(Z|N)&quot;</span><span class="p">,</span> <span class="n">bitmap</span><span class="p">)</span>
+</span><span id="decode_bitmap_rle-68"><a href="#decode_bitmap_rle-68"><span class="linenos">68</span></a>    <span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">map_letter</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">iter</span><span class="p">(</span><span class="n">bitmap_list</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">):</span>
+</span><span id="decode_bitmap_rle-69"><a href="#decode_bitmap_rle-69"><span class="linenos">69</span></a>        <span class="n">map_number</span> <span class="o">=</span> <span class="n">encoding_map</span><span class="p">[</span><span class="n">map_letter</span><span class="p">]</span>
+</span><span id="decode_bitmap_rle-70"><a href="#decode_bitmap_rle-70"><span class="linenos">70</span></a>        <span class="n">flat_mask</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">map_number</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
+</span><span id="decode_bitmap_rle-71"><a href="#decode_bitmap_rle-71"><span class="linenos">71</span></a>    <span class="k">return</span> <span class="n">flat_mask</span>
+</span></pre></div>
+
+
+            <div class="docstring"><h2 id="decode-bitmap-string-to-numpy-array">Decode bitmap string to numpy array</h2>
+
+<p>bitmap: str
+    Single run-length encoded bitmap string. e.g. "5Z3N2Z"
+encoding_map: Dict[str, int]
+    Dictionary with the enconding used to generate the bitmap. e.g. {'Z':0, 'N':1}</p>
+
+<h2 id="return">Return</h2>
+
+<p>A flattened segmentation mask (with 0s and 1s) for a single class.</p>
+</div>
+
+
                 </section>
     </main>
 <script>
