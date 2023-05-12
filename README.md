@@ -28,7 +28,7 @@ NOTE: it's recommended to create a new Python virtual environment first.
 
 1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python-v1.git`
 2. Install the library: `pip install landingai`
-3. Run: `landingai-python-v1/examples/rtsp-capture/run.py`
+3. Run: `python landingai-python-v1/examples/rtsp-capture/run.py`
 
 ## Building the LandingLens library locally (for developers and contributors)
 
