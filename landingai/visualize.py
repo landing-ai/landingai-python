@@ -29,7 +29,9 @@ def overlay_predictions(
     return overlay_func(predictions, image)
 
 
-def overlay_bboxes(predictions: List[ObjectDetectionPrediction], image: np.ndarray) -> Image.Image:
+def overlay_bboxes(
+    predictions: List[ObjectDetectionPrediction], image: np.ndarray
+) -> Image.Image:
     "Draw bounding boxes on the input image and return the image with bounding boxes drawn."
     color = (255, 0, 0)
     thickness = 2

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.0.5"
+version = "0.0.6"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
@@ -25,9 +25,24 @@ pydantic = ">=1.9.0"
 requests = "*"
 segmentation-mask-overlay = "*"
 
-[tool.poetry.group.test.dependencies]
+[tool.poetry.group.dev.dependencies]
+jupyterlab = "*"
+autoflake = "*"
 pytest = "*"
+black = "*"
+flake8 = "*"
+isort = "*"
 
 [tool.pytest.ini_options]
 log_cli = true
 log_cli_level = "DEBUG"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.black]
+exclude = '.vscode|.eggs|venv'
+line-length = 88               # suggested by black official site
+
+[tool.isort]
+line_length = 88
+profile = "black"

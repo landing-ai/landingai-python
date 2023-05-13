@@ -2,14 +2,15 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import cv2
+import numpy as np
+from requests import Session
+from requests.adapters import HTTPAdapter, Retry
+
 from landingai.common import (
     ObjectDetectionPrediction,
     Prediction,
     SegmentationPrediction,
 )
-import numpy as np
-from requests import Session
-from requests.adapters import HTTPAdapter, Retry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +51,8 @@ class Predictor:
 
         Parameters
         ----------
-        image: the input image to be predicted
+        image: the input image to be predicted.
+               The image should be in RGB format if it has three channels.
 
         Returns
         -------

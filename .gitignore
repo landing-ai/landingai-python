@@ -80,3 +80,5 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+examples/output

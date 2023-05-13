@@ -10,7 +10,7 @@ This repository contains LandingLens development library and running examples sh
 |---|---|---|
 | [Company logo identification](https://github.com/landing-ai/landingai-python-v1/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook can run directly in Google collab using the web browser camera to detect Landing AI logo | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python-v1/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
 | [Door monitoring for home automation](https://github.com/landing-ai/landingai-python-v1/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook uses an object detection model to determine whether a door is open or closed. The notebook can acquire images directly from an RTSP camera | Jupyter Notebook |
-| [Streaming capture service (WIP)](examples/capture-service/run.py) | This application shows how to do continuous acquisition from an image sensor using RTSP. | Python application |
+| [Streaming capture service](examples/capture-service/run.py) | This application shows how to do continuous acquisition from an image sensor using RTSP. | Python application |
 
 ## Install the library
 
@@ -92,7 +92,7 @@ poetry env use 3.10
 ### Install all the dependencies
 
 ```bash
-poetry install --with test
+poetry install --with dev
 ```
 
 ### Run tests
