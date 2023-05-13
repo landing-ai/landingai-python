@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.0.7"
+version = "0.0.8"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
@@ -21,7 +21,7 @@ python = ">=3.8"
 opencv-python-headless = ">=4.5"
 numpy = ">=1.21.0"
 pillow = ">=9.1.1"
-pydantic = ">=1.9.0"
+pydantic = "*"
 requests = "*"
 segmentation-mask-overlay = "*"
 

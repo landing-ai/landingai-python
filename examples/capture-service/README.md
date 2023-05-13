@@ -11,6 +11,10 @@ This example shows how to connect to a camera (that supports RTSP protocol), and
 3. you have trained a Landing AI model, and deployed such a model to a CloudInference endpoint.
 4. you have `endpoint id`, `api key` and `api secret` from the Landing AI platform.
 
+Action required:
+
+Open the file `examples/capture-service/run.py`, and change the `api_key`, `api_secret`, `endpoint_id` and `stream_url` to yours. (Tip: search for "TODO" in the file)
+
 #### Run inference
 
 Launch the program by

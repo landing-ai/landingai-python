@@ -100,3 +100,9 @@ poetry install --with dev
 ```bash
 poetry run pytest tests/
 ```
+
+### Activate the virtualenv
+
+```bash
+poetry shell
+```

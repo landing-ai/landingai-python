@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import cv2
 
@@ -10,6 +11,7 @@ api_secret = "1ccnesqy4em8dc32k2h2cu5kovdcd6palepaw4ugly6ttfl2fylu340x7ecja0"
 
 
 def test_od_predict():
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
     endpoint_id = "2d299622-434f-4ce9-b2eb-1142cdcfafcc"
     predictor = Predictor(endpoint_id, api_key, api_secret)
     img = cv2.imread("tests/data/landing-logo.jpeg")
@@ -24,6 +26,7 @@ def test_od_predict():
 
 
 def test_seg_predict():
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
     endpoint_id = "3d2edb1b-073d-4853-87ca-30e430f84379"
     predictor = Predictor(endpoint_id, api_key, api_secret)
     img = cv2.imread("tests/data/cereal1.jpeg")
