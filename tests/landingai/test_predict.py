@@ -20,7 +20,7 @@ def test_od_predict():
     assert res, "Result should not be empty or None"
     logging.info(res)
     img_with_preds = overlay_bboxes(predictions=res, image=img)
-    img_with_preds.save("test_od.jpg")
+    img_with_preds.save("tests/output/test_od.jpg")
 
 
 def test_seg_predict():
@@ -32,4 +32,4 @@ def test_seg_predict():
     assert preds, "Result should not be empty or None"
     logging.info(preds)
     img_with_masks = overlay_colored_masks(preds, img)
-    img_with_masks.save("test_seg.jpg")
+    img_with_masks.save("tests/output/test_seg.jpg")
