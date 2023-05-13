@@ -6,12 +6,20 @@ import numpy as np
 from pydantic import BaseModel, BaseSettings
 
 
-class Credential(BaseSettings):
-    """Landing AI API credential of a particular LandingLens user."""
+class APICredential(BaseSettings):
+    """Landing AI API credential of a particular LandingLens user.
+    It supports loading from environment variables or .env files.
+    The supported name of the environment variables are (case-insensitive)):
+    1. LANDINGAI_API_KEY
+    2. LANDINGAI_API_SECRET
+    """
 
     api_key: str
     api_secret: str
 
+    class Config:
+        env_prefix = 'landingai_'
+        case_sensitive = False
 
 class Prediction(BaseModel):
     """The base/parent prediction class that stores the common shared properties of a prediction."""

@@ -3,10 +3,12 @@ from typing import Any, Dict, List, Optional
 
 import cv2
 import numpy as np
+from pydantic import ValidationError
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 from landingai.common import (
+    APICredential,
     ObjectDetectionPrediction,
     Prediction,
     SegmentationPrediction,
@@ -24,8 +26,16 @@ class Predictor:
         self, endpoint_id: str, api_key: Optional[str], api_secret: Optional[str]
     ) -> None:
         self._endpoint_id = endpoint_id
-        self._api_key = api_key
-        self._api_secret = api_secret
+        if api_key is None or api_secret is None:
+            try:
+                api_credential = APICredential()
+                self._api_key = api_credential.api_key
+                self._api_secret = api_credential.api_secret
+            except ValidationError:
+                raise ValueError("API credential is not provided")
+        else:
+            self._api_key = api_key
+            self._api_secret = api_secret
 
     def _create_session(self, api_url: str) -> Session:
         """Create a requests session with retry"""

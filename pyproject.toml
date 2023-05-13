@@ -21,7 +21,7 @@ python = ">=3.8"
 opencv-python-headless = ">=4.5"
 numpy = ">=1.21.0"
 pillow = ">=9.1.1"
-pydantic = "*"
+pydantic = { version = "*", extras = ["dotenv"] }
 requests = "*"
 segmentation-mask-overlay = "*"
 
