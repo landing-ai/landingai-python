@@ -9,7 +9,7 @@ from pydantic import BaseModel, BaseSettings
 class APICredential(BaseSettings):
     """Landing AI API credential of a particular LandingLens user.
     It supports loading from environment variables or .env files.
-    The supported name of the environment variables are (case-insensitive)):
+    The supported name of the environment variables are (case-insensitive):
     1. LANDINGAI_API_KEY
     2. LANDINGAI_API_SECRET
     """
