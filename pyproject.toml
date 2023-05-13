@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.0.8"
+version = "0.0.9"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
@@ -32,6 +32,7 @@ pytest = "*"
 black = "*"
 flake8 = "*"
 isort = "*"
+pdoc = "*"
 
 [tool.pytest.ini_options]
 log_cli = true
