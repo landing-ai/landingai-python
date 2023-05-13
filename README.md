@@ -69,7 +69,8 @@ But if you want to contribute to the repo, you can follow the below steps.
 
 ### Prerequisite - Install poetry
 
-> See more from the [official doc](https://python-poetry.org/docs/#installation).
+> `landingai` uses `Poetry` for packaging and dependency management. If you want to build it from source, you have to install Poetry first. Please follow
+[the official guide](https://python-poetry.org/docs/#installation) to see all possible options.
 
 For Linux, macOS, Windows (WSL):
 
