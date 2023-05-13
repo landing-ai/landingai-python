@@ -16,29 +16,28 @@ class Credential(BaseSettings):
 class Prediction(BaseModel):
     """The base/parent prediction class that stores the common shared properties of a prediction."""
 
-    """A unique string identifier (UUID) for this prediction."""
     id: str
+    """A unique string identifier (UUID) for this prediction."""
 
-    """The confidence score of this prediction."""
     score: float
+    """The confidence score of this prediction."""
 
-    """The predicted label name."""
     label_name: str
+    """The predicted label name."""
 
+    label_index: int
     """The predicted label index.
     A label index is an unique integer identifies a label in your label book.
     See https://support.landing.ai/docs/manage-label-book for more details.
     """
-    label_index: int
-
 
 class ObjectDetectionPrediction(Prediction):
     """A single bounding box prediction for an image.
     It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score and the predicted label.
     """
 
-    """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
     bboxes: Tuple[int, int, int, int]
+    """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
 
 
 class SegmentationPrediction(Prediction):
@@ -46,16 +45,16 @@ class SegmentationPrediction(Prediction):
     It includes a predicted segmentation mask, confidence score and the predicted label.
     """
 
-    """A run-length encoded bitmap string."""
     encoded_mask: str
+    """A run-length encoded bitmap string."""
 
+    encoding_map: Dict[str, int]
     """A map that is used to generate the encoded_mask. e.g. {'Z':0, 'N':1}
     The key is the character in the encoded_mask, the value is the bit value.
     """
-    encoding_map: Dict[str, int]
 
-    """The shape of the decoded 2-dimensional segmentation mask. e.g. (1024, 1024)"""
     mask_shape: Tuple[int, int]
+    """The shape of the decoded 2-dimensional segmentation mask. e.g. (1024, 1024)"""
 
     @cached_property
     def decoded_boolean_mask(self) -> np.ndarray:
