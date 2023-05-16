@@ -3,16 +3,15 @@ import threading
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will tart to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
 class ThreadedCapture:
-    def __init__(self, name, FPS=2):
-        # FPS = 1/X 
-        # X = desired FPS
-        self.FPS = 1/FPS
-        self.FPS_MS = int(self.FPS * 1000)
-
+    def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
         if not self.cap.isOpened():
             self.cap.release()
             raise Exception(f"Could not open stream ({name})")
+        # FPS = 1/X 
+        # X = desired FPS
+        self.FPS = 1/self.cap.get(cv2.CAP_PROP_FPS)
+        self.FPS_MS = int(self.FPS * 1000)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) # Limit buffering to 1 frames
         self.lock = threading.Lock()
         self.t = threading.Thread(target=self._reader)
@@ -27,7 +26,7 @@ class ThreadedCapture:
         while True:
             with self.lock:
                 ret = self.cap.grab()
-                time.sleep(1/30) # Limit acquisition speed
+                time.sleep(self.FPS) # Limit acquisition speed
             if not ret:
                 break
 
