@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="200" height="200" src="https://github.com/landing-ai/landingai-python-v1/raw/main/assets/avi-logo.png">
+  <img width="200" height="200" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
 </p>
 
 # LandingLens code sample repository
@@ -8,10 +8,10 @@ This repository contains LandingLens development library and running examples sh
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 | example | description | language |
 |---|---|---|
-| [Company logo identification](https://github.com/landing-ai/landingai-python-v1/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook can run directly in Google collab using the web browser camera to detect Landing AI logo | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python-v1/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
-| [Door monitoring for home automation](https://github.com/landing-ai/landingai-python-v1/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook uses an object detection model to determine whether a door is open or closed. The notebook can acquire images directly from an RTSP camera | Jupyter Notebook |
-| [Streaming capture service](https://github.com/landing-ai/landingai-python-v1/tree/main/examples/capture-service) | This application shows how to do continuous acquisition from an image sensor using RTSP. | Python application |
-| [Pixel coverage post-processing](https://github.com/landing-ai/landingai-python-v1/tree/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) | This notebook demonstrates how to use a VisualPrompting model to analyze the area coverage of different types of land or structures on satellite images. | Jupyter Notebook  [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python-v1/blob/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) |
+| [Company logo identification](https://github.com/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook can run directly in Google collab using the web browser camera to detect Landing AI logo | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
+| [Door monitoring for home automation](https://github.com/landing-ai/landingai-python/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook uses an object detection model to determine whether a door is open or closed. The notebook can acquire images directly from an RTSP camera | Jupyter Notebook |
+| [Streaming capture service](https://github.com/landing-ai/landingai-python/tree/main/examples/capture-service) | This application shows how to do continuous acquisition from an image sensor using RTSP. | Python application |
+| [Pixel coverage post-processing](https://github.com/landing-ai/landingai-python/tree/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) | This notebook demonstrates how to use a VisualPrompting model to analyze the area coverage of different types of land or structures on satellite images. | Jupyter Notebook  [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) |
 
 ## Install the library
 
@@ -58,10 +58,10 @@ Here is an example to show you how to run the `rtsp-capture` example locally in 
 
 NOTE: it's recommended to create a new Python virtual environment first.
 
-1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python-v1.git`
+1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python.git`
 2. Install the library: `poetry install --with examples` (NOTE: see below for how to install `poetry`)
 3. Activate the virtual environment: `poetry shell`
-4. Run: `python landingai-python-v1/examples/capture-service/run.py`
+4. Run: `python landingai-python/examples/capture-service/run.py`
 
 ## Building the `landingai` library locally (for contributors)
 
