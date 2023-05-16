@@ -8,8 +8,6 @@ from landingai.common import APICredential, SegmentationPrediction, decode_bitma
 
 
 def test_load_credential():
-    with pytest.raises(ValidationError):
-        APICredential()
     os.environ["landingai_api_key"] = "1234"
     os.environ["landingai_api_secret"] = "abcd"
     credential = APICredential()
@@ -21,13 +19,22 @@ def test_load_credential_from_env_file(tmp_path):
     env_file: Path = tmp_path / ".env"
     env_file.write_text(
         """
-                        LANDINGAI_API_KEY="1234"
-                        LANDINGAI_API_SECRET="abcd"
+                        TEST_LANDINGAI_API_KEY="1234"
+                        TEST_LANDINGAI_API_SECRET="abcd"
                         """
     )
+    # Overwrite the default env_prefix to avoid conflict with the real .env
+    APICredential.__config__.env_prefix = "TEST_LANDINGAI_"
+    APICredential.__config__.env_file = str(env_file)
+    for field in APICredential.__fields__.values():
+        APICredential.__config__.prepare_field(field)
+    # Start testing
     credential = APICredential(_env_file=str(env_file))
     assert credential.api_key == "1234"
     assert credential.api_secret == "abcd"
+    env_file.unlink()
+    with pytest.raises(ValidationError):
+        APICredential()
 
 
 def test_decode_bitmap_rle():
@@ -37,7 +44,7 @@ def test_decode_bitmap_rle():
     assert decoded_mask == [1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
 
 
-def test_segmentation_prediction_get():
+def test_segmentation_prediction_properties():
     encoded_mask = "2N3Z2N5Z"
     encoding_map = {"Z": 0, "N": 1}
     label_index = 3
@@ -55,3 +62,4 @@ def test_segmentation_prediction_get():
     np.testing.assert_array_almost_equal(
         prediction.decoded_index_mask, expected * label_index
     )
+    assert prediction.num_predicted_pixels == 4
