@@ -31,6 +31,7 @@ endpoint_id = "ff2aeae5-110f-41df-bbc7-9016f7ec5dcc"
 # TODO: replace below url with your own RTSP stream url
 stream_url = "rtsp://172.25.101.151/ch0_0.h264"  # This is a Yi Dome Camera
 
+
 def stream(capture_frame=False, inference_mode=True):
     """Enable camera and start streaming."""
     _LOGGER.info(f"Opening the stream: {stream_url}")
@@ -55,7 +56,9 @@ def stream(capture_frame=False, inference_mode=True):
             _LOGGER.info(f"'capture_frame' set to: {capture_frame}")
         if capture_frame:
             filename = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-            write_succeed = cv2.imwrite(f"{_OUTPUT_FOLDER_PATH}/frame_{filename}.jpg", frame)
+            write_succeed = cv2.imwrite(
+                f"{_OUTPUT_FOLDER_PATH}/frame_{filename}.jpg", frame
+            )
             assert write_succeed, f"Failed to save the image to file: {filename}"
         if inference_mode:
             _LOGGER.info("Predicting...")

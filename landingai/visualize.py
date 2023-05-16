@@ -1,23 +1,23 @@
 import logging
-from typing import List
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from segmentation_mask_overlay import overlay_masks
 
 from landingai.common import (
+    ClassificationPrediction,
     ObjectDetectionPrediction,
     Prediction,
     SegmentationPrediction,
 )
 
-SPACING_PIXELS = -5
+SPACING_PIXELS = 5
 _LOGGER = logging.getLogger(__name__)
 
 
 def overlay_predictions(
-    predictions: List[Prediction], image: np.ndarray
+    predictions: list[Prediction], image: np.ndarray
 ) -> Image.Image:
     """Overlay the prediction results on the input image and return the image with overlaid."""
     if len(predictions) == 0:
@@ -30,7 +30,7 @@ def overlay_predictions(
 
 
 def overlay_bboxes(
-    predictions: List[ObjectDetectionPrediction], image: np.ndarray
+    predictions: list[ObjectDetectionPrediction], image: np.ndarray
 ) -> Image.Image:
     "Draw bounding boxes on the input image and return the image with bounding boxes drawn."
     color = (255, 0, 0)
@@ -43,7 +43,7 @@ def overlay_bboxes(
         image = cv2.putText(
             img=image,
             text=f"{pred.label_name} {pred.score:.4f}",
-            org=(xy_min[0], xy_min[1] + SPACING_PIXELS),
+            org=(xy_min[0], xy_min[1] - SPACING_PIXELS),
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=1,
             color=color,
@@ -53,14 +53,43 @@ def overlay_bboxes(
 
 
 def overlay_colored_masks(
-    predictions: List[SegmentationPrediction], image: np.ndarray
+    predictions: list[SegmentationPrediction], image: np.ndarray
 ) -> Image.Image:
     image = Image.fromarray(image).convert(mode="L")
     masks = [pred.decoded_boolean_mask.astype(np.bool_) for pred in predictions]
     return overlay_masks(image, masks, mask_alpha=0.5, return_pil_image=True)
 
 
+def overlay_predicted_class(
+    predictions: list[ClassificationPrediction],
+    image: np.ndarray,
+    text_position: tuple[int, int] = (10, 25),
+) -> Image.Image:
+    assert len(predictions) == 1
+    prediction = predictions[0]
+    image = Image.fromarray(image)
+    text = f"{prediction.label_name} {prediction.score:.4f}"
+    draw = ImageDraw.Draw(image)
+    font = _get_pil_font()
+    xy = (text_position[0], image.size[1] - text_position[1])
+    box = draw.textbbox(xy=xy, text=text, font=font)
+    box = (box[0] - 10, box[1] - 5, box[2] + 10, box[3] + 5)
+    draw.rounded_rectangle(box, radius=15, fill="#333333")
+    draw.text(xy=xy, text=text, fill="white", font=font)
+    return image
+
+
+def _get_pil_font(font_size: int = 18):
+    from matplotlib import font_manager
+
+    font = font_manager.FontProperties(family="sans-serif", weight="bold")
+    file = font_manager.findfont(font)
+    assert file, f"Cannot find font file for {font} at {file}"
+    return ImageFont.truetype(file, font_size)
+
+
 _OVERLAY_FUNC_MAP = {
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,
+    ClassificationPrediction: overlay_predicted_class,
 }
