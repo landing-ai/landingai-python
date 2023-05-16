@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.0.12"
+version = "0.0.13"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
@@ -12,8 +12,8 @@ packages = [{include = "landingai"}]
 
 [tool.poetry.urls]
 "Homepage" = "https://landing.ai"
-"repository" = "https://github.com/landing-ai/landingai-python-v1"
-"documentation" = "https://landing-ai.github.io/landingai-python-v1/landingai.html"
+"repository" = "https://github.com/landing-ai/landingai-python"
+"documentation" = "https://landing-ai.github.io/landingai-python/landingai.html"
 
 [tool.poetry.dependencies]  # main dependency group
 python = ">=3.8"
