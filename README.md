@@ -56,8 +56,6 @@ All the examples in this repo can be run locally.
 
 Here is an example to show you how to run the `rtsp-capture` example locally in a shell environment:
 
-NOTE: it's recommended to create a new Python virtual environment first.
-
 1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python.git`
 2. Install the library: `poetry install --with examples` (NOTE: see below for how to install `poetry`)
 3. Activate the virtual environment: `poetry shell`
