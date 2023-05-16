@@ -1,13 +1,67 @@
 from collections import defaultdict
 
-
 import numpy as np
 
-from landingai.common import SegmentationPrediction
+from landingai.common import (
+    ObjectDetectionPrediction,
+    Prediction,
+    SegmentationPrediction,
+)
+
+
+def class_pixel_coverage(
+    predictions: list[Prediction],
+    coverage_type: str = "relative",
+) -> dict[int, (float, str)]:
+    """Compute the pixel coverage of each class.
+
+    Supported prediction types are:
+    1. SegmentationPrediction
+    2. ObjectDetectionPrediction
+
+    It supports two ways to compute the coverage:
+    1. "absolute"
+    2. "relative"
+    See the documentation of the coverage_type for more details.
+
+    Parameters
+    ----------
+    predictions: a list of predictions. It could come from one or multiple images.
+    coverage_type: "absolute" or "relative".
+            1. absolute: the number of pixels of each predicted class.
+            2. relative: the percentage of pixels that are predicted as the class
+               over the sum total number of pixels of every mask.
+               NOTE: only "SegmentationPrediction" supports "relative" type.
+
+    Returns
+    -------
+    A map with the predicted class/label index as the key, and a tuple of
+    (the coverage, class/label name) as the value.
+
+    Example (coverage_type="absolute"):
+        {
+            0: (23512, "blue"),
+            1: (1230, "green"),
+            2: (0, "pink"),
+        }
+    """
+    # TODO: add more input validation
+    assert (
+        type(predictions[0]) == SegmentationPrediction
+    ), "Only support SegmentationPrediction for now."
+    return segmentation_class_pixel_coverage(predictions, coverage_type)
+
+
+def od_class_pixel_coverage(
+    predictions: list[ObjectDetectionPrediction],
+    coverage_type: str = "relative",
+):
+    raise NotImplementedError()
 
 
 def segmentation_class_pixel_coverage(
     predictions: list[SegmentationPrediction],
+    coverage_type: str = "relative",
 ) -> dict[int, (float, str)]:
     """Compute the pixel coverage of each class.
     The coverage is defined as the percentage of pixels that are predicted as the class
@@ -24,7 +78,7 @@ def segmentation_class_pixel_coverage(
     NOTE: the sum of the coverage percentage over all classes is not guaranteed
     to be 1.
 
-    Example:
+    Example (coverage_type="relative"):
         {
             0: (0.15, "blue"),
             1: (0.31, "green"),
@@ -37,6 +91,10 @@ def segmentation_class_pixel_coverage(
         pixel_counts[pred.label_index][0] += pred.num_predicted_pixels
         pixel_counts[pred.label_index][1] = pred.label_name
     coverages = {}
+    if coverage_type == "relative":
+        total_pixels = sum([np.prod(pred.mask_shape) for pred in predictions])
+    else:
+        total_pixels = 1
     for label_index, (num_pixels, class_name) in pixel_counts.items():
         coverages[label_index] = (num_pixels / total_pixels, class_name)
     return coverages

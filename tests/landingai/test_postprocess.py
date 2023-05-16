@@ -17,7 +17,7 @@ def test_segmentation_class_pixel_coverage():
         predictions.extend(predictor.predict(img))
     coverage = segmentation_class_pixel_coverage(predictions)
     assert len(coverage) == 4
-    assert coverage[1] == (0.034910176946490436, "green field")
-    assert coverage[2] == (0.09148953979644242, "brown field")
-    assert coverage[3] == (0.024819751951445816, "structure")
-    assert coverage[4] == (0.09751108322318006, "trees")
+    assert coverage[1] == (0.06224835499714838, "green field")
+    assert coverage[2] == (0.03578795768330741, "brown field")
+    assert coverage[3] == (0.07203932927904429, "structure")
+    assert coverage[4] == (0.07789893624567645, "trees")

@@ -26,13 +26,15 @@ requests = "*"
 segmentation-mask-overlay = "*"
 
 [tool.poetry.group.dev.dependencies]
-jupyterlab = "*"
 autoflake = "*"
 pytest = "*"
 black = "*"
 flake8 = "*"
 isort = "*"
 pdoc = "*"
+
+[tool.poetry.group.examples.dependencies]
+jupyterlab = "*"
 
 [tool.pytest.ini_options]
 log_cli = true
