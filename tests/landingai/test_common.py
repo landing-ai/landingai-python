@@ -1,10 +1,16 @@
 import os
 from pathlib import Path
-import numpy as np
-from pydantic import ValidationError
-import pytest
 
-from landingai.common import APICredential, SegmentationPrediction, decode_bitmap_rle
+import numpy as np
+import pytest
+from pydantic import ValidationError
+
+from landingai.common import (
+    APICredential,
+    ObjectDetectionPrediction,
+    SegmentationPrediction,
+    decode_bitmap_rle,
+)
 
 
 def test_load_credential():
@@ -63,3 +69,15 @@ def test_segmentation_prediction_properties():
         prediction.decoded_index_mask, expected * label_index
     )
     assert prediction.num_predicted_pixels == 4
+
+
+def test_object_detection_prediction_properties():
+    label_index = 3
+    prediction = ObjectDetectionPrediction(
+        id="123",
+        label_index=label_index,
+        label_name="class1",
+        score=0.5,
+        bboxes=(1, 2, 31, 42),
+    )
+    assert prediction.num_predicted_pixels == 1200

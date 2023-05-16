@@ -57,6 +57,14 @@ class ObjectDetectionPrediction(Prediction):
     bboxes: Tuple[int, int, int, int]
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
 
+    @cached_property
+    def num_predicted_pixels(self) -> int:
+        """The number of pixels within the predicted bounding box."""
+        return (self.bboxes[2] - self.bboxes[0]) * (self.bboxes[3] - self.bboxes[1])
+
+    class Config:
+        keep_untouched = (cached_property,)
+
 
 class SegmentationPrediction(Prediction):
     """A single segmentation mask prediction for an image.
