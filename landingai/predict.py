@@ -24,7 +24,10 @@ class Predictor:
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
 
     def __init__(
-        self, endpoint_id: str, api_key: Optional[str], api_secret: Optional[str]
+        self,
+        endpoint_id: str,
+        api_key: Optional[str] = None,
+        api_secret: Optional[str] = None,
     ) -> None:
         """Predictor constructor
 
@@ -52,6 +55,7 @@ class Predictor:
         else:
             self._api_key = api_key
             self._api_secret = api_secret
+        _configure_logger()
 
     def _create_session(self, api_url: str) -> Session:
         """Create a requests session with retry"""
@@ -103,6 +107,14 @@ class Predictor:
         json_dict = response.json()
         _LOGGER.debug("Response: %s", json_dict)
         return _extract_prediction(json_dict)
+
+
+def _configure_logger() -> None:
+    """Configure the logger for the requests library"""
+    # Ensure we can see retries in the logs
+    requests_log = logging.getLogger("urllib3.util.retry")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = False
 
 
 def _extract_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:

@@ -9,15 +9,19 @@ from pydantic import BaseModel, BaseSettings
 class APICredential(BaseSettings):
     """Landing AI API credential of a particular LandingLens user.
     It supports loading from environment variables or .env files.
+
     The supported name of the environment variables are (case-insensitive):
     1. LANDINGAI_API_KEY
     2. LANDINGAI_API_SECRET
+
+    Environment variables will always take priority over values loaded from a dotenv file.
     """
 
     api_key: str
     api_secret: str
 
     class Config:
+        env_file = ".env"
         env_prefix = "landingai_"
         case_sensitive = False
 
@@ -92,6 +96,16 @@ class SegmentationPrediction(Prediction):
         This is useful if you want to overlay multiple segmentation masks into one.
         """
         return self.decoded_boolean_mask * self.label_index
+
+    @cached_property
+    def num_predicted_pixels(self) -> int:
+        """The number of pixels that are predicted as the class."""
+        return np.count_nonzero(self.decoded_boolean_mask)
+
+    @cached_property
+    def percentage_predicted_pixels(self) -> float:
+        """The percentage of pixels that are predicted as the class."""
+        return np.count_nonzero(self.decoded_boolean_mask) / np.prod(self.mask_shape)
 
     class Config:
         keep_untouched = (cached_property,)
