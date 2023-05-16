@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter, Retry
 
 from landingai.common import (
     APICredential,
+    ClassificationPrediction,
     ObjectDetectionPrediction,
     Prediction,
     SegmentationPrediction,
@@ -25,6 +26,21 @@ class Predictor:
     def __init__(
         self, endpoint_id: str, api_key: Optional[str], api_secret: Optional[str]
     ) -> None:
+        """Predictor constructor
+
+        Parameters
+        ----------
+        endpoint_id: a unique string that identifies your inference endpoint.
+            This string can be found in the URL of your inference endpoint.
+            Example: "9f237028-e630-4576-8826-f35ab9000abc" is the endpoint id in below URL:
+            https://predict.app.landing.ai/inference/v1/predict?endpoint_id=9f237028-e630-4576-8826-f35ab9000abc
+        api_key: the API key of your Landing AI account.
+            If not provided, it will try to load from the environment variable
+            LANDINGAI_API_KEY or from the .env file.
+        api_secret: the API key of your Landing AI account.
+            If not provided, it will try to load from the environment variable
+            LANDINGAI_API_SECRET or from the .env file.
+        """
         self._endpoint_id = endpoint_id
         if api_key is None or api_secret is None:
             try:
@@ -40,6 +56,7 @@ class Predictor:
     def _create_session(self, api_url: str) -> Session:
         """Create a requests session with retry"""
         session = Session()
+        # TODO: test it
         retries = Retry(
             # TODO: make them configurable
             total=5,
@@ -90,8 +107,52 @@ class Predictor:
 
 def _extract_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
     response_type = response["backbonetype"]
+    if response_type is None and response["type"] == "SegmentationPrediction":
+        response_type = "SegmentationPredictionVP"  # Visual Prompting response
+    if response_type is None:
+        response_type = response["type"]  # Classification response
     predictions = PREDICTION_EXTRACTOR[response_type](response)
     return predictions
+
+
+def _extract_class_prediction(
+    response: Dict[str, Any]
+) -> List[ClassificationPrediction]:
+    """Extract Classification prediction result from response
+
+    Parameters
+    ----------
+    response: response from the LandingAI prediction endpoint.
+    Example input:
+    {
+        "backbonetype": None,
+        "backbonepredictions": None,
+        "predictions":
+        {
+            "score": 0.9951885938644409,
+            "labelIndex": 0,
+            "labelName": "Fire"
+        },
+        "type": "ClassificationPrediction",
+        "latency":
+        {
+            "preprocess_s": 0.0035605430603027344,
+            "infer_s": 0.11771035194396973,
+            "postprocess_s": 0.0000457763671875,
+            "serialize_s": 0.00015735626220703125,
+            "input_conversion_s": 0.002260446548461914,
+            "model_loading_s": 5.1028594970703125
+        },
+        "model_id": "8a7cbf5d-a869-4c85-b4c8-b4f9bd937117"
+    }
+    """
+    return [
+        ClassificationPrediction(
+            score=response["predictions"]["score"],
+            label_index=response["predictions"]["labelIndex"],
+            label_name=response["predictions"]["labelName"],
+        )
+    ]
 
 
 def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPrediction]:
@@ -232,7 +293,37 @@ def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPredic
     ]
 
 
+def _extract_vp_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+    """Extract Visual Prompting result from response
+
+    Parameters
+    ----------
+    response: response from the LandingAI prediction endpoint.
+
+    """
+    encoded_predictions = response["predictions"]["bitmaps"]
+    encoding_map = response["predictions"]["encoding"]["options"]["map"]
+    mask_shape = (
+        response["predictions"]["imageHeight"],
+        response["predictions"]["imageWidth"],
+    )
+    return [
+        SegmentationPrediction(
+            id=id,
+            label_name=bitmap_info["label_name"],
+            label_index=bitmap_info["label_index"],
+            score=bitmap_info["score"],
+            encoded_mask=bitmap_info["bitmap"],
+            encoding_map=encoding_map,
+            mask_shape=mask_shape,
+        )
+        for id, bitmap_info in encoded_predictions.items()
+    ]
+
+
 PREDICTION_EXTRACTOR = {
     "ObjectDetectionPrediction": _extract_od_prediction,
     "SegmentationPrediction": _extract_seg_prediction,
+    "ClassificationPrediction": _extract_class_prediction,
+    "SegmentationPredictionVP": _extract_vp_prediction,
 }

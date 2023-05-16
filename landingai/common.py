@@ -18,14 +18,12 @@ class APICredential(BaseSettings):
     api_secret: str
 
     class Config:
-        env_prefix = 'landingai_'
+        env_prefix = "landingai_"
         case_sensitive = False
+
 
 class Prediction(BaseModel):
     """The base/parent prediction class that stores the common shared properties of a prediction."""
-
-    id: str
-    """A unique string identifier (UUID) for this prediction."""
 
     score: float
     """The confidence score of this prediction."""
@@ -39,10 +37,18 @@ class Prediction(BaseModel):
     See https://support.landing.ai/docs/manage-label-book for more details.
     """
 
+
+class ClassificationPrediction(Prediction):
+    """A single classification prediction for an image."""
+
+
 class ObjectDetectionPrediction(Prediction):
     """A single bounding box prediction for an image.
     It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score and the predicted label.
     """
+
+    id: str
+    """A unique string identifier (UUID) for this prediction."""
 
     bboxes: Tuple[int, int, int, int]
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
@@ -52,6 +58,9 @@ class SegmentationPrediction(Prediction):
     """A single segmentation mask prediction for an image.
     It includes a predicted segmentation mask, confidence score and the predicted label.
     """
+
+    id: str
+    """A unique string identifier (UUID) for this prediction."""
 
     encoded_mask: str
     """A run-length encoded bitmap string."""
