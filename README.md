@@ -60,7 +60,8 @@ NOTE: it's recommended to create a new Python virtual environment first.
 
 1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python-v1.git`
 2. Install the library: `poetry install --with examples` (NOTE: see below for how to install `poetry`)
-3. Run: `python landingai-python-v1/examples/capture-service/run.py`
+3. Activate the virtual environment: `poetry shell`
+4. Run: `python landingai-python-v1/examples/capture-service/run.py`
 
 ## Building the `landingai` library locally (for contributors)
 
