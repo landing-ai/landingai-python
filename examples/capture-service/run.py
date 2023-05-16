@@ -2,6 +2,7 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
+from capture import ThreadedCapture
 
 import cv2
 import numpy as np
@@ -20,8 +21,8 @@ _LOGGER = logging.getLogger(__name__)
 # Captured frames will be saved in this folder
 _OUTPUT_FOLDER_PATH = "examples/output/capture-service"
 
-# How many seconds to wait before capturing the next frame
-_CAPTURE_FREQUENCY_SECONDS = 3
+# How many frames per second should we capture and process
+_CAPTURE_FPS = 2
 
 # TODO: replace below with your own endpoint id and credentials.
 api_key = "dvkyqd942h90wn1t3fsbjshsud3xdgs"
@@ -29,28 +30,34 @@ api_secret = "gj95e8antnkhcduuwrgok3efrtwpzqojykc05l8yiuxnaecxdqxvawrir0d3yw"
 endpoint_id = "ff2aeae5-110f-41df-bbc7-9016f7ec5dcc"
 
 # TODO: replace below url with your own RTSP stream url
-stream_url = "rtsp://172.25.101.151/ch0_0.h264"  # This is a Yi Dome Camera
+# Apple test stream
+# stream_url = "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8"  # This is a Yi Dome Camera
+# Dexter Avenue AL - https://www.wsfa.com/weather/cams/
+stream_url = "https://s78.ipcamlive.com/streams/4etgocfj23fhnhsne/stream.m3u8" 
 
 
 def stream(capture_frame=False, inference_mode=True):
     """Enable camera and start streaming."""
     _LOGGER.info(f"Opening the stream: {stream_url}")
-    cap = cv2.VideoCapture(stream_url)
-    if not cap.isOpened():
-        _LOGGER.error(f"Stream connection is not opened...: {stream_url}")
-        cap.release()
-        return
-
+    threaded_camera = ThreadedCapture(stream_url,_CAPTURE_FPS)
     Path(_OUTPUT_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
     predictor = Predictor(endpoint_id, api_key, api_secret)
-    _LOGGER.info(f"Starting the stream: {stream_url}")
     while True:
-        time.sleep(_CAPTURE_FREQUENCY_SECONDS)
-        # Capture the video frame by frame
-        ret, frame = cap.read()
+        # Use threaded_camera to skip frames and get the latest
+        ret, frame = threaded_camera.read()
         if not ret:
             _LOGGER.info("Can't receive frame (stream end?). Exiting ...")
             break
+        
+        # Resize image if needed to Keep width t0 1024
+        if frame.shape[1]>1024: 
+            width = 1024 # Set constant width
+            height = int(frame.shape[0] * (1024/frame.shape[1]) ) # Keep aspect ratio
+            dim = (width, height)    
+            # resize image
+            frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+ 
+        # Press c to capture a frame
         if cv2.waitKey(1) & 0xFF == ord("c"):
             capture_frame = not capture_frame
             _LOGGER.info(f"'capture_frame' set to: {capture_frame}")
@@ -62,20 +69,23 @@ def stream(capture_frame=False, inference_mode=True):
             assert write_succeed, f"Failed to save the image to file: {filename}"
         if inference_mode:
             _LOGGER.info("Predicting...")
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             predictions = predictor.predict(frame)
             frame = overlay_predictions(predictions, image=frame)
-            filename = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-            frame.save(f"{_OUTPUT_FOLDER_PATH}/infer_{filename}.jpg")
+            # filename = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+            # frame.save(f"{_OUTPUT_FOLDER_PATH}/infer_{filename}.jpg")
             frame = np.array(frame)
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         # Display the resulting frame
         cv2.imshow("window", frame)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        # Press q to quit
+        if cv2.waitKey(1 if inference_mode else threaded_camera.FPS_MS) & 0xFF == ord("q"):
             _LOGGER.info("Exiting the stream...")
             break
+# XXX Todo: waitkey are to fast for c & q.... why is the color changed... 
+
     # When everything done, release the capture
-    cap.release()
+    del threaded_camera
     cv2.destroyAllWindows()
 
 
