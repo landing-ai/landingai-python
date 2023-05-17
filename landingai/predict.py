@@ -56,6 +56,8 @@ class Predictor:
             self._api_key = api_key
             self._api_secret = api_secret
         _configure_logger()
+        self._session = self._create_session(Predictor._url)
+
 
     def _create_session(self, api_url: str) -> Session:
         """Create a requests session with retry"""
@@ -93,14 +95,8 @@ class Predictor:
         """
         img = cv2.imencode(".png", image)[1]
         files = [("file", ("image.png", img, "image/png"))]
-        s = self._create_session(self._url)
         payload = {"endpoint_id": self._endpoint_id}
-        headers = {
-            "apikey": self._api_key,
-            "apisecret": self._api_secret,
-            "contentType": "application/json",
-        }
-        response = s.post(Predictor._url, headers=headers, files=files, params=payload)
+        response = self._session.post(Predictor._url, files=files, params=payload)
         #  requests.exceptions.HTTPError: 503 Server Error: Service Unavailable for url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=3d2edb1b-073d-4853-87ca-30e430f84379
         #  429
         response.raise_for_status()

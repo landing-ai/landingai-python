@@ -42,7 +42,6 @@ endpoint_id     = "432d58f6-6cd4-4108-a01c-2f023503d838"
 # stream_url = "https://itsstreamingbr.dotd.la.gov/public/br-cam-015.streams/playlist.m3u8" 
 stream_url = "https://itsstreamingbr.dotd.la.gov/public/br-cam-110.streams/playlist.m3u8" 
 
-
 def stream(capture_frame=False, inference_mode=True):
     """Enable camera and start streaming."""
     _LOGGER.info(f"Opening the stream: {stream_url}")
@@ -51,7 +50,10 @@ def stream(capture_frame=False, inference_mode=True):
     predictor = Predictor(endpoint_id, api_key, api_secret)
     while True:
         # Use threaded_camera to skip frames and get the latest
+        start = time.time()
         ret, frame = threaded_camera.read()
+        _LOGGER.info(f"Acquire time {time.time() - start} seconds")
+
         if not ret:
             _LOGGER.info("Can't receive frame (stream end?). Exiting ...")
             break
@@ -97,4 +99,4 @@ def stream(capture_frame=False, inference_mode=True):
 
 
 if __name__ == "__main__":
-    stream(capture_frame=True, inference_mode=True)
+    stream(capture_frame=False, inference_mode=True)
