@@ -6,6 +6,7 @@
 This repository contains LandingLens development library and running examples showing how to integrate LandingLens on a variety of scenarios. All the examples show different ways to acquire images from multiple sources and techniques to process the results. Jupyter notebooks focus on ease of use while Python apps include more robust and complete examples.
 
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
+
 | example | description | language |
 |---|---|---|
 | [Poker card suit identification](https://github.com/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook can run directly in Google collab using the web browser camera to detect suits on poker card | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
@@ -52,7 +53,7 @@ image_with_preds.save("image.jpg")
 
 ## Running examples locally
 
-All the examples in this repo can be run locally. 
+All the examples in this repo can be run locally.
 
 Here is an example to show you how to run the `rtsp-capture` example locally in a shell environment:
 

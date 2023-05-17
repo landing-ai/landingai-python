@@ -21,6 +21,17 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
+            <h2>Contents</h2>
+            <ul>
+  <li><a href="#landinglens-code-sample-repository">LandingLens code sample repository</a>
+  <ul>
+    <li><a href="#install-the-library">Install the library</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#running-examples-locally">Running examples locally</a></li>
+    <li><a href="#building-the-landingai-library-locally-for-contributors">Building the <code>landingai</code> library locally (for contributors)</a></li>
+  </ul></li>
+</ul>
+
 
             <h2>Submodules</h2>
             <ul>
@@ -44,10 +55,163 @@
                     <h1 class="modulename">
 landingai    </h1>
 
-                
-                
-                
-                
+                        <div class="docstring"><p align="center">
+  <img width="200" height="200" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
+</p>
+
+<h1 id="landinglens-code-sample-repository">LandingLens code sample repository</h1>
+
+<p>This repository contains LandingLens development library and running examples showing how to integrate LandingLens on a variety of scenarios. All the examples show different ways to acquire images from multiple sources and techniques to process the results. Jupyter notebooks focus on ease of use while Python apps include more robust and complete examples.</p>
+
+<!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
+
+<table>
+<thead>
+<tr>
+  <th>example</th>
+  <th>description</th>
+  <th>language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><a href="https://github.com/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb">Poker card suit identification</a></td>
+  <td>This notebook can run directly in Google collab using the web browser camera to detect suits on poker card</td>
+  <td>Jupyter Notebook <a href="https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Colab" /></a></td>
+</tr>
+<tr>
+  <td><a href="https://github.com/landing-ai/landingai-python/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb">Door monitoring for home automation</a></td>
+  <td>This notebook uses an object detection model to determine whether a door is open or closed. The notebook can acquire images directly from an RTSP camera</td>
+  <td>Jupyter Notebook</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/landing-ai/landingai-python/tree/main/examples/capture-service">Streaming capture service</a></td>
+  <td>This application shows how to do continuous acquisition from an image sensor using RTSP.</td>
+  <td>Python application</td>
+</tr>
+<tr>
+  <td><a href="https://github.com/landing-ai/landingai-python/tree/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb">Pixel coverage post-processing</a></td>
+  <td>This notebook demonstrates how to use a VisualPrompting model to analyze the area coverage of different types of land or structures on satellite images.</td>
+  <td>Jupyter Notebook  <a href="https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Colab" /></a></td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="install-the-library">Install the library</h2>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>landingai
+</code></pre>
+</div>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<p><strong>Run inference</strong> using your deployed inference endpoint at LandingAI:</p>
+
+<ul>
+<li>Install the library with the above command.</li>
+<li>Create a <code>Predictor</code> with your inference endpoint id, landing API key and secret.</li>
+<li>Call <code>predict()</code> with an image (in numpy array format).</li>
+</ul>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span> <span class="nn"><a href="landingai/predict.html">landingai.predict</a></span> <span class="kn">import</span> <span class="n">Predictor</span>
+<span class="c1"># Find your API key and secrets</span>
+<span class="n">endpoint_id</span> <span class="o">=</span> <span class="s2">&quot;FILL_YOUR_INFERENCE_ENDPOINT_ID&quot;</span>
+<span class="n">api_key</span> <span class="o">=</span> <span class="s2">&quot;FILL_YOUR_API_KEY&quot;</span>
+<span class="n">api_secret</span> <span class="o">=</span> <span class="s2">&quot;FILL_YOUR_API_SECRET&quot;</span>
+<span class="c1"># Load your image</span>
+<span class="n">image</span> <span class="o">=</span> <span class="o">...</span>
+<span class="c1"># Run inference</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">Predictor</span><span class="p">(</span><span class="n">endpoint_id</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">api_secret</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p><strong>Visualize your inference results</strong> by overlaying the predictions on the input image and save it on disk:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span> <span class="nn"><a href="landingai/visualize.html">landingai.visualize</a></span> <span class="kn">import</span> <span class="n">overlay_predictions</span>
+<span class="c1"># continue the above example</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+<span class="n">image_with_preds</span> <span class="o">=</span> <span class="n">overlay_predictions</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+<span class="n">image_with_preds</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h2 id="running-examples-locally">Running examples locally</h2>
+
+<p>All the examples in this repo can be run locally.</p>
+
+<p>Here is an example to show you how to run the <code>rtsp-capture</code> example locally in a shell environment:</p>
+
+<ol>
+<li>Clone the repo to local: <code>git clone https://github.com/landing-ai/landingai-python.git</code></li>
+<li>Install the library: <code>poetry install --with examples</code> (NOTE: see below for how to install <code>poetry</code>)</li>
+<li>Activate the virtual environment: <code>poetry shell</code></li>
+<li>Run: <code>python landingai-python/examples/capture-service/run.py</code></li>
+</ol>
+
+<h2 id="building-the-landingai-library-locally-for-contributors">Building the <code><a href="">landingai</a></code> library locally (for contributors)</h2>
+
+<p>Most of the time you won't need to build the library since it is included on this repository and also published to pypi.</p>
+
+<p>But if you want to contribute to the repo, you can follow the below steps.</p>
+
+<h3 id="prerequisite-install-poetry">Prerequisite - Install poetry</h3>
+
+<blockquote>
+  <p><code><a href="">landingai</a></code> uses <code>Poetry</code> for packaging and dependency management. If you want to build it from source, you have to install Poetry first. Please follow
+  <a href="https://python-poetry.org/docs/#installation">the official guide</a> to see all possible options.</p>
+</blockquote>
+
+<p>For Linux, macOS, Windows (WSL):</p>
+
+<pre><code>curl -sSL https://install.python-poetry.org | python3 -
+</code></pre>
+
+<p>NOTE: you can switch to use a different Python version by specifying the python version:</p>
+
+<pre><code>curl -sSL https://install.python-poetry.org | python3.10 -
+</code></pre>
+
+<p>or run below command after you have installed poetry:</p>
+
+<pre><code>poetry env use 3.10
+</code></pre>
+
+<h3 id="install-all-the-dependencies">Install all the dependencies</h3>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>poetry<span class="w"> </span>install<span class="w"> </span>--all-extras
+</code></pre>
+</div>
+
+<h3 id="run-tests">Run tests</h3>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/
+</code></pre>
+</div>
+
+<h3 id="activate-the-virtualenv">Activate the virtualenv</h3>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>poetry<span class="w"> </span>shell
+</code></pre>
+</div>
+</div>
+
+                        <input id="mod-landingai-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+
+                        <label class="view-source-button" for="mod-landingai-view-source"><span>View Source</span></label>
+
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">.. include:: ../README.md</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span></pre></div>
+
+
             </section>
     </main>
 <script>
