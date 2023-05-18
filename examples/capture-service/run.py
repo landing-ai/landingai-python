@@ -52,7 +52,7 @@ def stream(capture_frame=False, inference_mode=True):
         # Use threaded_camera to skip frames and get the latest
         start = time.time()
         ret, frame = threaded_camera.read()
-        _LOGGER.info(f"Acquire time {time.time() - start} seconds")
+        _LOGGER.info(f"Acquire time {time.time() - start:.02f} seconds")
 
         if not ret:
             _LOGGER.info("Can't receive frame (stream end?). Exiting ...")
@@ -79,7 +79,7 @@ def stream(capture_frame=False, inference_mode=True):
             predictions = predictor.predict(frame)
             frame = overlay_predictions(predictions, image=frame) 
             frame = np.array(frame)
-            _LOGGER.info(f"Prediction completed in {time.time() - start} seconds")
+            _LOGGER.info(f"Prediction completed in {time.time() - start:.02f} seconds")
         # Display the resulting frame
         cv2.imshow("window", frame)
 
