@@ -73,6 +73,8 @@ There are three ways to configure your user API credentials:
    LANDINGAI_API_SECRET=ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq312345
    ```
 
+The above ordering also indicates the priority of the credential loading order.
+
 ## Documentations
 
 #### 1. [LANDING AI Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
