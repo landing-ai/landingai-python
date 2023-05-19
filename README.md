@@ -77,11 +77,11 @@ The above ordering also indicates the priority of the credential loading order.
 
 ## Documentations
 
-#### 1. [LANDING AI Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
+#### 1. [LANDING AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
 
-#### 2. LANDING AI Library User Guide (coming soon)
+#### 2. LANDING AI Python Library User Guide (coming soon)
 
-#### 3. [LANDING AI Platform Documentation Hub](https://support.landing.ai/)
+#### 3. [LANDING AI Platform Suport Center](https://support.landing.ai/)
 
 #### 4. [Quick LandingLens Video Walk-Through](https://support.landing.ai/docs/landinglens-workflow) 
 
