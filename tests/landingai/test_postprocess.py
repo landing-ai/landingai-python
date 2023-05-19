@@ -11,7 +11,7 @@ api_secret = "1ccnesqy4em8dc32k2h2cu5kovdcd6palepaw4ugly6ttfl2fylu340x7ecja0"
 def test_segmentation_class_pixel_coverage():
     endpoint_id = "16049857-67bf-4c60-b20b-899741adbfdf"
     predictor = Predictor(endpoint_id, api_key, api_secret)
-    img = np.asarray(Image.open("tests/data/farm-coverage.jpg"))
+    img = np.asarray(Image.open("tests/data/images/farm-coverage.jpg"))
     predictions = []
     for img in [img] * 3:
         predictions.extend(predictor.predict(img))
