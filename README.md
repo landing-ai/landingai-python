@@ -22,6 +22,13 @@ pip install landingai
 
 ## Quick Start
 
+**Prerequisites**
+
+This library needs to communicate to the LandingAI platform for various functionalities (e.g. the `Predictor` API, it calls the HTTP endpoint of your deployed model for prediction results). Thus, you need to have below information at hand before using those functionalities:
+
+1. LandingAI user **API credentials** (API key and API secret). See [here](https://support.landing.ai/docs/api-key-and-api-secret?highlight=api%20key) for how to get it.
+2. The **Endpoint ID** of your deployed model on CloudInference LandingAI. See [here](https://support.landing.ai/landinglens/docs/cloud-deployment) for how to get it.
+
 **Run inference** using your deployed inference endpoint at LandingAI:
 
 - Install the library with the above command.
@@ -50,6 +57,33 @@ predictions = predictor.predict(image)
 image_with_preds = overlay_predictions(predictions, image)
 image_with_preds.save("image.jpg")
 ```
+
+**Storing API credentials**
+
+There are three ways to configure your user API credentials:
+
+1. Pass them as function parameters.
+
+2. Set them as environment variables, e.g. `export LANDINGAI_API_KEY=...`, `export LANDINGAI_API_SECRET=...`
+
+3. Store them in an `.env` file under your project root directory. E.g. below is an example credential data in `.env` file.
+
+   ```
+   LANDINGAI_API_KEY=v7b0hdyfj6271xy2o9lmiwkkcb12345
+   LANDINGAI_API_SECRET=ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq312345
+   ```
+
+The above ordering also indicates the priority of the credential loading order.
+
+## Documentations
+
+#### 1. [LANDING AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
+
+#### 2. LANDING AI Python Library User Guide (coming soon)
+
+#### 3. [LANDING AI Platform Suport Center](https://support.landing.ai/)
+
+#### 4. [Quick LandingLens Video Walk-Through](https://support.landing.ai/docs/landinglens-workflow) 
 
 ## Running examples locally
 
