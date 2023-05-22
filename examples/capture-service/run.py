@@ -24,6 +24,9 @@ _OUTPUT_FOLDER_PATH = "examples/output/capture-service"
 # How many frames per second should we capture and process
 _CAPTURE_INTERVAL = 1  # In milliseconds. Set to 1 if you want to capture at the max prediction rate
 
+# Percent of image change needed before we run inference
+_CHANGE_THRESHOLD = 2 
+
 # Public Cloud & Sky detection segmentation model
 api_key         = "bu8y8czyonaip6ceov75nfnlpnr9blh"  
 api_secret      = "mdebq6hxq19fg86k3p53rwcxh16h2qudcfonl6sjrde334y2vxz4qj4wnefh05"  
@@ -42,12 +45,13 @@ endpoint_id     = "432d58f6-6cd4-4108-a01c-2f023503d838"
 # stream_url = "https://itsstreamingbr.dotd.la.gov/public/br-cam-015.streams/playlist.m3u8" 
 stream_url = "https://itsstreamingbr.dotd.la.gov/public/br-cam-110.streams/playlist.m3u8" 
 
-def stream(capture_frame=False, inference_mode=True):
+def stream(capture_frame=False, inference_mode=True, detect_change=True):
     """Enable camera and start streaming."""
     _LOGGER.info(f"Opening the stream: {stream_url}")
     threaded_camera = ThreadedCapture(stream_url)
     Path(_OUTPUT_FOLDER_PATH).mkdir(parents=True, exist_ok=True)
     predictor = Predictor(endpoint_id, api_key, api_secret)
+    previous_frame = None
     while True:
         # Use threaded_camera to skip frames and get the latest
         start = time.time()
@@ -72,6 +76,28 @@ def stream(capture_frame=False, inference_mode=True):
                 f"{_OUTPUT_FOLDER_PATH}/frame_{filename}.jpg", frame
             )
             assert write_succeed, f"Failed to save the image to file: {filename}"
+
+        # Detect if the scene has changed
+        #
+        if detect_change:
+            # Prepare image; grayscale and blur
+            prepared_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            prepared_frame = cv2.GaussianBlur(src=prepared_frame, ksize=(5,5), sigmaX=0)
+            # Set previous frame and continue if there is None
+            if (previous_frame is None):
+                # First frame; there is no previous one yet
+                previous_frame = prepared_frame
+                continue
+            # calculate difference and update previous frame
+            diff_frame = cv2.absdiff(src1=previous_frame, src2=prepared_frame)
+            # Only take different areas that are different enough (>20 / 255)
+            thresh_frame = cv2.threshold(src=diff_frame, thresh=20, maxval=255, type=cv2.THRESH_BINARY)[1]        
+            change_percentage=100*cv2.countNonZero(thresh_frame)/(frame.shape[0]*frame.shape[1])
+            print(f"Image change {change_percentage:.2f}%")
+            if change_percentage>_CHANGE_THRESHOLD:
+                previous_frame = prepared_frame
+            else:
+                continue
 
         if inference_mode:
             _LOGGER.info("Predicting...")
@@ -99,4 +125,4 @@ def stream(capture_frame=False, inference_mode=True):
 
 
 if __name__ == "__main__":
-    stream(capture_frame=False, inference_mode=True)
+    stream(capture_frame=False, inference_mode=True, detect_change=True)

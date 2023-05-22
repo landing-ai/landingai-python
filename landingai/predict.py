@@ -5,7 +5,8 @@ import cv2
 import numpy as np
 from pydantic import ValidationError
 from requests import Session
-from requests.adapters import HTTPAdapter, Retry
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from landingai.common import (
     APICredential,
@@ -22,6 +23,7 @@ class Predictor:
     """A class that calls your inference endpoint on the Landing AI platform."""
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
+    # _url: str = "https://httpstat.us/503"  # Test URL
 
     def __init__(
         self,
@@ -56,20 +58,30 @@ class Predictor:
             self._api_key = api_key
             self._api_secret = api_secret
         _configure_logger()
-        self._session = self._create_session(Predictor._url)
+        self._session = self._create_session()
 
 
-    def _create_session(self, api_url: str) -> Session:
+    def _create_session(self) -> Session:
         """Create a requests session with retry"""
         session = Session()
-        # TODO: test it
         retries = Retry(
             # TODO: make them configurable
-            total=5,
+            total=3,
             backoff_factor=3,
-            status_forcelist=[408, 413, 429, 500, 502, 503, 504],
+            raise_on_redirect=True, 
+            raise_on_status=False, # We are already raising exceptions during backend invocations
+            allowed_methods=['GET', 'POST', 'PUT'],
+            status_forcelist=[  
+                            #     408 # Request Timeout
+                            #   , 413 # Content Too Large
+                                429 # Too Many Requests  (ie. rate limiter)
+                            #   , 500 # Internal Server Error
+                              , 502 # Bad Gateway
+                              , 503 # Service Unavailable
+                              , 504 # Gateway Timeout
+                              ],
         )
-        session.mount(api_url, HTTPAdapter(max_retries=retries))
+        session.mount(Predictor._url, HTTPAdapter(max_retries=retries)) # Since POST is not idempotent we will ony retry on the this specific API
         session.headers.update(
             {
                 "apikey": self._api_key,
