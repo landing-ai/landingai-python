@@ -1,9 +1,8 @@
 import logging
+from typing import Any
 
-import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from segmentation_mask_overlay import overlay_masks
 
 from landingai.common import (
     ClassificationPrediction,
@@ -12,12 +11,11 @@ from landingai.common import (
     SegmentationPrediction,
 )
 
-SPACING_PIXELS = 5
 _LOGGER = logging.getLogger(__name__)
 
 
 def overlay_predictions(
-    predictions: list[Prediction], image: np.ndarray
+    predictions: list[Prediction], image: np.ndarray, options: dict[str, Any] = None
 ) -> Image.Image:
     """Overlay the prediction results on the input image and return the image with overlaid."""
     if len(predictions) == 0:
@@ -26,35 +24,51 @@ def overlay_predictions(
     types = {type(pred) for pred in predictions}
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     overlay_func = _OVERLAY_FUNC_MAP[types.pop()]
-    return overlay_func(predictions, image)
+    return overlay_func(predictions, image, options)
 
 
 def overlay_bboxes(
-    predictions: list[ObjectDetectionPrediction], image: np.ndarray
+    predictions: list[ObjectDetectionPrediction],
+    image: np.ndarray,
+    options: dict[str, Any] = None,
 ) -> Image.Image:
     "Draw bounding boxes on the input image and return the image with bounding boxes drawn."
-    color = (255, 0, 0)
-    thickness = 2
+    import bbox_visualizer as bbv
+
+    if options is None:
+        options = {}
+    label_type = options.get("label_type", "default")
     for pred in predictions:
         bbox = pred.bboxes
-        xy_min = (bbox[0], bbox[1])
-        xy_max = (bbox[2], bbox[3])
-        image = cv2.rectangle(image, xy_min, xy_max, color, thickness)
-        image = cv2.putText(
-            img=image,
-            text=f"{pred.label_name} {pred.score:.4f}",
-            org=(xy_min[0], xy_min[1] - SPACING_PIXELS),
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=color,
-            thickness=thickness,
-        )
+        label = f"{pred.label_name} | {pred.score:.4f}"
+        if label_type == "flag":
+            image = bbv.draw_flag_with_label(image, label, bbox)
+        else:
+            draw_bg = options.get("draw_bg", True)
+            label_at_top = options.get("top", True)
+            image = bbv.draw_rectangle(image, pred.bboxes)
+            if label_type == "default":
+                image = bbv.add_label(
+                    image, label, bbox, draw_bg=draw_bg, top=label_at_top
+                )
+            elif label_type == "t-label":
+                image = bbv.add_T_label(image, label, bbox, draw_bg=draw_bg)
+            else:
+                raise ValueError(
+                    f"Unknown label_type: {label_type}. Supported types are: default (rectagnle), flag, t-label. See https://github.com/shoumikchow/bbox-visualizer for more details."
+                )
     return Image.fromarray(image)
 
 
 def overlay_colored_masks(
-    predictions: list[SegmentationPrediction], image: np.ndarray
+    predictions: list[SegmentationPrediction],
+    image: np.ndarray,
+    options: dict[str, Any] = None,
 ) -> Image.Image:
+    from segmentation_mask_overlay import overlay_masks
+
+    if options is None:
+        options = {}
     image = Image.fromarray(image).convert(mode="L")
     masks = [pred.decoded_boolean_mask.astype(np.bool_) for pred in predictions]
     return overlay_masks(image, masks, mask_alpha=0.5, return_pil_image=True)
@@ -63,8 +77,11 @@ def overlay_colored_masks(
 def overlay_predicted_class(
     predictions: list[ClassificationPrediction],
     image: np.ndarray,
+    options: dict[str, Any] = None,
     text_position: tuple[int, int] = (10, 25),
 ) -> Image.Image:
+    if options is None:
+        options = {}
     assert len(predictions) == 1
     prediction = predictions[0]
     image = Image.fromarray(image)

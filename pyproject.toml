@@ -23,7 +23,9 @@ numpy = ">=1.21.0"
 pillow = ">=9.1.1"
 pydantic = { version = "*", extras = ["dotenv"] }
 requests = "*"
-segmentation-mask-overlay = "*"
+snowflake-connector-python = "^3.0.3"
+bbox-visualizer = "^0.1.0"
+segmentation-mask-overlay = "^0.3.4"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "*"

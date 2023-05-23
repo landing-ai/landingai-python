@@ -9,6 +9,31 @@ from landingai.common import (
 )
 
 
+def class_map(predictions: list[Prediction]) -> dict[int, str]:
+    """Return a map from the predicted class/label index to the class/label name."""
+    return {pred.label_index: pred.label_name for pred in predictions}
+
+
+def class_counts(predictions: list[Prediction]) -> dict[int, (int, str)]:
+    """Compute the distribution of the occurrences of each class.
+
+    Returns
+    -------
+    A map with the predicted class/label index as the key, and a tuple of
+    (the number of occurrence, class/label name) as the value.
+    Example:
+        {
+            1: (10, "cat"),
+            2: (31, "dog"),
+        }
+    """
+    counts = defaultdict(lambda: [0, None])
+    for pred in predictions:
+        counts[pred.label_index][0] += 1
+        counts[pred.label_index][1] = pred.label_name
+    return {k: tuple(v) for k, v in counts.items()}
+
+
 def class_pixel_coverage(
     predictions: list[Prediction],
     coverage_type: str = "relative",
