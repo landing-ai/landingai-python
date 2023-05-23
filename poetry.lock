@@ -203,6 +203,17 @@ files = [
 ]
 
 [[package]]
+name = "bbox-visualizer"
+version = "0.1.0"
+description = "Different ways of visualizing objects given bounding box data"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "bbox_visualizer-0.1.0-py2.py3-none-any.whl", hash = "sha256:c238adc3e158488c2ff8afba582ee82de2095bf7cf4cbb24ff7ef2b681d1d204"},
+]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.12.2"
 description = "Screen-scraping library"
@@ -2809,4 +2820,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "09cfa23d73e36acb7eefb786ff2d556b79d2cccfdcb3fd6e92c1eedb0429a6dc"
+content-hash = "71c5b0834c4f3858067f24d1f797bed1ea5275ffad41ccae2c5136ce4a5e815b"
