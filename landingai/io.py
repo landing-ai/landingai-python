@@ -1,6 +1,34 @@
+import logging
 from pathlib import Path
 
 import cv2
+import requests
+
+_LOGGER = logging.getLogger(__name__)
+
+# TODO: support output type stream
+def read_file(url: str) -> bytes:
+    """Read bytes from a url.
+    Typically, the url is a presigned url (e.g. from s3, snowflake) that points to a video, image file.
+    """
+    response = requests.get(url)
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        reason = f"{e.response.text} (status code: {e.response.status_code})"
+        msg_prefix = f"Failed to read from url ({url}) due to {reason}"
+        if response.status_code == 403:
+            error_msg = f"{msg_prefix}. Please double check the url is not expired and it's well-formed"
+            raise ValueError(error_msg) from e
+        else:
+            error_msg = f"{msg_prefix}. Please try again later or reach out to us via our LandingAI platform."
+            raise ValueError(error_msg) from e
+    if response.status_code >= 300:
+        raise ValueError(
+            f"Failed to read from url ({url}) due to {response.text} (status code: {response.status_code})"
+        )
+    _LOGGER.info(f"Received content with length {len(response.content)} and type {response.headers.get('Content-Type')}")
+    return response.content
 
 
 def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, float]:
