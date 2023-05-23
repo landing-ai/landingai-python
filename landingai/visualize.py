@@ -55,7 +55,7 @@ def overlay_bboxes(
                 image = bbv.add_T_label(image, label, bbox, draw_bg=draw_bg)
             else:
                 raise ValueError(
-                    f"Unknown label_type: {label_type}. Supported types are: default, flag, t-label"
+                    f"Unknown label_type: {label_type}. Supported types are: default (rectagnle), flag, t-label. See https://github.com/shoumikchow/bbox-visualizer for more details."
                 )
     return Image.fromarray(image)
 
