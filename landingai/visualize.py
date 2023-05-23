@@ -53,6 +53,10 @@ def overlay_bboxes(
                 )
             elif label_type == "t-label":
                 image = bbv.add_T_label(image, label, bbox, draw_bg=draw_bg)
+            else:
+                raise ValueError(
+                    f"Unknown label_type: {label_type}. Supported types are: default, t-label"
+                )
     return Image.fromarray(image)
 
 
