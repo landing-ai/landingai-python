@@ -6,6 +6,7 @@ import requests
 
 _LOGGER = logging.getLogger(__name__)
 
+
 # TODO: support output type stream
 def read_file(url: str) -> bytes:
     """Read bytes from a url.
@@ -18,8 +19,12 @@ def read_file(url: str) -> bytes:
         reason = f"{e.response.text} (status code: {e.response.status_code})"
         msg_prefix = f"Failed to read from url ({url}) due to {reason}"
         if response.status_code == 403:
-            error_msg = f"{msg_prefix}. Please double check the url is not expired and it's well-formed"
+            error_msg = f"{msg_prefix}. Please double check the url is not expired and it's well-formed."
             raise ValueError(error_msg) from e
+        elif response.status_code == 404:
+            raise FileNotFoundError(
+                f"{msg_prefix}. Please double check the file exists and the url is well-formed."
+            ) from e
         else:
             error_msg = f"{msg_prefix}. Please try again later or reach out to us via our LandingAI platform."
             raise ValueError(error_msg) from e
@@ -27,7 +32,9 @@ def read_file(url: str) -> bytes:
         raise ValueError(
             f"Failed to read from url ({url}) due to {response.text} (status code: {response.status_code})"
         )
-    _LOGGER.info(f"Received content with length {len(response.content)} and type {response.headers.get('Content-Type')}")
+    _LOGGER.info(
+        f"Received content with length {len(response.content)} and type {response.headers.get('Content-Type')}"
+    )
     return response.content
 
 

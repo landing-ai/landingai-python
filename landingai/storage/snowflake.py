@@ -68,7 +68,12 @@ def save_remote_file_to_local(
     If local_output is not provided, a temporary directory will be created and used.
     If credential or connection_config is not provided, it will read from environment variable or .env file instead.
     """
-    url = get_snowflake_presigned_url(remote_filename, stage_name, credential=credential, connection_config=connection_config)
+    url = get_snowflake_presigned_url(
+        remote_filename,
+        stage_name,
+        credential=credential,
+        connection_config=connection_config,
+    )
     if local_output is None:
         local_output = Path(tempfile.mkdtemp())
     file_path = local_output / remote_filename
@@ -107,7 +112,11 @@ def get_snowflake_presigned_url(
     _LOGGER.debug(f"Files in stage {stage_name}: {files}")
     result = cur.execute(
         f"SELECT get_presigned_url(@{stage_name}, '{remote_filename}') as url"
-    )
-    result_url = result.fetchall()[0][0]
+    ).fetchall()
+    if len(result) == 0 or len(result[0]) == 0:
+        raise FileNotFoundError(
+            f"File ({remote_filename}) not found in stage {stage_name}. Please double check the file exists in the expected location, stage: {stage_name}, db config: {connection_config}."
+        )
+    result_url = result[0][0]
     _LOGGER.info(f"Result url: {result_url}")
     return result_url
