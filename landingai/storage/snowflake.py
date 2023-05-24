@@ -1,0 +1,125 @@
+import logging
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+import snowflake.connector
+from pydantic import BaseSettings, Field
+
+from landingai.io import read_file
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class SnowflakeCredential(BaseSettings):
+    """Snowflake API credential. It's used to connect to Snowflake.
+    It supports loading from environment variables or .env files.
+
+    The supported name of the environment variables are (case-insensitive):
+    1. SNOWFLAKE_USER
+    2. SNOWFLAKE_PASSWORD
+    3. SNOWFLAKE_ACCOUNT
+
+    Environment variables will always take priority over values loaded from a dotenv file.
+    """
+
+    user: str
+    password: str
+    account: str
+
+    class Config:
+        env_file = ".env"
+        env_prefix = "SNOWFLAKE_"
+        case_sensitive = False
+
+
+class SnowflakeDBConfig(BaseSettings):
+    """Snowflake connection config.
+    It supports loading from environment variables or .env files.
+
+    The supported name of the environment variables are (case-insensitive):
+    1. SNOWFLAKE_WAREHOUSE
+    2. SNOWFLAKE_DATABASE
+    3. SNOWFLAKE_SCHEMA
+
+    Environment variables will always take priority over values loaded from a dotenv file.
+    """
+
+    warehouse: str
+    database: str
+    # NOTE: the name "schema" is reserved by pydantic, so we use "snowflake_schema" instead.
+    snowflake_schema: str = Field(..., env="SNOWFLAKE_SCHEMA")
+
+    class Config:
+        env_file = ".env"
+        env_prefix = "SNOWFLAKE_"
+        case_sensitive = False
+
+
+def save_remote_file_to_local(
+    remote_filename: str,
+    stage_name: str,
+    *,
+    local_output: Path = None,
+    credential: Optional[SnowflakeCredential] = None,
+    connection_config: Optional[SnowflakeDBConfig] = None,
+) -> Path:
+    """Save a file stored in Snowflake to local disk.
+    If local_output is not provided, a temporary directory will be created and used.
+    If credential or connection_config is not provided, it will read from environment variable or .env file instead.
+    """
+    url = get_snowflake_presigned_url(
+        remote_filename,
+        stage_name,
+        credential=credential,
+        connection_config=connection_config,
+    )
+    if local_output is None:
+        local_output = Path(tempfile.mkdtemp())
+    file_path = local_output / remote_filename
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(str(file_path), "wb") as f:
+        data_bytes = read_file(url)
+        f.write(data_bytes)
+    _LOGGER.info(f"Saved file {remote_filename} to {file_path}")
+    return file_path
+
+
+def get_snowflake_presigned_url(
+    remote_filename: str,
+    stage_name: str,
+    *,
+    credential: Optional[SnowflakeCredential] = None,
+    connection_config: Optional[SnowflakeDBConfig] = None,
+) -> str:
+    """Get a presigned url for a file stored in Snowflake.
+    NOTE: Snowflake returns a valid url even if the file doesn't exists.
+          So the downstream needs to check if the file exists first.
+    """
+    if credential is None:
+        credential = SnowflakeCredential()
+    if connection_config is None:
+        connection_config = SnowflakeDBConfig()
+
+    ctx = snowflake.connector.connect(
+        user=credential.user,
+        password=credential.password,
+        account=credential.account,
+        warehouse=connection_config.warehouse,
+        database=connection_config.database,
+        schema=connection_config.snowflake_schema,
+    )
+    cur = ctx.cursor()
+    result = cur.execute(f"LIST @{stage_name}")
+    files = result.fetchall()
+    _LOGGER.debug(f"Files in stage {stage_name}: {files}")
+    result = cur.execute(
+        f"SELECT get_presigned_url(@{stage_name}, '{remote_filename}') as url"
+    ).fetchall()
+    if len(result) == 0 or len(result[0]) == 0:
+        raise FileNotFoundError(
+            f"File ({remote_filename}) not found in stage {stage_name}. Please double check the file exists in the expected location, stage: {stage_name}, db config: {connection_config}."
+        )
+    result_url = result[0][0]
+    _LOGGER.info(f"Result url: {result_url}")
+    return result_url

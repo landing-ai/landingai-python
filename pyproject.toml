@@ -34,6 +34,7 @@ black = "*"
 flake8 = "*"
 isort = "*"
 pdoc = "*"
+responses = "^0.23.1"
 
 [tool.poetry.group.examples.dependencies]
 jupyterlab = "*"

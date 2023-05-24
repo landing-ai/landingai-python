@@ -1,0 +1,30 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: "\uFFFDPNG\r\n\x1A\n\0\0\0\rIHDR\0\0\0\x02\0\0\0\x02\b\x02\0\0\0\uFFFD\u051A\
+      s\0\0\0\vIDATx\uFFFDc`@\x06\0\0\x0E\0\x01\uFFFD\uFFFDs\uFFFD\0\0\0\0IEND\uFFFD\
+      B`\uFFFD"
+    content_type: text/plain; charset=utf-8
+    method: GET
+    status: 200
+    url: https://landing-aviinference-benchmarking-dev.s3.us-east-2.amazonaws.com/images/test.png?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjELP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMSJHMEUCIFrGe9p9sBKng7GnrdeTPETmaXUz2RItwW9DtpyBXxkEAiEAomX3OFUwJUduZIJ5ujvONJUYK3qj9kOhHlZ7WvUuRAMq9gMI3P%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARACGgw5NzAwNzMwNDE5OTMiDFFuNFyCyCXH%2BAiTkCrKA8DfON81axWS6frqZ0soRRkJIFlaVJyGkTlWkchYZqb5hi%2BqnIYX6sxKwtM07QOQ%2FQoAgHmGxIsLQA84YwKq2Zty7RI%2Fsxtq%2BdMEe3oeZjX%2FO%2F%2Fp%2BvYuoQXbzRDHZz%2BNL6sJaySsNzsh5lRU5qjGowff7dBBdLPswhWYlZxnng5YPSJjlvZodABudG8S88B%2BV3Ml%2BC%2Fd2Q%2Bf0FCaiyMHfMCECGlBMIXRatEmuMJksEu%2Bfhrz5IoypolbBWwCsBZOeloRcz50L5%2FlBwqyUkSD7KliJel1rN2Qoq8mCLXgY9ySHBl%2BKDgrR1n8Nh0eR99t2BQ57EcOcswSoQeqAVehFPuLCRBLpVuiP7BG4h%2Fqdi%2FoQnr5t1wrSP1T7DWzhH4uCZDNdERrYGG9RoDaxdvMJl05xpt7%2B6d1E%2BFD7hRzLRW1q9Rg7pdKmOtPE4XlPBC4MYMp7lTgXvI4QGA1nB6rTsqTwie%2Fm1q6g9%2FpRXbffuNu3pt%2FN7Vf8bRl%2B1dx%2F7CKzsgTvRDildpuYYCzHIyszQGlLFSEhtId7%2BOrCdIymmW7FcC9Adt0g31oij2FTrhLUVkf1DGzWVmWOE2A6el%2FG7IXDZJawEpNhOuCMKWUtKMGOpQCCeSRlMNN9jETYk%2B0JhcI3zmvvBTqsjGt4jrZ9FjJ2Dq2JhYvoCmBf%2F%2BrrhulxH2bYs740CdLfuDnTK8VSeJTjTHSOeRlb2r5%2Bx4DYIS3CDlj2clxWll0Vyl8Vzl8M7h%2BPwViB3zPbuB%2BsMMqPkh9uoc8uLie1aaGpQ57vqfHuJtZWLIzEptogTG2I92WCAPsiAECJkTPfNlnrtP%2F6VCzTlI1OrAKoonDuGIdp5UeA107oEaXjWo7WLQTXULRHY8q16HU86K0pkwqREK%2FPpNgZSBRQ7RymMgxJI%2F5eYWfT2JHayND6PIgOSDjtIHbqKRPVwgQOdni3vypgBWt043Koh4zLbu7bh6W%2Fm9gBRlRLvY%2BW2C1&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230523T185235Z&X-Amz-SignedHeaders=host&X-Amz-Expires=18000&X-Amz-Credential=ASIA6DXG35RE4HTVSB3E%2F20230523%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Signature=debb56818b5126fec2ffbc06630bb94940f5f30fb2add48e67f262226df78c82
+- response:
+    auto_calculate_content_length: false
+    body: '<?xml version="1.0" encoding="UTF-8"?>
+
+      <Error><Code>AccessDenied</Code><Message>Request has expired</Message><X-Amz-Expires>120</X-Amz-Expires><Expires>2023-05-23T18:50:36Z</Expires><ServerTime>2023-05-23T19:51:27Z</ServerTime><RequestId>T19MN8X4DC2R8PKZ</RequestId><HostId>OoOB8rJB1hK9hP7/8Pu2h2Q2DMJ+4JyHyDp3k7cKHquUhHk8ffNnXomlguD+xPCC77v5eU+bLcU=</HostId></Error>'
+    content_type: text/plain
+    method: GET
+    status: 403
+    url: https://landing-aviinference-benchmarking-dev.s3.us-east-2.amazonaws.com/images/1mp_cereal_1.jpeg?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjELP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMSJHMEUCIFrGe9p9sBKng7GnrdeTPETmaXUz2RItwW9DtpyBXxkEAiEAomX3OFUwJUduZIJ5ujvONJUYK3qj9kOhHlZ7WvUuRAMq9gMI3P%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARACGgw5NzAwNzMwNDE5OTMiDFFuNFyCyCXH%2BAiTkCrKA8DfON81axWS6frqZ0soRRkJIFlaVJyGkTlWkchYZqb5hi%2BqnIYX6sxKwtM07QOQ%2FQoAgHmGxIsLQA84YwKq2Zty7RI%2Fsxtq%2BdMEe3oeZjX%2FO%2F%2Fp%2BvYuoQXbzRDHZz%2BNL6sJaySsNzsh5lRU5qjGowff7dBBdLPswhWYlZxnng5YPSJjlvZodABudG8S88B%2BV3Ml%2BC%2Fd2Q%2Bf0FCaiyMHfMCECGlBMIXRatEmuMJksEu%2Bfhrz5IoypolbBWwCsBZOeloRcz50L5%2FlBwqyUkSD7KliJel1rN2Qoq8mCLXgY9ySHBl%2BKDgrR1n8Nh0eR99t2BQ57EcOcswSoQeqAVehFPuLCRBLpVuiP7BG4h%2Fqdi%2FoQnr5t1wrSP1T7DWzhH4uCZDNdERrYGG9RoDaxdvMJl05xpt7%2B6d1E%2BFD7hRzLRW1q9Rg7pdKmOtPE4XlPBC4MYMp7lTgXvI4QGA1nB6rTsqTwie%2Fm1q6g9%2FpRXbffuNu3pt%2FN7Vf8bRl%2B1dx%2F7CKzsgTvRDildpuYYCzHIyszQGlLFSEhtId7%2BOrCdIymmW7FcC9Adt0g31oij2FTrhLUVkf1DGzWVmWOE2A6el%2FG7IXDZJawEpNhOuCMKWUtKMGOpQCCeSRlMNN9jETYk%2B0JhcI3zmvvBTqsjGt4jrZ9FjJ2Dq2JhYvoCmBf%2F%2BrrhulxH2bYs740CdLfuDnTK8VSeJTjTHSOeRlb2r5%2Bx4DYIS3CDlj2clxWll0Vyl8Vzl8M7h%2BPwViB3zPbuB%2BsMMqPkh9uoc8uLie1aaGpQ57vqfHuJtZWLIzEptogTG2I92WCAPsiAECJkTPfNlnrtP%2F6VCzTlI1OrAKoonDuGIdp5UeA107oEaXjWo7WLQTXULRHY8q16HU86K0pkwqREK%2FPpNgZSBRQ7RymMgxJI%2F5eYWfT2JHayND6PIgOSDjtIHbqKRPVwgQOdni3vypgBWt043Koh4zLbu7bh6W%2Fm9gBRlRLvY%2BW2C1&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230523T184836Z&X-Amz-SignedHeaders=host&X-Amz-Expires=120&X-Amz-Credential=ASIA6DXG35RE4HTVSB3E%2F20230523%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Signature=9d62d37e678546692ad1a33091f668fe8d2a2248d867a5b96628ef68a68cc00c
+- response:
+    auto_calculate_content_length: false
+    body: '<?xml version="1.0" encoding="UTF-8"?>
+
+      <Error><Code>PermanentRedirect</Code><Message>The bucket you are attempting
+      to access must be addressed using the specified endpoint. Please send all future
+      requests to this endpoint.</Message><Endpoint>test.s3.us-east-2.amazonaws.com</Endpoint><Bucket>test</Bucket><RequestId>QVFRWD11M3GWZH3Y</RequestId><HostId>XOCm/60ZeZ2Wz/qEg9c7Y1hWcpp49xxtyozbnpOOWZSaV6cAAPb0cWRcx243vXRvQ+7ZadSGmXQ=</HostId></Error>'
+    content_type: text/plain
+    method: GET
+    status: 301
+    url: https://test.s3.us-west-2.amazonaws.com/img.png?X-Amz-Security-Token=12345
