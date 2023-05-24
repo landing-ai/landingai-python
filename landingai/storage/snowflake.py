@@ -92,7 +92,10 @@ def get_snowflake_presigned_url(
     credential: Optional[SnowflakeCredential] = None,
     connection_config: Optional[SnowflakeDBConfig] = None,
 ) -> str:
-    """Get a presigned url for a file stored in Snowflake."""
+    """Get a presigned url for a file stored in Snowflake.
+    NOTE: Snowflake returns a valid url even if the file doesn't exists.
+          So the downstream needs to check if the file exists first.
+    """
     if credential is None:
         credential = SnowflakeCredential()
     if connection_config is None:
