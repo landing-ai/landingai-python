@@ -29,12 +29,13 @@ def test_probe_file_not_exist(tmp_path: Path):
         probe_video(non_exist_file, 1.0)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def test_video_file_path(tmp_path_factory) -> str:
     tmp_dir = tmp_path_factory.mktemp("video_output")
     video_file = str(tmp_dir / "test.mp4")
     sampe_frame = np.random.randint(0, 255, (128, 128, 3), dtype=np.uint8)
     video = cv2.VideoWriter(video_file, cv2.VideoWriter_fourcc(*"H264"), 24, (128, 128))
+    assert video is not None, "Failed to create a video writer."
     total_frames = 48
     for _ in range(total_frames):
         video.write(sampe_frame)
