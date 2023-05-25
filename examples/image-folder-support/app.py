@@ -122,6 +122,7 @@ def reset_states():
     st.session_state["image_paths"] = []
     st.session_state["result"] = []
 
+
 st.header("Cancer Detectation")
 st.divider()
 st.subheader("Select image folder")

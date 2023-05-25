@@ -9,9 +9,7 @@ logging.basicConfig(
 )
 
 st.subheader("Configuration")
-st.write(
-    "Please enter your LandingLens API key and secret below."
-)
+st.write("Please enter your LandingLens API key and secret below.")
 
 
 api_key = st.text_input(
