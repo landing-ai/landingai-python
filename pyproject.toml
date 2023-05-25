@@ -35,6 +35,9 @@ flake8 = "*"
 isort = "*"
 pdoc = "*"
 responses = "^0.23.1"
+mypy = "^1.3.0"
+types-requests = "^2.31.0.0"
+types-pillow = "^9.5.0.4"
 
 [tool.poetry.group.examples.dependencies]
 jupyterlab = "*"
@@ -52,3 +55,23 @@ line-length = 88               # suggested by black official site
 [tool.isort]
 line_length = 88
 profile = "black"
+
+[tool.mypy]
+exclude = "landingai/tests"
+plugins = "pydantic.mypy"
+show_error_context = true
+pretty = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+strict_equality = true
+strict_concatenate = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_return_any = true
+show_error_codes = true
+# TODO: consider enable stricter rules (below) in the future
+# disallow_any_unimported = true
+# disallow_any_generics = true
