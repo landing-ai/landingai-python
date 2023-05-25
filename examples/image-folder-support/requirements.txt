@@ -1,0 +1,4 @@
+streamlit
+streamlit-image-select
+landingai
+plotly
