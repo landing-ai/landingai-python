@@ -48,7 +48,7 @@ predictor = Predictor(endpoint_id, api_key, api_secret)
 predictions = predictor.predict(image)
 ```
 
-See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/landingai/test_predict.py) 
+See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/landingai/test_predict.py)
 
 **Visualize your inference results** by overlaying the predictions on the input image and save it on disk:
 
@@ -70,22 +70,23 @@ There are three ways to configure your user API credentials:
 
 3. Store them in an `.env` file under your project root directory. E.g. below is an example credential data in `.env` file.
 
-   ```
+```
    LANDINGAI_API_KEY=v7b0hdyfj6271xy2o9lmiwkkcb12345
    LANDINGAI_API_SECRET=ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq312345
-   ```
+```
 
 The above ordering also indicates the priority of the credential loading order.
 
 ## Documentations
 
-#### 1. [LANDING AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
+1. [LANDING AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
 
-#### 2. LANDING AI Python Library User Guide (coming soon)
+2. LANDING AI Python Library User Guide (coming soon)
 
-#### 3. [LANDING AI Platform Suport Center](https://support.landing.ai/)
+3. [LANDING AI Platform Suport Center](https://support.landing.ai/)
 
-#### 4. [Quick LandingLens Video Walk-Through](https://support.landing.ai/docs/landinglens-workflow) 
+4. [Quick LandingLens Video Walk-Through](https://support.landing.ai/docs/landinglens-workflow)
+
 
 ## Running examples locally
 
