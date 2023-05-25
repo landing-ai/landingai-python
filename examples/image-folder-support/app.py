@@ -72,17 +72,6 @@ class ImageFolderResult:
         data.update(class_counts_all)
         return pd.DataFrame(data)
 
-    # @cached_property
-    # def image_file_map(self):
-    #     return {f.frame_index: f for f in self.image_predictions}
-
-    # def get_frame_inference_result(self, frame_idx: int) -> ImageInferenceResult:
-    #     result = self.image_file_map.get(frame_idx)
-    #     assert (
-    #         result is not None
-    #     ), f"Development bug, frame index {frame_idx} not found, available frame indices: {self.image_file_map.keys()}"
-    #     return result
-
 
 def bulk_inference(image_paths: list[str], image_folder_path: str) -> ImageFolderResult:
     endpoint_id = st.session_state["endpoint_id"]
