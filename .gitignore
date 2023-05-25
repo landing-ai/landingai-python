@@ -87,3 +87,5 @@ MANIFEST
 # Output from various tools
 examples/output
 tests/output
+docs/*.html
+docs/*.js

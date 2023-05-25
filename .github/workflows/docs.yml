@@ -28,7 +28,7 @@ jobs:
           poetry-version: "1.2.2"
 
       - run: poetry install --all-extras
-
+      - run: mkdir -p docs
       - run: poetry run pdoc --docformat=numpy -o docs landingai
 
       - uses: actions/upload-pages-artifact@v1
