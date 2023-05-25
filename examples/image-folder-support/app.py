@@ -128,7 +128,7 @@ st.subheader("Select image folder")
 local_image_folder = st.text_input(
     "Image Folder Path",
     key="image_folder_path",
-    value="examples/output/streamlit",
+    value="",
     on_change=reset_states,
 )
 
