@@ -29,7 +29,6 @@ def test_probe_file_not_exist(tmp_path: Path):
         probe_video(non_exist_file, 1.0)
 
 
-
 # from responses import _recorder
 # @_recorder.record(file_path="tests/data/responses/test_read_stream.yaml")
 @responses.activate
