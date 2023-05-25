@@ -1,20 +1,20 @@
 from pathlib import Path
 
-import cv2
-import numpy as np
 import pytest
 import responses
 
 from landingai.io import probe_video, read_file, sample_images_from_video
 
 
-def test_sample_images_from_video(test_video_file_path: str, tmp_path: Path):
+def test_sample_images_from_video(tmp_path: Path):
+    test_video_file_path = "tests/data/videos/test.mp4"
     result = sample_images_from_video(test_video_file_path, tmp_path)
     assert len(result) == 2
     assert len(list(tmp_path.glob("*.jpg"))) == 2
 
 
-def test_probe(test_video_file_path):
+def test_probe():
+    test_video_file_path = "tests/data/videos/test.mp4"
     total_frames, sample_size, video_length_seconds = probe_video(
         test_video_file_path, 1.0
     )
@@ -28,18 +28,6 @@ def test_probe_file_not_exist(tmp_path: Path):
         non_exist_file = str(tmp_path / "non_exist.mp4")
         probe_video(non_exist_file, 1.0)
 
-
-@pytest.fixture(scope="module")
-def test_video_file_path(tmp_path_factory) -> str:
-    tmp_dir = tmp_path_factory.mktemp("video_output")
-    video_file = str(tmp_dir / "test.mp4")
-    sampe_frame = np.random.randint(0, 255, (128, 128, 3), dtype=np.uint8)
-    video = cv2.VideoWriter(video_file, cv2.VideoWriter_fourcc(*"H264"), 24, (128, 128))
-    assert video is not None, "Failed to create a video writer."
-    total_frames = 48
-    for _ in range(total_frames):
-        video.write(sampe_frame)
-    return video_file
 
 
 # from responses import _recorder
