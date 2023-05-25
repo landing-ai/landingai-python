@@ -72,17 +72,6 @@ class ImageFolderResult:
         data.update(class_counts_all)
         return pd.DataFrame(data)
 
-    # @cached_property
-    # def image_file_map(self):
-    #     return {f.frame_index: f for f in self.image_predictions}
-
-    # def get_frame_inference_result(self, frame_idx: int) -> ImageInferenceResult:
-    #     result = self.image_file_map.get(frame_idx)
-    #     assert (
-    #         result is not None
-    #     ), f"Development bug, frame index {frame_idx} not found, available frame indices: {self.image_file_map.keys()}"
-    #     return result
-
 
 def bulk_inference(image_paths: list[str], image_folder_path: str) -> ImageFolderResult:
     endpoint_id = st.session_state["endpoint_id"]
@@ -133,7 +122,7 @@ def reset_states():
     st.session_state["image_paths"] = []
     st.session_state["result"] = []
 
-st.header("Cancer Detectation")
+st.header("Inference on Image Folder")
 st.divider()
 st.subheader("Select image folder")
 local_image_folder = st.text_input(
@@ -203,9 +192,9 @@ if local_image_folder:
         all_preds = []
         for pred in result.image_predictions:
             all_preds.extend(pred.predictions)
-        class_counts = class_counts(all_preds).values()
-        cnts = [cnt_name[0] for cnt_name in class_counts]
-        names = [cnt_name[1] for cnt_name in class_counts]
+        class_cnts = class_counts(all_preds).values()
+        cnts = [cnt_name[0] for cnt_name in class_cnts]
+        names = [cnt_name[1] for cnt_name in class_cnts]
         fig = px.pie(
             values=cnts,
             names=names,
