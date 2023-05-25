@@ -53,7 +53,8 @@ jobs:
         run: |
           poetry version patch
           git add pyproject.toml
-          git commit -m "Bump up patch version"
+          new_version=`poetry version`
+          git commit -m "chore(release): ${new_version}"
           git push
       - name: Publish to PyPI
         run: |
