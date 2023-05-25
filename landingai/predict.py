@@ -60,7 +60,6 @@ class Predictor:
         _configure_logger()
         self._session = self._create_session()
 
-
     def _create_session(self) -> Session:
         """Create a requests session with retry"""
         session = Session()
@@ -68,20 +67,20 @@ class Predictor:
             # TODO: make them configurable
             total=3,
             backoff_factor=3,
-            raise_on_redirect=True, 
-            raise_on_status=False, # We are already raising exceptions during backend invocations
-            allowed_methods=['GET', 'POST', 'PUT'],
-            status_forcelist=[  
-                            #     408 # Request Timeout
-                            #   , 413 # Content Too Large
-                                429 # Too Many Requests  (ie. rate limiter)
-                            #   , 500 # Internal Server Error
-                              , 502 # Bad Gateway
-                              , 503 # Service Unavailable
-                              , 504 # Gateway Timeout
-                              ],
+            raise_on_redirect=True,
+            raise_on_status=False,  # We are already raising exceptions during backend invocations
+            allowed_methods=["GET", "POST", "PUT"],
+            status_forcelist=[
+                # 408 Request Timeout , 413 Content Too Large, 500 Internal Server Error
+                429,  # Too Many Requests  (ie. rate limiter)
+                502,  # Bad Gateway
+                503,  # Service Unavailable
+                504,  # Gateway Timeout
+            ],
         )
-        session.mount(Predictor._url, HTTPAdapter(max_retries=retries)) # Since POST is not idempotent we will ony retry on the this specific API
+        session.mount(
+            Predictor._url, HTTPAdapter(max_retries=retries)
+        )  # Since POST is not idempotent we will ony retry on the this specific API
         session.headers.update(
             {
                 "apikey": self._api_key,

@@ -98,5 +98,4 @@ def sample_images_from_video(
             output.append(output_file_path)
         frame_count += 1
     cap.release()
-    cv2.destroyAllWindows()
     return output
