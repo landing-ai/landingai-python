@@ -54,15 +54,20 @@ jobs:
         run: poetry config virtualenvs.in-project true
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "yazhou.cao@landing.ai"
       - name: Bump up version
         run: |
           poetry version patch
           git add pyproject.toml
           new_version=`poetry version`
           git commit -m "chore(release): ${new_version}"
-          git push
+          git push -f
       - name: Publish to PyPI
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry publish --build -vvv
-
