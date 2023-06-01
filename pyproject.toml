@@ -74,9 +74,7 @@ warn_unused_configs = true
 warn_unused_ignores = true
 warn_return_any = true
 show_error_codes = true
-# TODO: consider enable stricter rules (below) in the future
-# disallow_any_unimported = true
-# disallow_any_generics = true
+disallow_any_unimported = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
