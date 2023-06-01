@@ -1,3 +1,6 @@
+"""The vision pipeline is a layer that allows chaining image processing operations as a sequential pipeline. The main class passed throughout a pipeline is the `FrameSet` which typically contains a source image and derivative metadata and images.
+"""
+
 from landingai.visualize import overlay_predictions
 from landingai.predict import Predictor
 from landingai.common import (
@@ -12,11 +15,17 @@ import numpy as np
 from PIL import Image
 import cv2
 
+from datetime import datetime
+import logging
+import time
 from typing import Dict, List, Tuple, Any, Callable
 from pydantic import BaseModel, BaseSettings
 
+_LOGGER = logging.getLogger(__name__)
+
 class Frame(BaseModel):
-    """Single image frame including metadata."""
+    """A Frame stores a main image, its metadata and potentially derived images. This class will be mostly used internally by the FrameSet."""
+
     image: Image.Image
     """Main image"""
 
@@ -39,7 +48,7 @@ class Frame(BaseModel):
         return self
     
     def to_numpy_array(self) -> "np.ndarray":
-        """Return a numpy array on the GRB color format (used by OpenCV)
+        """Return a numpy array using GRB color encoding (used by OpenCV)
         """
         return np.asarray(self.image)
 
@@ -51,7 +60,7 @@ class Frame(BaseModel):
         arbitrary_types_allowed = True
     
 class FrameSet(BaseModel):
-    """Sequence of frames and metadata."""
+    """A FrameSet is a collection of frames (in order). Typically a FrameSet will include a single image but there are circumstances where other images will be extracted from the initial one. For example: we may want to identify vehicles on an initial image and then extract sub-images for each of the vehicles."""
     frames:List[Frame] = [] # Start with empty frame set
 
     @classmethod
@@ -123,8 +132,24 @@ class FrameSet(BaseModel):
                 frame.image=frame.image.resize((width, height))
         return self
 
+    def save_image(self, filename_prefix:str, image_src: str = "") -> "FrameSet":
+        """Save all the images on the FrameSet to disk (as PNG)
+
+        Parameters
+        ----------
+        filename_prefix : path and name prefix for the image file
+        image_src : if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        """
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S") # TODO saving faster than 1 sec will cause image overwrite
+        c = 0
+        for frame in self.frames:
+            img = frame.image if image_src == "" else frame.other_images[image_src]
+            img.save(f"{filename_prefix}_{timestamp}_{image_src}_{c}.png", format="PNG")
+            c+=1
+        return self
+
     def show_image(self, image_src: str = "") -> "FrameSet":
-        """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.
+        """Open an a window and display all the images.
         Parameters
         ----------
         image_src: if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
@@ -137,6 +162,11 @@ class FrameSet(BaseModel):
                 frame.other_images[image_src].show()
 
         # # TODO: Implement image stacking when we have multiple frames (https://answers.opencv.org/question/175912/how-to-display-multiple-images-in-one-window/)
+        # """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.
+        # Parameters
+        # ----------
+        # image_src: if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        # """
         # # OpenCV is full of issues when it comes to displaying windows (see https://stackoverflow.com/questions/6116564/destroywindow-does-not-close-window-on-mac-using-python-and-opencv)
         # cv2.namedWindow("image")
         # cv2.startWindowThread()
@@ -154,18 +184,28 @@ class FrameSet(BaseModel):
         return self
     
     def apply(self, function:Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
-        """Apply function to all frames"""
+        """Apply a function to all frames
+
+        Parameters
+        ----------
+        function: lambda function that takes individual frames and returned an updated frame
+        """
         for i in range(len(self.frames)):
             self.frames[i]=function(self.frames[i])
         return self
     def filter(self, function:Callable[[Frame], bool] = lambda f: True) -> "FrameSet":
-        """Filter predictions"""
+        """Evaluate a function on every frame and keep or remove
+
+        Parameters
+        ----------
+        function : lambda function that gets invoked on every Frame. If it returns False, the Frame will be deleted
+        """
         for i in reversed(range(0,len(self.frames))): # Traverse in reverse so we can delete
             if not function(self.frames[i]):
                 self.frames.pop(i)
         return self
 
-    
+   
 import threading
 import time
 
@@ -174,26 +214,38 @@ import cv2
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will tart to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
 class NetworkedCamera:
+    """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame
+    """
     stream_url: str
-    enable_motion_detection: bool
     motion_detection_threshold: int
-    forced_framerate: int
+    capture_interval: float
     previous_frame: Frame = None
 
     def __init__(self, stream_url:str
-                 , enable_motion_detection:bool = False, motion_detection_threshold:int = 2
-                 , forced_framerate:int = None):
+                 , motion_detection_threshold:int = 0
+                 , capture_interval:float = None):
+        """
+        Parameters
+        ----------
+        stream_url : url to video source
+        motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
+        capture_interval : If set to None, the NetworkedCamera will acquire images as fast as the source permits. Otherwise will grab new frames on the given interval
+
+        Raises
+        ------
+        Exception
+            _description_
+        """
         self.stream_url = stream_url
-        self.enable_motion_detection = enable_motion_detection
         self.motion_detection_threshold = motion_detection_threshold
-        self.forced_framerate = forced_framerate
+        self.capture_interval = capture_interval
+        self.lastCaptureTime=datetime.now()
         self.cap = cv2.VideoCapture(stream_url)
         if not self.cap.isOpened():
             self.cap.release()
             raise Exception(f"Could not open stream ({stream_url})")
         # FPS = 1/X
-        # X = desired FPS
-        self.FPS = 1 / self.cap.get(cv2.CAP_PROP_FPS)
+        self.FPS = 1 / self.cap.get(cv2.CAP_PROP_FPS) # Get the source's framerate
         self.FPS_MS = int(self.FPS * 1000)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Limit buffering to 1 frames
         self.lock = threading.Lock()
@@ -213,16 +265,23 @@ class NetworkedCamera:
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
 
-
+    lastCaptureTime: datetime
     # retrieve latest frame
     def get_latest_frame(self):
         """Return the most up to date frame by dropping all by the latest frame. This function is blocking
         """        
         with self.lock:
+            if self.capture_interval is not None:
+                t = datetime.now()
+                delta = (t-self.lastCaptureTime).total_seconds()
+                if delta <= self.capture_interval:
+                    time.sleep(delta)
+                self.lastCaptureTime=t
+
             ret, frame = self.cap.retrieve()
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
-            if self.enable_motion_detection:
+            if self.motion_detection_threshold>0:
                 if self._detect_motion(frame):
                     return FrameSet.fromArray(frame)
                 else:
