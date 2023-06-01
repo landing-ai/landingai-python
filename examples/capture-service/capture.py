@@ -42,7 +42,9 @@ class ThreadedCapture:
 
 
 if __name__ == "__main__":
-    stream_url = "https://itsstreamingbr.dotd.la.gov/public/br-cam-110.streams/playlist.m3u8"
+    stream_url = (
+        "https://itsstreamingbr.dotd.la.gov/public/br-cam-110.streams/playlist.m3u8"
+    )
     threaded_camera = ThreadedCapture(stream_url, 2)
     while True:
         try:

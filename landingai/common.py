@@ -1,3 +1,4 @@
+import math
 import re
 from functools import cached_property
 from typing import Dict, List, Tuple
@@ -113,7 +114,7 @@ class SegmentationPrediction(Prediction):
     @cached_property
     def percentage_predicted_pixels(self) -> float:
         """The percentage of pixels that are predicted as the class."""
-        return np.count_nonzero(self.decoded_boolean_mask) / np.prod(self.mask_shape)
+        return np.count_nonzero(self.decoded_boolean_mask) / math.prod(self.mask_shape)
 
     class Config:
         keep_untouched = (cached_property,)
