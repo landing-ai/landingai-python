@@ -34,7 +34,7 @@ jobs:
         poetry run flake8 . --exclude .venv --count --show-source --statistics
     - name: Check Format
       run: |
-        poetry run black --check .
+        poetry run black --check --diff --color .
     - name: Type Checking
       run: |
         poetry run mypy landingai
