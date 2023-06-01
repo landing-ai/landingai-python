@@ -60,7 +60,7 @@ def save_remote_file_to_local(
     remote_filename: str,
     stage_name: str,
     *,
-    local_output: Path = None,
+    local_output: Path | None = None,
     credential: Optional[SnowflakeCredential] = None,
     connection_config: Optional[SnowflakeDBConfig] = None,
 ) -> Path:
@@ -110,16 +110,23 @@ def get_snowflake_presigned_url(
         schema=connection_config.snowflake_schema,
     )
     cur = ctx.cursor()
-    result = cur.execute(f"LIST @{stage_name}")
-    files = result.fetchall()
+    exec_res = cur.execute(f"LIST @{stage_name}")
+    if exec_res is None:
+        raise ValueError(f"Failed to list files in stage: {stage_name}")
+    files = exec_res.fetchall()
     _LOGGER.debug(f"Files in stage {stage_name}: {files}")
-    result = cur.execute(
+    exec_res = cur.execute(
         f"SELECT get_presigned_url(@{stage_name}, '{remote_filename}') as url"
-    ).fetchall()
+    )
+    if exec_res is None:
+        raise ValueError(
+            f"Failed to get presigned url for file: {remote_filename} in stage: {stage_name}"
+        )
+    result = exec_res.fetchall()
     if len(result) == 0 or len(result[0]) == 0:
         raise FileNotFoundError(
             f"File ({remote_filename}) not found in stage {stage_name}. Please double check the file exists in the expected location, stage: {stage_name}, db config: {connection_config}."
         )
-    result_url = result[0][0]
+    result_url: str = result[0][0]
     _LOGGER.info(f"Result url: {result_url}")
     return result_url
