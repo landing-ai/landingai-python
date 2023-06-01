@@ -1,20 +1,22 @@
 <p align="center">
-  <img width="200" height="200" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
+  <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
 </p>
 
-# LandingLens code sample repository
-This repository contains LandingLens development library and running examples showing how to integrate LandingLens on a variety of scenarios. All the examples show different ways to acquire images from multiple sources and techniques to process the results. Jupyter notebooks focus on ease of use while Python apps include more robust and complete examples.
+# LandingLens Python SDK
+The LandingLens Python SDK contains the LandingLens development library and examples that show how to integrate your app with LandingLens in a variety of scenarios. The examples cover different model types, image acquisition sources, and post-procesing techniques. 
+
+We've provided some examples in Jupyter Notebooks to focus on ease of use, and some examples in Python apps to provide a more robust and complete experience.
 
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 
-| example | description | language |
+| Example | Description | Type |
 |---|---|---|
-| [Poker card suit identification](https://github.com/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook can run directly in Google collab using the web browser camera to detect suits on poker card | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
-| [Door monitoring for home automation](https://github.com/landing-ai/landingai-python/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook uses an object detection model to determine whether a door is open or closed. The notebook can acquire images directly from an RTSP camera | Jupyter Notebook |
-| [Streaming capture service](https://github.com/landing-ai/landingai-python/tree/main/examples/capture-service) | This application shows how to do continuous acquisition from an image sensor using RTSP. | Python application |
-| [Pixel coverage post-processing](https://github.com/landing-ai/landingai-python/tree/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) | This notebook demonstrates how to use a VisualPrompting model to analyze the area coverage of different types of land or structures on satellite images. | Jupyter Notebook |
+| [Poker Card Suit Identification](https://github.com/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb) | This notebook shows how to use an object detection model from LandingLens to detect suits on playing cards. A webcam is used to take photos of playing cards. | Jupyter Notebook [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb)|
+| [Door Monitoring for Home Automation](https://github.com/landing-ai/landingai-python/blob/main/examples/rtsp-capture-notebook/rtsp-capture.ipynb) | This notebook shows how to use an object detection model from LandingLens to detect whether a door is open or closed. An RTSP camera is used to acquire images. | Jupyter Notebook |
+| [Streaming Video](https://github.com/landing-ai/landingai-python/tree/main/examples/capture-service) | This application shows how to continuously run inference on images extracted from a streaming RTSP video camera feed. | Python application |
+| [Satellite Images and Post-Processing](https://github.com/landing-ai/landingai-python/tree/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) | This notebook shows how to use a Visual Prompting model from LandingLens to identify different objects in satellite images. The notebook includes post-processing scripts that calculate the percentage of ground cover that each object takes up. | Jupyter Notebook |
 
-## Install the library
+## Install the Library
 
 ```bash
 pip install landingai
@@ -22,18 +24,19 @@ pip install landingai
 
 ## Quick Start
 
-**Prerequisites**
+### Prerequisites
 
-This library needs to communicate to the LandingAI platform for various functionalities (e.g. the `Predictor` API, it calls the HTTP endpoint of your deployed model for prediction results). Thus, you need to have below information at hand before using those functionalities:
+This library needs to communicate with the LandingLens platform to perform certain functions. (For example, the `Predictor` API calls the HTTP endpoint of your deployed model). To enable communication with LandingLens, you will need the following information:
 
-1. LandingAI user **API credentials** (API key and API secret). See [here](https://support.landing.ai/docs/api-key-and-api-secret?highlight=api%20key) for how to get it.
-2. The **Endpoint ID** of your deployed model on CloudInference LandingAI. See [here](https://support.landing.ai/landinglens/docs/cloud-deployment) for how to get it.
+1. The **Endpoint ID** of your deployed model in LandingLens. You can find this on the Deploy page in LandingLens.
+2. The **API Key** and **API Secret** for the LandingLens organization that has the model you want to deploy. To learn how to generate these credentials, go [here](https://support.landing.ai/docs/api-key-and-api-secret).
 
-**Run inference** using your deployed inference endpoint at LandingAI:
+### Run Inference
+Run inference using the endpoint you created in LandingLens:
 
-- Install the library with the above command.
-- Create a `Predictor` with your inference endpoint id, landing API key and secret.
-- Call `predict()` with an image (in numpy array format).
+- Install the Python library.
+- Create a `Predictor` fucntion with your Endpoint ID, API Key, and API Secret.
+- Call the `predict()` function with an image (using the NumPy array format).
 
 ```python
 from landingai.predict import Predictor
@@ -48,9 +51,10 @@ predictor = Predictor(endpoint_id, api_key, api_secret)
 predictions = predictor.predict(image)
 ```
 
-See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/landingai/test_predict.py)
+See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/landingai/test_predict.py).
 
-**Visualize your inference results** by overlaying the predictions on the input image and save it on disk:
+### Visualize and Save Predictions
+Visualize your inference results by overlaying the predictions on the input image and saving the updated image:
 
 ```python
 from landingai.visualize import overlay_predictions
@@ -60,88 +64,21 @@ image_with_preds = overlay_predictions(predictions, image)
 image_with_preds.save("image.jpg")
 ```
 
-**Storing API credentials**
-
-There are three ways to configure your user API credentials:
-
-1. Pass them as function parameters.
-
-2. Set them as environment variables, e.g. `export LANDINGAI_API_KEY=...`, `export LANDINGAI_API_SECRET=...`
-
-3. Store them in an `.env` file under your project root directory. E.g. below is an example credential data in `.env` file.
-
-```
-   LANDINGAI_API_KEY=v7b0hdyfj6271xy2o9lmiwkkcb12345
-   LANDINGAI_API_SECRET=ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq312345
-```
-
-The above ordering also indicates the priority of the credential loading order.
-
-## Documentations
-
-1. [LANDING AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
-
-2. LANDING AI Python Library User Guide (coming soon)
-
-3. [LANDING AI Platform Suport Center](https://support.landing.ai/)
-
-4. [Quick LandingLens Video Walk-Through](https://support.landing.ai/docs/landinglens-workflow)
-
-
-## Running examples locally
+## Run Examples Locally
 
 All the examples in this repo can be run locally.
 
-Here is an example to show you how to run the `rtsp-capture` example locally in a shell environment:
+To give you some guidance, here's how you can run the `rtsp-capture` example locally in a shell environment:
 
 1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python.git`
-2. Install the library: `poetry install --with examples` (NOTE: see below for how to install `poetry`)
+2. Install the library: `poetry install --with examples` (Note: See [Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide) for how to install `poetry`)
 3. Activate the virtual environment: `poetry shell`
 4. Run: `python landingai-python/examples/capture-service/run.py`
 
-## Building the `landingai` library locally (for contributors)
+## Documentation
 
-Most of the time you won't need to build the library since it is included on this repository and also published to pypi.
-
-But if you want to contribute to the repo, you can follow the below steps.
-
-### Prerequisite - Install poetry
-
-> `landingai` uses `Poetry` for packaging and dependency management. If you want to build it from source, you have to install Poetry first. Please follow
-[the official guide](https://python-poetry.org/docs/#installation) to see all possible options.
-
-For Linux, macOS, Windows (WSL):
-
-```
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-NOTE: you can switch to use a different Python version by specifying the python version:
-
-```
-curl -sSL https://install.python-poetry.org | python3.10 -
-```
-
-or run below command after you have installed poetry:
-
-```
-poetry env use 3.10
-```
-
-### Install all the dependencies
-
-```bash
-poetry install --all-extras
-```
-
-### Run tests
-
-```bash
-poetry run pytest tests/
-```
-
-### Activate the virtualenv
-
-```bash
-poetry shell
-```
+-  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
+-  [Landing AI Python Library User Guide](https://landing-ai.github.io/landingai-python/landingai.html#user-guide)
+-  [Landing AI Python Library Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide)
+-  [Landing AI Suport Center](https://support.landing.ai/)
+-  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)

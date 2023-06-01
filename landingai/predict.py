@@ -35,14 +35,17 @@ class Predictor:
 
         Parameters
         ----------
-        endpoint_id: a unique string that identifies your inference endpoint.
+        endpoint_id
+            A unique string that identifies your inference endpoint.
             This string can be found in the URL of your inference endpoint.
             Example: "9f237028-e630-4576-8826-f35ab9000abc" is the endpoint id in below URL:
             https://predict.app.landing.ai/inference/v1/predict?endpoint_id=9f237028-e630-4576-8826-f35ab9000abc
-        api_key: the API key of your Landing AI account.
+        api_key
+            the API key of your Landing AI account.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_KEY or from the .env file.
-        api_secret: the API key of your Landing AI account.
+        api_secret
+            The API key of your Landing AI account.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_SECRET or from the .env file.
         """
@@ -95,14 +98,14 @@ class Predictor:
 
         Parameters
         ----------
-        image: the input image to be predicted.
-               The image should be in RGB format if it has three channels.
+        image
+            The input image to be predicted. The image should be in RGB format if it has three channels.
 
         Returns
         -------
-        The inference result in a list of dictionary. Each dictionary is a prediction result.
-        The ininference result has been filtered by the confidence threshold
-        set in the Landing AI platform and sorted by confidence score in descending order.
+        The inference result in a list of dictionary
+            Each dictionary is a prediction result.
+            The ininference result has been filtered by the confidence threshold set in the Landing AI platform and sorted by confidence score in descending order.
         """
         img = cv2.imencode(".png", image)[1]
         files = [("file", ("image.png", img, "image/png"))]
