@@ -80,5 +80,5 @@ To give you some guidance, here's how you can run the `rtsp-capture` example loc
 -  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
 -  [Landing AI Python Library User Guide](https://landing-ai.github.io/landingai-python/landingai.html#user-guide)
 -  [Landing AI Python Library Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide)
--  [Landing AI Suport Center](https://support.landing.ai/)
+-  [Landing AI Support Center](https://support.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)

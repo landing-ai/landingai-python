@@ -1,6 +1,6 @@
+import math
 from collections import defaultdict
-
-import numpy as np
+from typing import Sequence, cast
 
 from landingai.common import (
     ObjectDetectionPrediction,
@@ -9,12 +9,12 @@ from landingai.common import (
 )
 
 
-def class_map(predictions: list[Prediction]) -> dict[int, str]:
+def class_map(predictions: Sequence[Prediction]) -> dict[int, str]:
     """Return a map from the predicted class/label index to the class/label name."""
     return {pred.label_index: pred.label_name for pred in predictions}
 
 
-def class_counts(predictions: list[Prediction]) -> dict[int, (int, str)]:
+def class_counts(predictions: Sequence[Prediction]) -> dict[int, tuple[int, str]]:
     """Compute the distribution of the occurrences of each class.
 
     Returns
@@ -27,17 +27,17 @@ def class_counts(predictions: list[Prediction]) -> dict[int, (int, str)]:
             2: (31, "dog"),
         }
     """
-    counts = defaultdict(lambda: [0, None])
+    counts: dict[int, list[int | str]] = defaultdict(lambda: [0, ""])
     for pred in predictions:
-        counts[pred.label_index][0] += 1
+        counts[pred.label_index][0] = cast(int, counts[pred.label_index][0]) + 1
         counts[pred.label_index][1] = pred.label_name
-    return {k: tuple(v) for k, v in counts.items()}
+    return {k: (cast(int, v[0]), cast(str, v[1])) for k, v in counts.items()}
 
 
 def class_pixel_coverage(
-    predictions: list[Prediction],
+    predictions: Sequence[Prediction],
     coverage_type: str = "relative",
-) -> dict[int, (float, str)]:
+) -> dict[int, tuple[float, str]]:
     """Compute the pixel coverage of each class.
 
     Supported prediction types are:
@@ -70,24 +70,24 @@ def class_pixel_coverage(
             2: (0, "pink"),
         }
     """
-    # TODO: add more input validation
-    assert (
-        type(predictions[0]) == SegmentationPrediction
+    assert isinstance(
+        predictions[0], SegmentationPrediction
     ), "Only support SegmentationPrediction for now."
+    predictions = cast(list[SegmentationPrediction], predictions)
     return segmentation_class_pixel_coverage(predictions, coverage_type)
 
 
 def od_class_pixel_coverage(
-    predictions: list[ObjectDetectionPrediction],
+    predictions: Sequence[ObjectDetectionPrediction],
     coverage_type: str = "relative",
-):
+) -> dict[int, tuple[float, str]]:
     raise NotImplementedError()
 
 
 def segmentation_class_pixel_coverage(
-    predictions: list[SegmentationPrediction],
+    predictions: Sequence[SegmentationPrediction],
     coverage_type: str = "relative",
-) -> dict[int, (float, str)]:
+) -> dict[int, tuple[float, str]]:
     """Compute the pixel coverage of each class.
     The coverage is defined as the percentage of pixels that are predicted as the class
     over the sum total number of pixels of every mask.
@@ -110,14 +110,14 @@ def segmentation_class_pixel_coverage(
             2: (0.07, "pink"),
         }
     """
-    total_pixels = sum([np.prod(pred.mask_shape) for pred in predictions])
-    pixel_counts = defaultdict(lambda: [0, ""])
+    total_pixels: int = sum([math.prod(pred.mask_shape) for pred in predictions])
+    pixel_counts: dict[int, list] = defaultdict(lambda: [0, ""])
     for pred in predictions:
         pixel_counts[pred.label_index][0] += pred.num_predicted_pixels
         pixel_counts[pred.label_index][1] = pred.label_name
-    coverages = {}
+    coverages: dict[int, tuple[float, str]] = {}
     if coverage_type == "relative":
-        total_pixels = sum([np.prod(pred.mask_shape) for pred in predictions])
+        total_pixels = sum([math.prod(pred.mask_shape) for pred in predictions])
     else:
         total_pixels = 1
     for label_index, (num_pixels, class_name) in pixel_counts.items():
