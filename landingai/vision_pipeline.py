@@ -3,13 +3,7 @@
 
 from landingai.visualize import overlay_predictions
 from landingai.predict import Predictor
-from landingai.common import (
-    APICredential,
-    ClassificationPrediction,
-    ObjectDetectionPrediction,
-    Prediction,
-    SegmentationPrediction,
-)
+from landingai.common import Prediction
 
 import numpy as np
 from PIL import Image
@@ -18,10 +12,12 @@ import cv2
 from datetime import datetime
 import logging
 import time
-from typing import Dict, List, Tuple, Any, Callable
-from pydantic import BaseModel, BaseSettings
+import threading
+from typing import Dict, List, Any, Callable
+from pydantic import BaseModel
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class Frame(BaseModel):
     """A Frame stores a main image, its metadata and potentially derived images. This class will be mostly used internally by the FrameSet."""
@@ -35,7 +31,7 @@ class Frame(BaseModel):
     predictions: List[Prediction] = []
     """List of predictions for the main image"""
 
-    metadata: Dict[str, Any] = {} 
+    metadata: Dict[str, Any] = {}
     """An optional collection of metadata"""
 
     def run_predict(self, predictor: Predictor) -> "FrameSet":
@@ -44,24 +40,25 @@ class Frame(BaseModel):
         ----------
         predictor: the model to be invoked.
         """
-        self.predictions=predictor.predict(np.asarray(self.image))
+        self.predictions = predictor.predict(np.asarray(self.image))
         return self
-    
+
     def to_numpy_array(self) -> "np.ndarray":
-        """Return a numpy array using GRB color encoding (used by OpenCV)
-        """
+        """Return a numpy array using GRB color encoding (used by OpenCV)"""
         return np.asarray(self.image)
 
     # def __str__(self):
-    #     return "member of Test"    
+    #     return "member of Test"
     # def __repr__(self):
-    #     return "member of Test"    
+    #     return "member of Test"
     class Config:
         arbitrary_types_allowed = True
-    
+
+
 class FrameSet(BaseModel):
     """A FrameSet is a collection of frames (in order). Typically a FrameSet will include a single image but there are circumstances where other images will be extracted from the initial one. For example: we may want to identify vehicles on an initial image and then extract sub-images for each of the vehicles."""
-    frames:List[Frame] = [] # Start with empty frame set
+
+    frames: List[Frame] = []  # Start with empty frame set
 
     @classmethod
     def fromImage(cls, file: str) -> "FrameSet":
@@ -72,7 +69,7 @@ class FrameSet(BaseModel):
         return cls(frames=[Frame(image=im)])
 
     @classmethod
-    def fromArray(cls, array: np.ndarray, is_BGR:bool = True) -> "FrameSet":
+    def fromArray(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
         # img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
         if is_BGR:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
@@ -91,15 +88,19 @@ class FrameSet(BaseModel):
         """
 
         for frame in self.frames:
-            frame.predictions=predictor.predict(np.asarray(frame.image))
+            frame.predictions = predictor.predict(np.asarray(frame.image))
         return self
 
     def overlay_predictions(self) -> "FrameSet":  # TODO: Optional where to store
         for frame in self.frames:
-            frame.other_images["overlay"]=overlay_predictions(frame.predictions, np.asarray(frame.image))
+            frame.other_images["overlay"] = overlay_predictions(
+                frame.predictions, np.asarray(frame.image)
+            )
         return self
-    
-    def resize(self, width:int = None, height: int = None) -> "FrameSet":  # TODO: Optional where to store
+
+    def resize(
+        self, width: int = None, height: int = None
+    ) -> "FrameSet":  # TODO: Optional where to store
         """Returns a resized copy of this image. If width or height is missing the resize will preserve the aspect ratio
         Parameters
         ----------
@@ -108,14 +109,16 @@ class FrameSet(BaseModel):
         """
         for frame in self.frames:
             # Compute the final dimensions on the first image
-            if width is None: 
-                width  = int(height * float(frame.image.size[0]/frame.image.size[1]) )
+            if width is None:
+                width = int(height * float(frame.image.size[0] / frame.image.size[1]))
             if height is None:
-                height = int(width * float(frame.image.size[1]/frame.image.size[0]) )
-            frame.image=frame.image.resize((width, height))
+                height = int(width * float(frame.image.size[1] / frame.image.size[0]))
+            frame.image = frame.image.resize((width, height))
         return self
 
-    def downsize(self, width:int = None, height: int = None) -> "FrameSet":  # TODO: Optional where to store
+    def downsize(
+        self, width: int = None, height: int = None
+    ) -> "FrameSet":  # TODO: Optional where to store
         """Resize only if the image is larger than the expected dimensions,
         Parameters
         ----------
@@ -124,15 +127,15 @@ class FrameSet(BaseModel):
         """
         for frame in self.frames:
             # Compute the final dimensions on the first image
-            if width is None: 
-                width  = int(height * float(frame.image.size[0]/frame.image.size[1]) )
+            if width is None:
+                width = int(height * float(frame.image.size[0] / frame.image.size[1]))
             if height is None:
-                height = int(width * float(frame.image.size[1]/frame.image.size[0]) )
-            if frame.image.size[0]>width or frame.image.size[1]>height:
-                frame.image=frame.image.resize((width, height))
+                height = int(width * float(frame.image.size[1] / frame.image.size[0]))
+            if frame.image.size[0] > width or frame.image.size[1] > height:
+                frame.image = frame.image.resize((width, height))
         return self
 
-    def save_image(self, filename_prefix:str, image_src: str = "") -> "FrameSet":
+    def save_image(self, filename_prefix: str, image_src: str = "") -> "FrameSet":
         """Save all the images on the FrameSet to disk (as PNG)
 
         Parameters
@@ -140,12 +143,14 @@ class FrameSet(BaseModel):
         filename_prefix : path and name prefix for the image file
         image_src : if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
         """
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S") # TODO saving faster than 1 sec will cause image overwrite
+        timestamp = datetime.now().strftime(
+            "%Y%m%d-%H%M%S"
+        )  # TODO saving faster than 1 sec will cause image overwrite
         c = 0
         for frame in self.frames:
             img = frame.image if image_src == "" else frame.other_images[image_src]
             img.save(f"{filename_prefix}_{timestamp}_{image_src}_{c}.png", format="PNG")
-            c+=1
+            c += 1
         return self
 
     def show_image(self, image_src: str = "") -> "FrameSet":
@@ -182,8 +187,8 @@ class FrameSet(BaseModel):
         #     cv2.waitKey(1)
 
         return self
-    
-    def apply(self, function:Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
+
+    def apply(self, function: Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
         """Apply a function to all frames
 
         Parameters
@@ -191,39 +196,40 @@ class FrameSet(BaseModel):
         function: lambda function that takes individual frames and returned an updated frame
         """
         for i in range(len(self.frames)):
-            self.frames[i]=function(self.frames[i])
+            self.frames[i] = function(self.frames[i])
         return self
-    def filter(self, function:Callable[[Frame], bool] = lambda f: True) -> "FrameSet":
+
+    def filter(self, function: Callable[[Frame], bool] = lambda f: True) -> "FrameSet":
         """Evaluate a function on every frame and keep or remove
 
         Parameters
         ----------
         function : lambda function that gets invoked on every Frame. If it returns False, the Frame will be deleted
         """
-        for i in reversed(range(0,len(self.frames))): # Traverse in reverse so we can delete
+        for i in reversed(
+            range(0, len(self.frames))
+        ):  # Traverse in reverse so we can delete
             if not function(self.frames[i]):
                 self.frames.pop(i)
         return self
 
-   
-import threading
-import time
-
-import cv2
 
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will tart to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
 class NetworkedCamera:
-    """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame
-    """
+    """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame"""
+
     stream_url: str
     motion_detection_threshold: int
     capture_interval: float
     previous_frame: Frame = None
 
-    def __init__(self, stream_url:str
-                 , motion_detection_threshold:int = 0
-                 , capture_interval:float = None):
+    def __init__(
+        self,
+        stream_url: str,
+        motion_detection_threshold: int = 0,
+        capture_interval: float = None,
+    ):
         """
         Parameters
         ----------
@@ -239,13 +245,13 @@ class NetworkedCamera:
         self.stream_url = stream_url
         self.motion_detection_threshold = motion_detection_threshold
         self.capture_interval = capture_interval
-        self.lastCaptureTime=datetime.now()
+        self.lastCaptureTime = datetime.now()
         self.cap = cv2.VideoCapture(stream_url)
         if not self.cap.isOpened():
             self.cap.release()
             raise Exception(f"Could not open stream ({stream_url})")
         # FPS = 1/X
-        self.FPS = 1 / self.cap.get(cv2.CAP_PROP_FPS) # Get the source's framerate
+        self.FPS = 1 / self.cap.get(cv2.CAP_PROP_FPS)  # Get the source's framerate
         self.FPS_MS = int(self.FPS * 1000)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Limit buffering to 1 frames
         self.lock = threading.Lock()
@@ -266,44 +272,41 @@ class NetworkedCamera:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
 
     lastCaptureTime: datetime
+
     # retrieve latest frame
     def get_latest_frame(self):
-        """Return the most up to date frame by dropping all by the latest frame. This function is blocking
-        """        
+        """Return the most up to date frame by dropping all by the latest frame. This function is blocking"""
         with self.lock:
             if self.capture_interval is not None:
                 t = datetime.now()
-                delta = (t-self.lastCaptureTime).total_seconds()
+                delta = (t - self.lastCaptureTime).total_seconds()
                 if delta <= self.capture_interval:
                     time.sleep(delta)
-                self.lastCaptureTime=t
+                self.lastCaptureTime = t
 
             ret, frame = self.cap.retrieve()
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
-            if self.motion_detection_threshold>0:
+            if self.motion_detection_threshold > 0:
                 if self._detect_motion(frame):
                     return FrameSet.fromArray(frame)
                 else:
-                    return FrameSet() # Empty frame
-                                
+                    return FrameSet()  # Empty frame
+
         return FrameSet.fromArray(frame)
-    
+
     previous_frame: Frame
 
     def _detect_motion(self, frame) -> bool:
-        """
-        """        
+        """ """
         # Prepare image; grayscale and blur
         prepared_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        prepared_frame = cv2.GaussianBlur(
-            src=prepared_frame, ksize=(5, 5), sigmaX=0
-        )
-        
+        prepared_frame = cv2.GaussianBlur(src=prepared_frame, ksize=(5, 5), sigmaX=0)
+
         if self.previous_frame is None:
             # Save the result for the next invocation
             self.previous_frame = prepared_frame
-            return True # First frame; there is no previous one yet
+            return True  # First frame; there is no previous one yet
 
         # calculate difference and update previous frame TODO: don't assume the processed image is cached
         diff_frame = cv2.absdiff(src1=self.previous_frame, src2=prepared_frame)
@@ -316,13 +319,13 @@ class NetworkedCamera:
         )
         # print(f"Image change {change_percentage:.2f}%")
         if change_percentage > self.motion_detection_threshold:
-            previous_frame = prepared_frame
+            self.previous_frame = prepared_frame
             return True
         return False
 
     # Make the class iterable
     def __iter__(self):
-        return self    
+        return self
 
     def __next__(self):
         return self.get_latest_frame()

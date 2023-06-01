@@ -1,14 +1,6 @@
 import logging
-import time
-from datetime import datetime
-from pathlib import Path
-
-import cv2
-import numpy as np
-
 from landingai.predict import Predictor
-from landingai.visualize import overlay_predictions
-from landingai.vision_pipeline import *
+from landingai.vision_pipeline import NetworkedCamera
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -46,16 +38,16 @@ stream_url = (
 
 if __name__ == "__main__":
     # stream(capture_frame=False, inference_mode=True, detect_change=True)
-    cloud_sky_model = Predictor(endpoint_id, api_key, api_secret) 
-    Camera = NetworkedCamera(stream_url, motion_detection_threshold=1, capture_interval=_CAPTURE_INTERVAL)
+    cloud_sky_model = Predictor(endpoint_id, api_key, api_secret)
+    Camera = NetworkedCamera(
+        stream_url, motion_detection_threshold=1, capture_interval=_CAPTURE_INTERVAL
+    )
     for frame in Camera:
         (
             frame.downsize(width=1024)
             .run_predict(predictor=cloud_sky_model)
             .overlay_predictions()
             # .show_image()
-            .show_image(image_src="overlay")  
+            .show_image(image_src="overlay")
             # .save_image(filename_prefix="./capture")
-        )    
-   
-
+        )
