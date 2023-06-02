@@ -20,12 +20,14 @@ def class_counts(predictions: Sequence[Prediction]) -> dict[int, tuple[int, str]
     Returns
     -------
     A map with the predicted class/label index as the key, and a tuple of
-    (the number of occurrence, class/label name) as the value.
-    Example:
-        {
-            1: (10, "cat"),
-            2: (31, "dog"),
-        }
+        (the number of occurrence, class/label name) as the value.
+        ```
+        Example:
+            {
+                1: (10, "cat"),
+                2: (31, "dog"),
+            }
+        ```
     """
     counts: dict[int, list[int | str]] = defaultdict(lambda: [0, ""])
     for pred in predictions:
@@ -61,14 +63,15 @@ def class_pixel_coverage(
     Returns
     -------
     A map with the predicted class/label index as the key, and a tuple of
-    (the coverage, class/label name) as the value.
-
-    Example (coverage_type="absolute"):
-        {
-            0: (23512, "blue"),
-            1: (1230, "green"),
-            2: (0, "pink"),
-        }
+        (the coverage, class/label name) as the value.
+        ```
+        Example (coverage_type="absolute"):
+            {
+                0: (23512, "blue"),
+                1: (1230, "green"),
+                2: (0, "pink"),
+            }
+        ```
     """
     assert isinstance(
         predictions[0], SegmentationPrediction
@@ -99,16 +102,17 @@ def segmentation_class_pixel_coverage(
     Returns
     -------
     A map with the predicted class/label index as the key, and a tuple of
-    (the coverage percentage, class/label name) as the value.
-    NOTE: the sum of the coverage percentage over all classes is not guaranteed
-    to be 1.
-
-    Example (coverage_type="relative"):
-        {
-            0: (0.15, "blue"),
-            1: (0.31, "green"),
-            2: (0.07, "pink"),
-        }
+        (the coverage percentage, class/label name) as the value.
+        NOTE: the sum of the coverage percentage over all classes is not guaranteed
+        to be 1.
+        ```
+        Example (coverage_type="relative"):
+            {
+                0: (0.15, "blue"),
+                1: (0.31, "green"),
+                2: (0.07, "pink"),
+            }
+        ```
     """
     total_pixels: int = sum([math.prod(pred.mask_shape) for pred in predictions])
     pixel_counts: dict[int, list] = defaultdict(lambda: [0, ""])

@@ -48,10 +48,10 @@ def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, f
 
     Returns
     -------
-    A tuple of three values:
-    1. the total number of frames,
-    2. the number of frames to sample,
-    3. the video length in seconds.
+    A tuple of three values
+        1. the total number of frames,
+        2. the number of frames to sample,
+        3. the video length in seconds.
     """
     if not Path(video_file).exists():
         raise FileNotFoundError(f"Video file {video_file} does not exist.")
