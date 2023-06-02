@@ -27,7 +27,7 @@ def overlay_predictions(
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     pred_type = types.pop()
     overlay_func: Callable[
-        [list, np.ndarray, Optional[dict]], Image.Image
+        [list[Prediction], np.ndarray, Optional[dict]], Image.Image
     ] = _OVERLAY_FUNC_MAP[pred_type]
     return overlay_func(predictions, image, options)
 
@@ -114,7 +114,7 @@ def _get_pil_font(font_size: int = 18) -> ImageFont.FreeTypeFont:
 
 
 _OVERLAY_FUNC_MAP: dict[
-    Type[Prediction], Callable[[list, np.ndarray, Optional[dict]], Image.Image]
+    Type[Prediction], Callable[[list[Any], np.ndarray, Optional[dict]], Image.Image]
 ] = {
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,

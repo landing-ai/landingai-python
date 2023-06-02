@@ -63,6 +63,25 @@ predictions = predictor.predict(image)
 image_with_preds = overlay_predictions(predictions, image)
 image_with_preds.save("image.jpg")
 ```
+### Putting together a vision pipeline
+
+All the modules shown above and others can be chained together using the [`vision_pipeline`](https://landing-ai.github.io/landingai-python/landingai/vision_pipeline.html) abstraction. At its core, a pipeline is a sequence of chained calls that operate on a `FrameSet`.
+
+```python
+cloud_sky_model = Predictor("FILL_YOUR_INFERENCE_ENDPOINT_ID"
+                            , "FILL_YOUR_API_KEY"
+                            , "FILL_YOUR_API_SECRET") 
+
+Camera = NetworkedCamera(stream_url)
+for frame in Camera:
+    (
+        frame.downsize(width=1024)
+        .run_predict(predictor=cloud_sky_model)
+        .overlay_predictions()
+        .show_image()
+        .save_image(filename_prefix="./capture")
+    )
+```
 
 ## Run Examples Locally
 
