@@ -13,7 +13,7 @@ from datetime import datetime
 import logging
 import time
 import threading
-from typing import Dict, List, Any, Callable, Union
+from typing import Dict, Any, Callable, Union
 from pydantic import BaseModel, PrivateAttr
 
 _LOGGER = logging.getLogger(__name__)
