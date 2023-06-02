@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Optional, Type, cast
+from typing import Any, Callable, Optional, Type, cast, List
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def overlay_predictions(
-    predictions: list[Prediction],
+    predictions: List[Prediction],
     image: np.ndarray,
     options: dict[str, Any] | None = None,
 ) -> Image.Image:
@@ -27,13 +27,13 @@ def overlay_predictions(
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     pred_type = types.pop()
     overlay_func: Callable[
-        [list, np.ndarray, Optional[dict]], Image.Image
+        [List[Prediction], np.ndarray, Optional[dict]], Image.Image
     ] = _OVERLAY_FUNC_MAP[pred_type]
     return overlay_func(predictions, image, options)
 
 
 def overlay_bboxes(
-    predictions: list[ObjectDetectionPrediction],
+    predictions: List[ObjectDetectionPrediction],
     image: np.ndarray,
     options: dict[str, Any] | None = None,
 ) -> Image.Image:
@@ -66,7 +66,7 @@ def overlay_bboxes(
 
 
 def overlay_colored_masks(
-    predictions: list[SegmentationPrediction],
+    predictions: List[SegmentationPrediction],
     image: np.ndarray,
     options: dict[str, Any] | None = None,
 ) -> Image.Image:
@@ -83,7 +83,7 @@ def overlay_colored_masks(
 
 
 def overlay_predicted_class(
-    predictions: list[ClassificationPrediction],
+    predictions: List[ClassificationPrediction],
     image: np.ndarray,
     options: dict[str, Any] | None = None,
     text_position: tuple[int, int] = (10, 25),
@@ -114,7 +114,7 @@ def _get_pil_font(font_size: int = 18) -> ImageFont.FreeTypeFont:
 
 
 _OVERLAY_FUNC_MAP: dict[
-    Type[Prediction], Callable[[list, np.ndarray, Optional[dict]], Image.Image]
+    Type[Prediction], Callable[[List[Any], np.ndarray, Optional[dict]], Image.Image]
 ] = {
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,
