@@ -61,7 +61,7 @@ class FrameSet(BaseModel):
     frames: List[Frame] = []  # Start with empty frame set
 
     @classmethod
-    def fromImage(cls, file: str) -> "FrameSet":
+    def from_image(cls, file: str) -> "FrameSet":
         im = Image.open(file)
         # im = cv2.imread(file)
         # if im is None:
@@ -69,7 +69,7 @@ class FrameSet(BaseModel):
         return cls(frames=[Frame(image=im)])
 
     @classmethod
-    def fromArray(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
+    def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
         # img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
         if is_BGR:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
@@ -227,7 +227,7 @@ class NetworkedCamera(BaseModel):
     motion_detection_threshold: int
     capture_interval: float
     previous_frame: Union[Frame, None] = None
-    _lastCaptureTime: datetime = PrivateAttr()
+    _last_capture_time: datetime = PrivateAttr()
     _cap: Any = PrivateAttr()  # cv2.VideoCapture
     _FPS: int = PrivateAttr()
     _lock: Any = PrivateAttr()  # threading.Lock
@@ -257,7 +257,7 @@ class NetworkedCamera(BaseModel):
             motion_detection_threshold=motion_detection_threshold,
             capture_interval=capture_interval,
         )
-        self._lastCaptureTime = datetime.now()
+        self._last_capture_time = datetime.now()
         # FPS = 1/X
         # self.FPS_MS = int(self.FPS * 1000)
         self._FPS = 1 / cap.get(cv2.CAP_PROP_FPS)  # Get the source's framerate
@@ -285,21 +285,21 @@ class NetworkedCamera(BaseModel):
         with self._lock:
             if self.capture_interval is not None:
                 t = datetime.now()
-                delta = (t - self._lastCaptureTime).total_seconds()
+                delta = (t - self._last_capture_time).total_seconds()
                 if delta <= self.capture_interval:
                     time.sleep(delta)
-                self._lastCaptureTime = t
+                self._last_capture_time = t
 
             ret, frame = self._cap.retrieve()
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
             if self.motion_detection_threshold > 0:
                 if self._detect_motion(frame):
-                    return FrameSet.fromArray(frame)
+                    return FrameSet.from_array(frame)
                 else:
                     return FrameSet()  # Empty frame
 
-        return FrameSet.fromArray(frame)
+        return FrameSet.from_array(frame)
 
     def _detect_motion(self, frame: np.ndarray) -> bool:
         """ """
