@@ -28,7 +28,7 @@ class Frame(BaseModel):
     other_images: Dict[str, Image.Image] = {}
     """Other derivative images associated with this frame (e.g. detection overlay)"""
 
-    predictions: List[Prediction] = []
+    predictions: list[Prediction] = []
     """List of predictions for the main image"""
 
     metadata: Dict[str, Any] = {}
@@ -47,10 +47,6 @@ class Frame(BaseModel):
         """Return a numpy array using GRB color encoding (used by OpenCV)"""
         return np.asarray(self.image)
 
-    # def __str__(self):
-    #     return "member of Test"
-    # def __repr__(self):
-    #     return "member of Test"
     class Config:
         arbitrary_types_allowed = True
 
@@ -58,14 +54,11 @@ class Frame(BaseModel):
 class FrameSet(BaseModel):
     """A FrameSet is a collection of frames (in order). Typically a FrameSet will include a single image but there are circumstances where other images will be extracted from the initial one. For example: we may want to identify vehicles on an initial image and then extract sub-images for each of the vehicles."""
 
-    frames: List[Frame] = []  # Start with empty frame set
+    frames: list[Frame] = []  # Start with empty frame set
 
     @classmethod
     def from_image(cls, file: str) -> "FrameSet":
         im = Image.open(file)
-        # im = cv2.imread(file)
-        # if im is None:
-        #     raise Exception(f"Could not open image ({file})")
         return cls(frames=[Frame(image=im)])
 
     @classmethod
@@ -244,7 +237,7 @@ class NetworkedCamera(BaseModel):
         ----------
         stream_url : url to video source
         motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
-        capture_interval : If set to None, the NetworkedCamera will acquire images as fast as the source permits. Otherwise will grab new frames on the given interval
+        capture_interval : If set to None, the NetworkedCamera will acquire images as fast as the source permits. Otherwise will grab a new frame every capture_interval seconds
         """
         cap = cv2.VideoCapture(stream_url)
         if not cap.isOpened():

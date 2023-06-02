@@ -1,7 +1,7 @@
 import math
 import re
 from functools import cached_property
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings
@@ -120,7 +120,7 @@ class SegmentationPrediction(Prediction):
         keep_untouched = (cached_property,)
 
 
-def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
+def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> list[int]:
     """
     Decode bitmap string to numpy array
 

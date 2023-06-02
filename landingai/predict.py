@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 
 import cv2
 import numpy as np
@@ -93,7 +93,7 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: np.ndarray) -> List[Prediction]:
+    def predict(self, image: np.ndarray) -> list[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
@@ -127,7 +127,7 @@ def _configure_logger() -> None:
     requests_log.propagate = False
 
 
-def _extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
+def _extract_prediction(response: Dict[str, Any]) -> list[Prediction]:
     response_type = response["backbonetype"]
     if response_type is None and response["type"] == "SegmentationPrediction":
         response_type = "SegmentationPredictionVP"  # Visual Prompting response
@@ -139,7 +139,7 @@ def _extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
 
 def _extract_class_prediction(
     response: Dict[str, Any]
-) -> List[ClassificationPrediction]:
+) -> list[ClassificationPrediction]:
     """Extract Classification prediction result from response
 
     Parameters
@@ -177,7 +177,7 @@ def _extract_class_prediction(
     ]
 
 
-def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPrediction]:
+def _extract_od_prediction(response: Dict[str, Any]) -> list[ObjectDetectionPrediction]:
     """Extract Object Detection prediction result from response
 
     Parameters
@@ -287,7 +287,7 @@ def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPred
     ]
 
 
-def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+def _extract_seg_prediction(response: Dict[str, Any]) -> list[SegmentationPrediction]:
     """Extract Segmentation prediction result from response
 
     Parameters
@@ -315,7 +315,7 @@ def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPredic
     ]
 
 
-def _extract_vp_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+def _extract_vp_prediction(response: Dict[str, Any]) -> list[SegmentationPrediction]:
     """Extract Visual Prompting result from response
 
     Parameters
