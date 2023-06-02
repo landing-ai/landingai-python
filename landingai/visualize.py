@@ -19,7 +19,7 @@ def overlay_predictions(
     image: np.ndarray,
     options: dict[str, Any] | None = None,
 ) -> Image.Image:
-    """Overlay the prediction results on the input image and return the image with overlaid."""
+    """Overlay the prediction results on the input image and return the image with the overlay."""
     if len(predictions) == 0:
         _LOGGER.warning("No predictions to overlay, returning original image")
         return Image.fromarray(image)
@@ -60,7 +60,7 @@ def overlay_bboxes(
                 image = bbv.add_T_label(image, label, bbox, draw_bg=draw_bg)
             else:
                 raise ValueError(
-                    f"Unknown label_type: {label_type}. Supported types are: default (rectagnle), flag, t-label. See https://github.com/shoumikchow/bbox-visualizer for more details."
+                    f"Unknown label_type: {label_type}. Supported types are: default (rectangle), flag, t-label. Fore more information, see https://github.com/shoumikchow/bbox-visualizer."
                 )
     return Image.fromarray(image)
 
