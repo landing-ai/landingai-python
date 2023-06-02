@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Predictor:
-    """A class that calls your inference endpoint on the Landing AI platform."""
+    """A class that calls your inference endpoint on the LandingLens platform."""
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
     # _url: str = "https://httpstat.us/503"  # Test URL
@@ -38,14 +38,14 @@ class Predictor:
         endpoint_id
             A unique string that identifies your inference endpoint.
             This string can be found in the URL of your inference endpoint.
-            Example: "9f237028-e630-4576-8826-f35ab9000abc" is the endpoint id in below URL:
+            Example: "9f237028-e630-4576-8826-f35ab9000abc" is the endpoint id in this URL:
             https://predict.app.landing.ai/inference/v1/predict?endpoint_id=9f237028-e630-4576-8826-f35ab9000abc
         api_key
-            the API key of your Landing AI account.
+            The API Key of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_KEY or from the .env file.
         api_secret
-            The API key of your Landing AI account.
+            The API Secret of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_SECRET or from the .env file.
         """
@@ -99,13 +99,13 @@ class Predictor:
         Parameters
         ----------
         image
-            The input image to be predicted. The image should be in RGB format if it has three channels.
+            The input image to be predicted. The image should be in the RGB format if it has three channels.
 
         Returns
         -------
         The inference result in a list of dictionary
             Each dictionary is a prediction result.
-            The ininference result has been filtered by the confidence threshold set in the Landing AI platform and sorted by confidence score in descending order.
+            The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
         img = cv2.imencode(".png", image)[1]
         files = [("file", ("image.png", img, "image/png"))]
@@ -144,7 +144,7 @@ def _extract_class_prediction(
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
     Example input:
     {
         "backbonetype": None,
@@ -184,7 +184,7 @@ def _extract_od_prediction(
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
     Example example input:
     {
         "backbonetype": "ObjectDetectionPrediction",
@@ -296,7 +296,7 @@ def _extract_seg_prediction(
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
 
     """
     encoded_predictions = response["backbonepredictions"]["bitmaps"]
@@ -326,7 +326,7 @@ def _extract_vp_prediction(
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
 
     """
     encoded_predictions = response["predictions"]["bitmaps"]

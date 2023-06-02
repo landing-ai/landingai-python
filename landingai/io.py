@@ -9,8 +9,8 @@ _LOGGER = logging.getLogger(__name__)
 
 # TODO: support output type stream
 def read_file(url: str) -> bytes:
-    """Read bytes from a url.
-    Typically, the url is a presigned url (e.g. from s3, snowflake) that points to a video, image file.
+    """Read bytes from a URL.
+    Typically, the URL is a presigned URL (for example, from Amazon S3 or Snowflake) that points to a video or image file.
     """
     response = requests.get(url)
     try:
@@ -43,15 +43,16 @@ def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, f
 
     Parameters
     ----------
-    video_file: the local path to the video file
-    samples_per_second: number of images to sample per second
+    video_file: The local path to the video file
+    samples_per_second: Number of images to sample per second
 
     Returns
     -------
     A tuple of three values
-        1. the total number of frames,
-        2. the number of frames to sample,
-        3. the video length in seconds.
+    
+        - The total number of frames,
+        - The number of frames to sample,
+        - The video length in seconds.
     """
     if not Path(video_file).exists():
         raise FileNotFoundError(f"Video file {video_file} does not exist.")
@@ -71,9 +72,9 @@ def sample_images_from_video(
 
     Parameters
     ----------
-    video_file: the local path to the video file
-    output_dir: the local directory path that stores the sampled images
-    samples_per_second: number of images to sample per second
+    video_file: The local path to the video file
+    output_dir: The local directory path that stores the sampled images
+    samples_per_second: The number of images to sample per second
 
     Returns
     -------

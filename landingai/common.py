@@ -8,12 +8,12 @@ from pydantic import BaseModel, BaseSettings
 
 
 class APICredential(BaseSettings):
-    """Landing AI API credential of a particular LandingLens user.
+    """The API credentials of an organization in LandingLens.
     It supports loading from environment variables or .env files.
 
     The supported name of the environment variables are (case-insensitive):
-    1. LANDINGAI_API_KEY
-    2. LANDINGAI_API_SECRET
+    - LANDINGAI_API_KEY
+    - LANDINGAI_API_SECRET
 
     Environment variables will always take priority over values loaded from a dotenv file.
     """
@@ -38,8 +38,8 @@ class Prediction(BaseModel):
 
     label_index: int
     """The predicted label index.
-    A label index is an unique integer identifies a label in your label book.
-    See https://support.landing.ai/docs/manage-label-book for more details.
+    A label index is an unique integer that identifies a label in your label book.
+    For more information, see https://support.landing.ai/docs/manage-label-book.
     """
 
 
@@ -49,11 +49,11 @@ class ClassificationPrediction(Prediction):
 
 class ObjectDetectionPrediction(Prediction):
     """A single bounding box prediction for an image.
-    It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score and the predicted label.
+    It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score, and the predicted label.
     """
 
     id: str
-    """A unique string identifier (UUID) for this prediction."""
+    """A unique string identifier (UUID) for the prediction."""
 
     bboxes: Tuple[int, int, int, int]
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
@@ -69,7 +69,7 @@ class ObjectDetectionPrediction(Prediction):
 
 class SegmentationPrediction(Prediction):
     """A single segmentation mask prediction for an image.
-    It includes a predicted segmentation mask, confidence score and the predicted label.
+    It includes a predicted segmentation mask, confidence score, and the predicted label.
     """
 
     id: str
@@ -79,17 +79,17 @@ class SegmentationPrediction(Prediction):
     """A run-length encoded bitmap string."""
 
     encoding_map: Dict[str, int]
-    """A map that is used to generate the encoded_mask. e.g. {'Z':0, 'N':1}
+    """A map that is used to generate the encoded_mask. For example: {'Z':0, 'N':1}.
     The key is the character in the encoded_mask, the value is the bit value.
     """
 
     mask_shape: Tuple[int, int]
-    """The shape of the decoded 2-dimensional segmentation mask. e.g. (1024, 1024)"""
+    """The shape of the decoded two-dimensional segmentation mask. For example: (1024, 1024)."""
 
     @cached_property
     def decoded_boolean_mask(self) -> np.ndarray:
         """Decoded boolean segmentation mask.
-        It is a 2-dimensional numpy array with 0s and 1s.
+        It is a two-dimensional NumPy array with 0s and 1s.
         1 means the pixel is the predicted class, 0 means the pixel is not.
         """
         flattened_bitmap = decode_bitmap_rle(self.encoded_mask, self.encoding_map)
@@ -101,7 +101,7 @@ class SegmentationPrediction(Prediction):
     @cached_property
     def decoded_index_mask(self) -> np.ndarray:
         """Decoded index segmentation mask.
-        It is a 2-dimensional numpy array with 0s and the number of the predicted class index.
+        It is a two-dimensional numpy array with 0s and the number of the predicted class index.
         This is useful if you want to overlay multiple segmentation masks into one.
         """
         return self.decoded_boolean_mask * self.label_index
@@ -122,14 +122,14 @@ class SegmentationPrediction(Prediction):
 
 def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
     """
-    Decode bitmap string to numpy array
+    Decode bitmap string to NumPy array.
 
     Parameters
     ----------
     bitmap:
-        Single run-length encoded bitmap string. e.g. "5Z3N2Z"
+        Single run-length encoded bitmap string. For example: "5Z3N2Z".
     encoding_map:
-        Dictionary with the enconding used to generate the bitmap. e.g. {'Z':0, 'N':1}
+        Dictionary with the enconding used to generate the bitmap. For example: {'Z':0, 'N':1}.
 
     Return
     -----

@@ -43,22 +43,22 @@ def class_pixel_coverage(
     """Compute the pixel coverage of each class.
 
     Supported prediction types are:
-    1. SegmentationPrediction
-    2. ObjectDetectionPrediction
+    - SegmentationPrediction
+    - ObjectDetectionPrediction
 
     It supports two ways to compute the coverage:
-    1. "absolute"
-    2. "relative"
+    - "absolute"
+    - "relative"
     See the documentation of the coverage_type for more details.
 
     Parameters
     ----------
     predictions: a list of predictions. It could come from one or multiple images.
     coverage_type: "absolute" or "relative".
-            1. absolute: the number of pixels of each predicted class.
-            2. relative: the percentage of pixels that are predicted as the class
-               over the sum total number of pixels of every mask.
-               NOTE: only "SegmentationPrediction" supports "relative" type.
+            - Absolute: The number of pixels of each predicted class.
+            - Relative: The percentage of pixels that are predicted as the class
+               over the sum total number of pixels of every mask. The only project type that supports "relative" is "SegmentationPrediction". 
+               
 
     Returns
     -------
@@ -97,13 +97,13 @@ def segmentation_class_pixel_coverage(
 
     Parameters
     ----------
-    predictions: a list of segmentation predictions. It could come from one or multiple images.
+    predictions: A list of segmentation predictions. It could come from one or multiple images.
 
     Returns
     -------
     A map with the predicted class/label index as the key, and a tuple of
         (the coverage percentage, class/label name) as the value.
-        NOTE: the sum of the coverage percentage over all classes is not guaranteed
+        Note: The sum of the coverage percentage over all classes is not guaranteed
         to be 1.
         ```
         Example (coverage_type="relative"):
