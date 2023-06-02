@@ -294,7 +294,7 @@ class NetworkedCamera(BaseModel):
 
         return FrameSet.from_array(frame)
 
-    def _detect_motion(self, frame: np.ndarray) -> bool:
+    def _detect_motion(self, frame: np.ndarray) -> bool:  # TODO Needs test cases
         """ """
         # Prepare image; grayscale and blur
         prepared_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -320,7 +320,7 @@ class NetworkedCamera(BaseModel):
             return True
         return False
 
-    # Make the class iterable
+    # Make the class iterable. TODO Needs test cases
     def __iter__(self) -> Any:
         return self
 
