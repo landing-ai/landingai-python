@@ -33,7 +33,10 @@ def save_config(api_key, api_secret, endpoint_id):
     st.session_state["api_secret"] = api_secret
     st.session_state["endpoint_id"] = endpoint_id
 
-if st.button("Save", on_click=save_config,
+
+if st.button(
+    "Save",
+    on_click=save_config,
     args=(api_key, api_secret, endpoint_id),
 ):
     st.info("Configuration saved successfully...")

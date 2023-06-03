@@ -13,7 +13,11 @@ from PIL.Image import Image
 from streamlit_image_select import image_select
 
 from landingai.common import Prediction, SegmentationPrediction
-from landingai.postprocess import class_counts, class_map, segmentation_class_pixel_coverage
+from landingai.postprocess import (
+    class_counts,
+    class_map,
+    segmentation_class_pixel_coverage,
+)
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
 
@@ -121,6 +125,7 @@ def is_landing_credentials_set():
 def reset_states():
     st.session_state["image_paths"] = []
     st.session_state["result"] = []
+
 
 st.header("Inference on Image Folder")
 st.divider()
