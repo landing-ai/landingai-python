@@ -57,8 +57,8 @@ def class_pixel_coverage(
     coverage_type: "absolute" or "relative".
             - Absolute: The number of pixels of each predicted class.
             - Relative: The percentage of pixels that are predicted as the class
-               over the sum total number of pixels of every mask. The only project type that supports "relative" is "SegmentationPrediction". 
-               
+               over the sum total number of pixels of every mask. The only project type that supports "relative" is "SegmentationPrediction".
+
 
     Returns
     -------
