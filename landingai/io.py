@@ -49,7 +49,7 @@ def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, f
     Returns
     -------
     A tuple of three values
-    
+
         - The total number of frames,
         - The number of frames to sample,
         - The video length in seconds.
