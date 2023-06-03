@@ -12,8 +12,8 @@ import streamlit as st
 from PIL.Image import Image
 from streamlit_image_select import image_select
 
-from landingai.common import Prediction
-from landingai.postprocess import class_counts, class_map
+from landingai.common import Prediction, SegmentationPrediction
+from landingai.postprocess import class_counts, class_map, segmentation_class_pixel_coverage
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
 
@@ -23,7 +23,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-_SUPPORTED_IMAGE_FORMATS = ["jpg", "jpeg", "png"]
+_SUPPORTED_IMAGE_FORMATS = ["jpg", "jpeg", "png", "tiff"]
 
 
 @dataclass(frozen=True)
@@ -189,18 +189,55 @@ if local_image_folder:
             img_path_str = str(img_path)
             st.image(img_path_str, caption=img_path_str)
 
+            for res in result.image_predictions:
+                if str(res.img_with_preds_path) == img_path_str:
+                    preds = res.predictions
+                    if not preds or not isinstance(preds[0], SegmentationPrediction):
+                        continue
+                    coverage = segmentation_class_pixel_coverage(preds).values()
+                    labels = [val[1] for val in coverage]
+                    sizes = [val[0] for val in coverage]
+                    unclassified_pixels = 1 - sum(sizes)
+                    sizes.append(unclassified_pixels)
+                    labels.append("unclassified")
+                    fig = px.pie(
+                        values=sizes,
+                        names=labels,
+                        title="Predicted pixel distribution over a single image",
+                    )
+                    st.plotly_chart(fig)
+
         all_preds = []
         for pred in result.image_predictions:
             all_preds.extend(pred.predictions)
-        class_cnts = class_counts(all_preds).values()
-        cnts = [cnt_name[0] for cnt_name in class_cnts]
-        names = [cnt_name[1] for cnt_name in class_cnts]
-        fig = px.pie(
-            values=cnts,
-            names=names,
-            title="Predicted class distribution over all images",
-        )
-        st.plotly_chart(fig)
+
+        if not all_preds:
+            st.warning("No predictions found.")
+            st.stop()
+
+        if isinstance(all_preds[0], SegmentationPrediction):
+            coverage = segmentation_class_pixel_coverage(all_preds).values()
+            labels = [val[1] for val in coverage]
+            sizes = [val[0] for val in coverage]
+            unclassified_pixels = 1 - sum(sizes)
+            sizes.append(unclassified_pixels)
+            labels.append("unclassified")
+            fig = px.pie(
+                values=sizes,
+                names=labels,
+                title="Predicted pixel distribution over all images",
+            )
+            st.plotly_chart(fig)
+        else:
+            class_cnts = class_counts(all_preds).values()
+            cnts = [cnt_name[0] for cnt_name in class_cnts]
+            names = [cnt_name[1] for cnt_name in class_cnts]
+            fig = px.pie(
+                values=cnts,
+                names=names,
+                title="Predicted class distribution over all images",
+            )
+            st.plotly_chart(fig)
 
         csv = convert_df(result.dataframe)
         st.download_button(
