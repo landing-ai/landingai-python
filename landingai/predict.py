@@ -117,7 +117,7 @@ class Predictor:
         img_buffer.close()
 
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
-        payload = {"endpoint_id": self._endpoint_id}
+        payload = {"endpoint_id": self._endpoint_id, "device_type": "pylib"}
         response = self._session.post(Predictor._url, files=files, params=payload)
         #  requests.exceptions.HTTPError: 503 Server Error: Service Unavailable for url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=3d2edb1b-073d-4853-87ca-30e430f84379
         #  429
