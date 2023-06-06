@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"backbonetype":null,"backbonepredictions":null,"predictions":{"score":0.9956502318382263,"labelIndex":0,"labelName":"HasFire"},"type":"ClassificationPrediction","latency":{"preprocess_s":0.0031490325927734375,"infer_s":0.10236716270446777,"postprocess_s":4.1961669921875e-05,"serialize_s":0.00015473365783691406,"input_conversion_s":0.002999544143676758,"model_loading_s":0.0002105236053466797},"model_id":"59eff733-1dcd-4ace-b104-9041c745f1da"}'
+    content_type: text/plain
+    method: POST
+    status: 200
+    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43

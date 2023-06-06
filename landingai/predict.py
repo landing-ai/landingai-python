@@ -1,8 +1,9 @@
+import io
 import logging
 from typing import Any, Dict, Optional
 
-import cv2
 import numpy as np
+import PIL.Image
 from pydantic import ValidationError
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -93,7 +94,7 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: np.ndarray) -> list[Prediction]:
+    def predict(self, image: np.ndarray | PIL.Image.Image) -> list[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
@@ -107,8 +108,15 @@ class Predictor:
             Each dictionary is a prediction result.
             The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
-        img = cv2.imencode(".png", image)[1]
-        files = [("file", ("image.png", img, "image/png"))]
+        if isinstance(image, np.ndarray):
+            image = PIL.Image.fromarray(image)
+
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format="PNG")
+        buffer_bytes = img_buffer.getvalue()
+        img_buffer.close()
+
+        files = [("file", ("image.png", buffer_bytes, "image/png"))]
         payload = {"endpoint_id": self._endpoint_id}
         response = self._session.post(Predictor._url, files=files, params=payload)
         #  requests.exceptions.HTTPError: 503 Server Error: Service Unavailable for url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=3d2edb1b-073d-4853-87ca-30e430f84379
