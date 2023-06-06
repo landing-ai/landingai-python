@@ -112,7 +112,7 @@ class Predictor:
             image = PIL.Image.fromarray(image)
 
         img_buffer = io.BytesIO()
-        image.save(img_buffer, format='PNG')
+        image.save(img_buffer, format="PNG")
         buffer_bytes = img_buffer.getvalue()
         img_buffer.close()
 

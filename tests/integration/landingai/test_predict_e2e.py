@@ -56,18 +56,6 @@ _EXPECTED_VP_PREDS = [
     },
 ]
 
-def test_od_predict_temp():
-    Path("tests/output").mkdir(parents=True, exist_ok=True)
-    # Endpoint: https://app.landing.ai/app/376/pr/11165/deployment?device=tiger-team-integration-tests
-    endpoint_id = "1b8c46dc-f36b-45e8-ba57-ccd7d4fd3413"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
-    img = np.asarray(Image.open("tests/data/images/screw_scratch.png"))
-    assert img is not None
-    # Call LandingLens inference endpoint with Predictor.predict()
-    preds = predictor.predict(img)
-    logging.info(preds)
-    assert len(preds) == 2, "Result should not be empty or None"
-
 
 def test_od_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)

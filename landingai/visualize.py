@@ -1,3 +1,5 @@
+"""The landingai.visualize module contains functions to visualize the prediction results."""
+
 import logging
 from typing import Any, Callable, Optional, Type, cast
 
@@ -27,7 +29,7 @@ def overlay_predictions(
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     pred_type = types.pop()
     overlay_func: Callable[
-        [list[Prediction], np.ndarray, Optional[dict]], Image.Image
+        [list[Prediction], np.ndarray | Image.Image, Optional[dict]], Image.Image
     ] = _OVERLAY_FUNC_MAP[pred_type]
     return overlay_func(predictions, image, options)
 
@@ -42,12 +44,12 @@ def overlay_bboxes(
 
     Parameters
     ----------
-    predictions :
-        a list of ObjectDetectionPrediction, each of which contains the bounding box and the predicted class.
-    image : np.ndarray | Image.Image
-        the source image to draw the bounding boxes on.
-    options :
-        options to customize the drawing. Currently, it supports the following options:
+    predictions
+        A list of ObjectDetectionPrediction, each of which contains the bounding box and the predicted class.
+    image
+        The source image to draw the bounding boxes on.
+    options
+        Options to customize the drawing. Currently, it supports the following options:
         1. bbox_style: str, the style of the bounding box.
             - "default": draw a rectangle with the label right on top of the rectangle. (default option)
             - "flag": draw a vertical line connects the detected object and the label. No rectangle is drawn.
@@ -58,7 +60,7 @@ def overlay_bboxes(
     Returns
     -------
     Image.Image
-        the image with bounding boxes drawn.
+        The image with bounding boxes drawn.
 
     Raises
     ------
@@ -99,6 +101,26 @@ def overlay_colored_masks(
     image: np.ndarray | Image.Image,
     options: dict[str, Any] | None = None,
 ) -> Image.Image:
+    """Draw colored masks on the input image and return the image with colored masks drawn.
+
+    NOTE:
+    - The image is converted to grayscale first, and then the colored masks are drawn on top of it.
+    - The colored masks are drawn using the segmentation-mask-overlay package.
+
+    Parameters
+    ----------
+    predictions
+        A list of SegmentationPrediction, each of which contains the segmentation mask and the predicted class.
+    image
+        The source image to draw the colored masks on.
+    options
+        Options to customize the drawing. Currently, no options are supported.
+
+    Returns
+    -------
+    Image.Image
+        The image with segmented masks drawn.
+    """
     from segmentation_mask_overlay import overlay_masks
 
     if options is None:
@@ -116,13 +138,30 @@ def overlay_predicted_class(
     predictions: list[ClassificationPrediction],
     image: np.ndarray | Image.Image,
     options: dict[str, Any] | None = None,
-    text_position: tuple[int, int] = (10, 25),
 ) -> Image.Image:
+    """Draw the predicted class on the input image and return the image with the predicted class drawn.
+
+    Parameters
+    ----------
+    predictions
+        A list of ClassificationPrediction, each of which contains the predicted class and the score.
+    image
+        The source image to draw the colored masks on.
+    options
+        Options to customize the drawing. Currently, it supports the following options:
+        1. text_position: tuple[int, int]. The position of the text relative to the left bottom of the image. The default value is (10, 25).
+
+    Returns
+    -------
+    Image.Image
+        the image with segmented masks drawn.
+    """
     if options is None:
         options = {}
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     assert len(predictions) == 1
+    text_position = options.get("text_position", (10, 25))
     prediction = predictions[0]
     text = f"{prediction.label_name} {prediction.score:.4f}"
     draw = ImageDraw.Draw(image)
