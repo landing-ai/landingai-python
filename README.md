@@ -51,7 +51,7 @@ predictor = Predictor(endpoint_id, api_key, api_secret)
 predictions = predictor.predict(image)
 ```
 
-See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/integration/landingai/test_predict.py).
+See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/integration/landingai/test_predict_e2e.py).
 
 ### Visualize and Save Predictions
 Visualize your inference results by overlaying the predictions on the input image and saving the updated image:
