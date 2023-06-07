@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import numpy as np
 from PIL import Image
@@ -131,7 +131,7 @@ def test_class_predict():
     img_with_masks.save("tests/output/test_class.jpg")
 
 
-def _assert_seg_mask(pred: SegmentationPrediction, expected: dict[str, Any]):
+def _assert_seg_mask(pred: SegmentationPrediction, expected: Dict[str, Any]):
     assert pred.label_name == expected["label_name"]
     assert pred.label_index == expected["label_index"]
     assert pred.score == expected["score"]
