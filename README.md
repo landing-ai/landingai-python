@@ -1,7 +1,8 @@
 ![ci_status](https://github.com/landing-ai/landingai-python/actions/workflows/ci_cd.yml/badge.svg)
-[![PyPI version](https://badge.fury.io/py/landingai.svg)](https://badge.fury.io/py/landingai)
+[![PyPI version](https://badge.fury.io/py/landingai.svg?)](https://badge.fury.io/py/landingai)
 ![version](https://img.shields.io/pypi/pyversions/landingai)
 ![license](https://img.shields.io/github/license/landing-ai/landingai-python)
+[![downloads](https://static.pepy.tech/badge/landingai/month)](https://pepy.tech/project/landingai)
 
 <br>
 
