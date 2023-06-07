@@ -33,8 +33,6 @@ jobs:
       run: |
         # Install main dependencies first so we can see their size
         poetry install --all-extras
-        echo "Print installed dependencies by size:"
-        poetry run pip list | tail -n +3 | awk '{print $1}' | xargs poetry run pip show | grep -E 'Location:|Name:' | cut -d ' ' -f 2 | paste -d ' ' - - | awk '{print $2 "/" tolower($1)}' | xargs du -sh 2> /dev/null | sort -hr
     - name: Linting
       run: |
         # stop the build if there are Python syntax errors or undefined names
