@@ -22,7 +22,7 @@ class UnauthorizedError(Exception):
 
 
 class BadRequestError(Exception):
-    """Exception raised when the request is not invalid. It could be due to that the Endpoint ID doesn't exist. Status code: 422."""
+    """Exception raised when the request is not invalid. It could be due to that the Endpoint ID doesn't exist. Status code: 400, 413, 422 or other 4xx."""
 
     def __init__(self, message: str):
         self.message = message
