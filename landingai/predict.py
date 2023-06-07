@@ -1,6 +1,6 @@
 import io
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import PIL.Image
@@ -24,7 +24,6 @@ class Predictor:
     """A class that calls your inference endpoint on the LandingLens platform."""
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
-    # _url: str = "https://httpstat.us/503"  # Test URL
 
     def __init__(
         self,
@@ -94,7 +93,7 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: np.ndarray | PIL.Image.Image) -> list[Prediction]:
+    def predict(self, image: Union[np.ndarray, PIL.Image.Image]) -> List[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
@@ -135,7 +134,7 @@ def _configure_logger() -> None:
     requests_log.propagate = False
 
 
-def _extract_prediction(response: Dict[str, Any]) -> list[Prediction]:
+def _extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
     response_type = response["backbonetype"]
     if response_type is None and response["type"] == "SegmentationPrediction":
         response_type = "SegmentationPredictionVP"  # Visual Prompting response
@@ -147,7 +146,7 @@ def _extract_prediction(response: Dict[str, Any]) -> list[Prediction]:
 
 def _extract_class_prediction(
     response: Dict[str, Any]
-) -> list[ClassificationPrediction]:
+) -> List[ClassificationPrediction]:
     """Extract Classification prediction result from response
 
     Parameters
@@ -185,7 +184,7 @@ def _extract_class_prediction(
     ]
 
 
-def _extract_od_prediction(response: Dict[str, Any]) -> list[ObjectDetectionPrediction]:
+def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPrediction]:
     """Extract Object Detection prediction result from response
 
     Parameters
@@ -295,7 +294,7 @@ def _extract_od_prediction(response: Dict[str, Any]) -> list[ObjectDetectionPred
     ]
 
 
-def _extract_seg_prediction(response: Dict[str, Any]) -> list[SegmentationPrediction]:
+def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
     """Extract Segmentation prediction result from response
 
     Parameters
@@ -323,7 +322,7 @@ def _extract_seg_prediction(response: Dict[str, Any]) -> list[SegmentationPredic
     ]
 
 
-def _extract_vp_prediction(response: Dict[str, Any]) -> list[SegmentationPrediction]:
+def _extract_vp_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
     """Extract Visual Prompting result from response
 
     Parameters

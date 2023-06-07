@@ -60,7 +60,7 @@ def save_remote_file_to_local(
     remote_filename: str,
     stage_name: str,
     *,
-    local_output: Path | None = None,
+    local_output: Optional[Path] = None,
     credential: Optional[SnowflakeCredential] = None,
     connection_config: Optional[SnowflakeDBConfig] = None,
 ) -> Path:

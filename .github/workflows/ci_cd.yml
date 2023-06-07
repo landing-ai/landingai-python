@@ -7,12 +7,16 @@ on:
 
 jobs:
   Test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.10.11]
+        os: [ ubuntu-22.04, windows-2022, macos-12 ]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: 3.10.11
+        python-version: ${{ matrix.python-version }}
     - name: Install Python Poetry
       uses: abatilo/actions-poetry@v2.1.0
       with:
@@ -29,8 +33,6 @@ jobs:
       run: |
         # Install main dependencies first so we can see their size
         poetry install --all-extras
-        echo "Print installed dependencies by size:"
-        poetry run pip list | tail -n +3 | awk '{print $1}' | xargs poetry run pip show | grep -E 'Location:|Name:' | cut -d ' ' -f 2 | paste -d ' ' - - | awk '{print $2 "/" tolower($1)}' | xargs du -sh 2> /dev/null | sort -hr
     - name: Linting
       run: |
         # stop the build if there are Python syntax errors or undefined names

@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import List, Tuple
 
 import cv2
 import requests
@@ -38,7 +39,7 @@ def read_file(url: str) -> bytes:
     return response.content
 
 
-def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, float]:
+def probe_video(video_file: str, samples_per_second: float) -> Tuple[int, int, float]:
     """Probe a video file to get some metadata before sampling images.
 
     Parameters
@@ -67,7 +68,7 @@ def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, f
 
 def sample_images_from_video(
     video_file: str, output_dir: Path, samples_per_second: float = 1
-) -> list[str]:
+) -> List[str]:
     """Sample images from a video file.
 
     Parameters
