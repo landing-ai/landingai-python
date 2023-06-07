@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 st.subheader("Configuration")
 st.write("Please enter your LandingLens API key and secret below.")
 
