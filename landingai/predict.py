@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import PIL.Image
+import requests
 from pydantic import ValidationError
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -16,6 +17,7 @@ from landingai.common import (
     Prediction,
     SegmentationPrediction,
 )
+from landingai.exceptions import HttpResponse
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class Predictor:
     """A class that calls your inference endpoint on the LandingLens platform."""
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
+    _num_retry: int = 3
 
     def __init__(
         self,
@@ -68,7 +71,7 @@ class Predictor:
         session = Session()
         retries = Retry(
             # TODO: make them configurable
-            total=3,
+            total=self._num_retry,
             backoff_factor=3,
             raise_on_redirect=True,
             raise_on_status=False,  # We are already raising exceptions during backend invocations
@@ -107,6 +110,8 @@ class Predictor:
             Each dictionary is a prediction result.
             The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
+        if image is None or (isinstance(image, np.ndarray) and len(image) == 0):
+            raise ValueError(f"Input image must be non-emtpy, but got: {image}")
         if isinstance(image, np.ndarray):
             image = PIL.Image.fromarray(image)
 
@@ -117,12 +122,16 @@ class Predictor:
 
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
         payload = {"endpoint_id": self._endpoint_id, "device_type": "pylib"}
-        response = self._session.post(Predictor._url, files=files, params=payload)
-        #  requests.exceptions.HTTPError: 503 Server Error: Service Unavailable for url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=3d2edb1b-073d-4853-87ca-30e430f84379
-        #  429
+        try:
+            resp = self._session.post(Predictor._url, files=files, params=payload)
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError(
+                f"Failed to connect to the model server. Please double check the model server url ({Predictor._url}) is correct.\nException detail: {e}"
+            )
+        response = HttpResponse.from_response(resp)
+        _LOGGER.debug("Response: %s", response)
         response.raise_for_status()
         json_dict = response.json()
-        _LOGGER.debug("Response: %s", json_dict)
         return _extract_prediction(json_dict)
 
 
