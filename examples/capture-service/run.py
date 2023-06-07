@@ -1,4 +1,5 @@
 import logging
+
 from landingai.predict import Predictor
 from landingai.vision_pipeline import NetworkedCamera
 

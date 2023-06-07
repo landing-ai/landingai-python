@@ -2,7 +2,7 @@
 
 import logging
 from pprint import pformat
-from typing import Any, Dict, cast
+from typing import Any, Dict, Union, cast
 
 from requests import PreparedRequest, Response
 from requests.structures import CaseInsensitiveDict
@@ -108,7 +108,7 @@ class HttpResponse:
         status_code: int,
         reason: str,
         uri: str,
-        data: str | Dict[str, Any],
+        data: Union[str, Dict[str, Any]],
         headers: CaseInsensitiveDict,
         content_length: int,
         request: PreparedRequest,
@@ -142,7 +142,7 @@ class HttpResponse:
     def from_response(cls, response: Response) -> "HttpResponse":
         """Create an instance of _HttpResponse from a requests.Response object."""
         try:
-            content: str | Dict[str, Any] = response.json()
+            content: Union[str, Dict[str, Any]] = response.json()
         except ValueError:
             # In some circumstance, the endpoint may return string content instead.
             content = str(response.content, "utf-8")
