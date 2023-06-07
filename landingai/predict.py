@@ -1,6 +1,6 @@
 import io
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import PIL.Image
@@ -93,7 +93,7 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: np.ndarray | PIL.Image.Image) -> List[Prediction]:
+    def predict(self, image: Union[np.ndarray, PIL.Image.Image]) -> List[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
