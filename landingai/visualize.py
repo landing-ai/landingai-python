@@ -1,7 +1,7 @@
 """The landingai.visualize module contains functions to visualize the prediction results."""
 
 import logging
-from typing import Any, Callable, Optional, Type, cast
+from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -17,9 +17,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def overlay_predictions(
-    predictions: list[Prediction],
+    predictions: List[Prediction],
     image: np.ndarray | Image.Image,
-    options: dict[str, Any] | None = None,
+    options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Overlay the prediction results on the input image and return the image with the overlay."""
     if len(predictions) == 0:
@@ -29,15 +29,15 @@ def overlay_predictions(
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     pred_type = types.pop()
     overlay_func: Callable[
-        [list[Prediction], np.ndarray | Image.Image, Optional[dict]], Image.Image
+        [List[Prediction], Union[np.ndarray, Image.Image], Optional[Dict]], Image.Image
     ] = _OVERLAY_FUNC_MAP[pred_type]
     return overlay_func(predictions, image, options)
 
 
 def overlay_bboxes(
-    predictions: list[ObjectDetectionPrediction],
+    predictions: List[ObjectDetectionPrediction],
     image: np.ndarray | Image.Image,
-    options: dict[str, Any] | None = None,
+    options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draw bounding boxes on the input image and return the image with bounding boxes drawn.
     The bounding boxes are drawn using the bbox-visualizer package.
@@ -97,9 +97,9 @@ def overlay_bboxes(
 
 
 def overlay_colored_masks(
-    predictions: list[SegmentationPrediction],
+    predictions: List[SegmentationPrediction],
     image: np.ndarray | Image.Image,
-    options: dict[str, Any] | None = None,
+    options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draw colored masks on the input image and return the image with colored masks drawn.
 
@@ -135,9 +135,9 @@ def overlay_colored_masks(
 
 
 def overlay_predicted_class(
-    predictions: list[ClassificationPrediction],
+    predictions: List[ClassificationPrediction],
     image: np.ndarray | Image.Image,
-    options: dict[str, Any] | None = None,
+    options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draw the predicted class on the input image and return the image with the predicted class drawn.
 
@@ -183,9 +183,9 @@ def _get_pil_font(font_size: int = 18) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(file, font_size)
 
 
-_OVERLAY_FUNC_MAP: dict[
+_OVERLAY_FUNC_MAP: Dict[
     Type[Prediction],
-    Callable[[list[Any], np.ndarray | Image.Image, Optional[dict]], Image.Image],
+    Callable[[List[Any], Union[np.ndarray, Image.Image], Optional[Dict]], Image.Image],
 ] = {
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,

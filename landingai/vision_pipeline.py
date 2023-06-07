@@ -1,20 +1,20 @@
 """The vision pipeline is a layer that allows chaining image processing operations as a sequential pipeline. The main class passed throughout a pipeline is the `FrameSet` which typically contains a source image and derivative metadata and images.
 """
 
-from landingai.visualize import overlay_predictions
-from landingai.predict import Predictor
-from landingai.common import Prediction
+import logging
+import threading
+import time
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Union
 
+import cv2
 import numpy as np
 from PIL import Image
-import cv2
-
-from datetime import datetime
-import logging
-import time
-import threading
-from typing import Dict, Any, Callable, Union
 from pydantic import BaseModel, PrivateAttr
+
+from landingai.common import Prediction
+from landingai.predict import Predictor
+from landingai.visualize import overlay_predictions
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class Frame(BaseModel):
     other_images: Dict[str, Image.Image] = {}
     """Other derivative images associated with this frame (e.g. detection overlay)"""
 
-    predictions: list[Prediction] = []
+    predictions: List[Prediction] = []
     """List of predictions for the main image"""
 
     metadata: Dict[str, Any] = {}
@@ -54,7 +54,7 @@ class Frame(BaseModel):
 class FrameSet(BaseModel):
     """A FrameSet is a collection of frames (in order). Typically a FrameSet will include a single image but there are circumstances where other images will be extracted from the initial one. For example: we may want to identify vehicles on an initial image and then extract sub-images for each of the vehicles."""
 
-    frames: list[Frame] = []  # Start with empty frame set
+    frames: List[Frame] = []  # Start with empty frame set
 
     @classmethod
     def from_image(cls, file: str) -> "FrameSet":
