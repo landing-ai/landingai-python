@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def overlay_predictions(
     predictions: List[Prediction],
-    image: np.ndarray | Image.Image,
+    image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Overlay the prediction results on the input image and return the image with the overlay."""
@@ -36,7 +36,7 @@ def overlay_predictions(
 
 def overlay_bboxes(
     predictions: List[ObjectDetectionPrediction],
-    image: np.ndarray | Image.Image,
+    image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draw bounding boxes on the input image and return the image with bounding boxes drawn.
@@ -98,7 +98,7 @@ def overlay_bboxes(
 
 def overlay_colored_masks(
     predictions: List[SegmentationPrediction],
-    image: np.ndarray | Image.Image,
+    image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draw colored masks on the input image and return the image with colored masks drawn.
@@ -136,7 +136,7 @@ def overlay_colored_masks(
 
 def overlay_predicted_class(
     predictions: List[ClassificationPrediction],
-    image: np.ndarray | Image.Image,
+    image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
     """Draw the predicted class on the input image and return the image with the predicted class drawn.

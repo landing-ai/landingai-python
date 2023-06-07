@@ -1,6 +1,6 @@
 import math
 from collections import defaultdict
-from typing import Dict, List, Sequence, Tuple, cast
+from typing import Dict, List, Sequence, Tuple, Union, cast
 
 from landingai.common import (
     ObjectDetectionPrediction,
@@ -29,7 +29,7 @@ def class_counts(predictions: Sequence[Prediction]) -> Dict[int, Tuple[int, str]
             }
         ```
     """
-    counts: Dict[int, List[int | str]] = defaultdict(lambda: [0, ""])
+    counts: Dict[int, List[Union[int, str]]] = defaultdict(lambda: [0, ""])
     for pred in predictions:
         counts[pred.label_index][0] = cast(int, counts[pred.label_index][0]) + 1
         counts[pred.label_index][1] = pred.label_name

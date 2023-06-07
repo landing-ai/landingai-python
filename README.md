@@ -1,3 +1,4 @@
+![ci_status](https://github.com/landing-ai/landingai-python/actions/workflows/ci_cd.yml/badge.svg)
 ![pypi](https://badge.fury.io/py/landingai.svg)
 ![version](https://img.shields.io/pypi/pyversions/landingai)
 ![license](https://img.shields.io/github/license/landing-ai/landingai-python)
