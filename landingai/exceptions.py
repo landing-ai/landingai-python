@@ -9,6 +9,7 @@ from requests.structures import CaseInsensitiveDict
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class UnauthorizedError(Exception):
     """Exception raised when the user is not authorized to access the resource. Status code: 401."""
 
@@ -16,7 +17,7 @@ class UnauthorizedError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -27,7 +28,7 @@ class BadRequestError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -38,7 +39,7 @@ class PermissionDeniedError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -49,7 +50,7 @@ class RateLimitExceededError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -60,7 +61,7 @@ class ServiceUnavailableError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -71,7 +72,7 @@ class InternalServerError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -82,7 +83,7 @@ class ClientError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -93,7 +94,7 @@ class UnexpectedRedirectError(Exception):
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
