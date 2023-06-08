@@ -1,37 +1,36 @@
 ## Introduction
 
-This example shows how to connect to a networked camera (that supports RTSP protocol), and continuously run inference on captured images.
+This example focuses on how to continuously run inference on images extracted from streaming video. This application shows how to use a Segmentation model from LandingLens to detect sky and clouds in images extracted from a streaming RTSP video camera feed. A traffic camera is used to capture images.  
 
-### How to run the example
+## Run the Example
 
-**Prerequisites**: 
+### Prerequisites
 
-1. you have installed this library correctly. See the top-level `README.md` for more details.
+Before starting, install the Landing AI Python library. For more information, see the top-level `README.md`.
 
-#### Running the example source and inference model
+## Run the Example Source and Inference Model
 
-Launch the program by
+To launch the program, run this command:
 
 ```bash
 python examples/capture-service/run.py 
 ```
 
-If successful, the program will capture frames every couple of seconds, and make inference against. You should see a Window pop up and show you the captured image with predictions overlaid on it. The example source is a traffic camera paired with a model that detect sky and clouds
+The program captures frames from the video feed every few seconds, and then runs inference on those images. After inference is complete, a pop-up window appears, showing the captured image with the model's predictions overlaid on it.
 
-> NOTE: the CloudInference endpoint of a free trial account has a rate limit of 20 inferences/minute. So don't call inference too frequently. The frequency can be configured by a constant in the `run.py` file, see `_CAPTURE_INTERVAL`.
+> Note: The endpoints for Free Trial LandingLens accounts have a limit of 20 inferences/minute. Do not call inference more than that rate. You can change the inference frequency by configuring a constant in `_CAPTURE_INTERVAL` in the `run.py` file.
 
-#### Customizing the example
+## Customize the Example
 
-1. you need a working camera that exposes a RTSP url to your network, e.g. your local intranet. (Not sure if the RTSP url is working? check out this [article](https://support.ipconfigure.com/hc/en-us/articles/115005588503-Using-VLC-to-test-camera-stream) to test it out)
-2. you have trained a Landing AI model, and deployed such a model to a CloudInference endpoint.
-3. you have `endpoint id`, `api key` and `api secret` from the Landing AI platform.
-4. Open the file `examples/capture-service/run.py`, and change the `api_key`, `api_secret`, `endpoint_id` and `stream_url` to yours. 
+1. Set up a camera that exposes an RTSP URL to your network (your local intranet). If you're not sure if the RTSP URL is working, learn how to test it in this [article](https://support.ipconfigure.com/hc/en-us/articles/115005588503-Using-VLC-to-test-camera-stream).
+2. Train a model in LandingLens, and deploy it to an endpoint via [Cloud Deployment](https://support.landing.ai/landinglens/docs/cloud-deployment).
+3. Get the `endpoint id`, `api key` and `api secret` from LandingLens.
+4. Open the file `examples/capture-service/run.py`, and update the following with your information: `api_key`, `api_secret`, `endpoint_id` and `stream_url`. 
 
 
-#### Collect training images
+## Collect Images to Train Your Model
 
-You need to collect training images and train a model before you can run inferences.
-You can use the same script to collect training images by setting `capture_frame` to `True` and `inference_mode` to `False`. The default parameters of the `stream()` function is:
+You need to collect images and train your model with those images before you can run inference. You can use the same script to collect training images by setting `capture_frame` to `True` and `inference_mode` to `False`. The default parameters of the `stream()` function are:
 
 ```
 def stream(capture_frame=False, inference_mode=True):

@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: 504 Gateway Timeout
+    content_type: text/plain
+    method: POST
+    status: 504
+    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4&device_type=pylib

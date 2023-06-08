@@ -1,8 +1,10 @@
+import io
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-import cv2
 import numpy as np
+import PIL.Image
+import requests
 from pydantic import ValidationError
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -15,15 +17,16 @@ from landingai.common import (
     Prediction,
     SegmentationPrediction,
 )
+from landingai.exceptions import HttpResponse
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class Predictor:
-    """A class that calls your inference endpoint on the Landing AI platform."""
+    """A class that calls your inference endpoint on the LandingLens platform."""
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
-    # _url: str = "https://httpstat.us/503"  # Test URL
+    _num_retry: int = 3
 
     def __init__(
         self,
@@ -35,14 +38,17 @@ class Predictor:
 
         Parameters
         ----------
-        endpoint_id: a unique string that identifies your inference endpoint.
+        endpoint_id
+            A unique string that identifies your inference endpoint.
             This string can be found in the URL of your inference endpoint.
-            Example: "9f237028-e630-4576-8826-f35ab9000abc" is the endpoint id in below URL:
+            Example: "9f237028-e630-4576-8826-f35ab9000abc" is the endpoint id in this URL:
             https://predict.app.landing.ai/inference/v1/predict?endpoint_id=9f237028-e630-4576-8826-f35ab9000abc
-        api_key: the API key of your Landing AI account.
+        api_key
+            The API Key of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_KEY or from the .env file.
-        api_secret: the API key of your Landing AI account.
+        api_secret
+            The API Secret of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_SECRET or from the .env file.
         """
@@ -65,7 +71,7 @@ class Predictor:
         session = Session()
         retries = Retry(
             # TODO: make them configurable
-            total=3,
+            total=self._num_retry,
             backoff_factor=3,
             raise_on_redirect=True,
             raise_on_status=False,  # We are already raising exceptions during backend invocations
@@ -90,29 +96,42 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: np.ndarray) -> List[Prediction]:
+    def predict(self, image: Union[np.ndarray, PIL.Image.Image]) -> List[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
         ----------
-        image: the input image to be predicted.
-               The image should be in RGB format if it has three channels.
+        image
+            The input image to be predicted. The image should be in the RGB format if it has three channels.
 
         Returns
         -------
-        The inference result in a list of dictionary. Each dictionary is a prediction result.
-        The ininference result has been filtered by the confidence threshold
-        set in the Landing AI platform and sorted by confidence score in descending order.
+        The inference result in a list of dictionary
+            Each dictionary is a prediction result.
+            The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
-        img = cv2.imencode(".png", image)[1]
-        files = [("file", ("image.png", img, "image/png"))]
-        payload = {"endpoint_id": self._endpoint_id}
-        response = self._session.post(Predictor._url, files=files, params=payload)
-        #  requests.exceptions.HTTPError: 503 Server Error: Service Unavailable for url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=3d2edb1b-073d-4853-87ca-30e430f84379
-        #  429
+        if image is None or (isinstance(image, np.ndarray) and len(image) == 0):
+            raise ValueError(f"Input image must be non-emtpy, but got: {image}")
+        if isinstance(image, np.ndarray):
+            image = PIL.Image.fromarray(image)
+
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format="PNG")
+        buffer_bytes = img_buffer.getvalue()
+        img_buffer.close()
+
+        files = [("file", ("image.png", buffer_bytes, "image/png"))]
+        payload = {"endpoint_id": self._endpoint_id, "device_type": "pylib"}
+        try:
+            resp = self._session.post(Predictor._url, files=files, params=payload)
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError(
+                f"Failed to connect to the model server. Please double check the model server url ({Predictor._url}) is correct.\nException detail: {e}"
+            )
+        response = HttpResponse.from_response(resp)
+        _LOGGER.debug("Response: %s", response)
         response.raise_for_status()
         json_dict = response.json()
-        _LOGGER.debug("Response: %s", json_dict)
         return _extract_prediction(json_dict)
 
 
@@ -124,14 +143,14 @@ def _configure_logger() -> None:
     requests_log.propagate = False
 
 
-def _extract_prediction(response: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
     response_type = response["backbonetype"]
     if response_type is None and response["type"] == "SegmentationPrediction":
         response_type = "SegmentationPredictionVP"  # Visual Prompting response
     if response_type is None:
         response_type = response["type"]  # Classification response
     predictions = PREDICTION_EXTRACTOR[response_type](response)
-    return predictions
+    return predictions  # type: ignore
 
 
 def _extract_class_prediction(
@@ -141,7 +160,7 @@ def _extract_class_prediction(
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
     Example input:
     {
         "backbonetype": None,
@@ -179,7 +198,7 @@ def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPred
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
     Example example input:
     {
         "backbonetype": "ObjectDetectionPrediction",
@@ -289,7 +308,7 @@ def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPredic
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
 
     """
     encoded_predictions = response["backbonepredictions"]["bitmaps"]
@@ -317,7 +336,7 @@ def _extract_vp_prediction(response: Dict[str, Any]) -> List[SegmentationPredict
 
     Parameters
     ----------
-    response: response from the LandingAI prediction endpoint.
+    response: Response from the LandingLens prediction endpoint.
 
     """
     encoded_predictions = response["predictions"]["bitmaps"]
