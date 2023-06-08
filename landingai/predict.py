@@ -14,7 +14,6 @@ from landingai.common import (
     APICredential,
     ClassificationPrediction,
     ObjectDetectionPrediction,
-    OcrPrediction,
     Prediction,
     SegmentationPrediction,
 )
@@ -69,10 +68,7 @@ class Predictor:
             except ValidationError:
                 raise ValueError("API credential is not provided")
         else:
-            api_credential = APICredential(
-                api_key=api_key,
-                api_secret=api_secret
-            )
+            api_credential = APICredential(api_key=api_key, api_secret=api_secret)
         return api_credential
 
     def _create_session(self) -> Session:
@@ -105,7 +101,9 @@ class Predictor:
         )
         return session
 
-    def predict(self, image: Union[np.ndarray, PIL.Image.Image]) -> List[Prediction]:
+    def predict(
+        self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
+    ) -> List[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
         Parameters
@@ -166,12 +164,12 @@ class OcrPredictor(Predictor):
     ) -> None:
         self._det_mode = det_mode
         self._threshold = threshold
-        self._api_crendential = self._load_api_credential(api_key, api_secret)()
+        self._api_crendential = self._load_api_credential(api_key, api_secret)
         self._session = self._create_session()
 
     def predict(
-        self, image, regions_of_interest: Optional[List[List[Tuple[int, int]]]]
-    ) -> List[OcrPrediction]:
+        self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
+    ) -> List[Prediction]:
         """Run OCR on the input image and return the prediction result.
 
         Parameters
@@ -187,12 +185,14 @@ class OcrPredictor(Predictor):
         List[OcrPrediction]
             A list of OCR prediction result.
         """
+
         # TODO: crop image to ROI
         buffer_bytes = self._serialize_image(image)
         files = [("files", ("image.png", buffer_bytes, "image/png"))]
-        payload = {"device_type": "pylib"}
-        if regions_of_interest:
-            payload["regions_of_interest"] = [regions_of_interest]
+        payload: Dict[str, Any] = {"device_type": "pylib"}
+        if "regions_of_interest" in kwargs:
+            rois: List[List[Tuple[int, int]]] = kwargs["regions_of_interest"]
+            payload["regions_of_interest"] = [rois]
         return self._do_post(OcrPredictor._url, files, payload)
 
 

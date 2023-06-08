@@ -40,7 +40,7 @@ def overlay_quadrilateral(
     predictions: List[OcrPrediction],
     image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
-) -> Image:
+) -> Image.Image:
     """Draw a quadrilateral on the input image and overlay the text on top of the quadrilateral.
 
     Parameters
@@ -82,7 +82,7 @@ def overlay_quadrilateral(
             color=(255, 0, 0),
             thickness=1,
         )
-    return src_im
+    return Image.fromarray(src_im)
 
 
 def overlay_bboxes(

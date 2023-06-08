@@ -1,7 +1,7 @@
 import math
 import re
 from functools import cached_property
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings

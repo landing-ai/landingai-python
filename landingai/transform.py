@@ -8,8 +8,8 @@ import PIL.Image
 
 
 def crop_rotated_rectangle(
-    img: PIL.Image.Image,
-    rect: Tuple[float, float, float, float],
+    image: PIL.Image.Image,
+    rect: List[Tuple[int, int]],
     angle: float,
 ) -> Tuple[np.ndarray, List[Tuple[int, int]]]:
     """Crop the input image based on the rotated rectangle.
@@ -34,16 +34,16 @@ def crop_rotated_rectangle(
     # return get_minarea_rect_crop(img, corners), quad_box
     [[left, top], [right, top], [right, bottom], [left, bottom]] = rect
     center = ((left + right) / 2, (top + bottom) / 2)
-    img = np.asarray(img)
-    shape = (img.shape[1], img.shape[0])
+    img_np = np.asarray(image)
+    shape = (img_np.shape[1], img_np.shape[0])
 
     matrix = cv2.getRotationMatrix2D(center=center, angle=angle, scale=1)
-    image = cv2.warpAffine(src=img, M=matrix, dsize=shape)
+    img_np = cv2.warpAffine(src=img_np, M=matrix, dsize=shape)
     width, height = rect[1][0] - rect[0][0], rect[3][1] - rect[0][1]
     x, y = int(center[0] - width / 2), int(center[1] - height / 2)
 
-    image = image[y : y + height, x : x + width]
+    img_np = img_np[y : y + height, x : x + width]
     corners = cv2.transform(np.array(rect)[None], matrix)
     quad_box: List[Tuple[int, int]] = corners[0].tolist()
 
-    return image, quad_box
+    return img_np, quad_box
