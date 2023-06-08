@@ -1,0 +1,7 @@
+streamlit
+streamlit-drawable-canvas
+extra-streamlit-components
+landingai
+
+paddleocr
+paddlepaddle
