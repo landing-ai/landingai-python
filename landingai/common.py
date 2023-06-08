@@ -1,7 +1,7 @@
 import math
 import re
 from functools import cached_property
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings
@@ -33,6 +33,10 @@ class Prediction(BaseModel):
     score: float
     """The confidence score of this prediction."""
 
+
+class ClassificationPrediction(Prediction):
+    """A single classification prediction for an image."""
+
     label_name: str
     """The predicted label name."""
 
@@ -43,11 +47,17 @@ class Prediction(BaseModel):
     """
 
 
-class ClassificationPrediction(Prediction):
-    """A single classification prediction for an image."""
+class OcrPrediction(Prediction):
+    """A single OCR prediction for an image."""
+
+    text: str
+    """The predicted text."""
+
+    text_location: List[Tuple[int, int]]
+    """A quadrilateral polygon that represents the location of the text."""
 
 
-class ObjectDetectionPrediction(Prediction):
+class ObjectDetectionPrediction(ClassificationPrediction):
     """A single bounding box prediction for an image.
     It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score, and the predicted label.
     """
@@ -67,7 +77,7 @@ class ObjectDetectionPrediction(Prediction):
         keep_untouched = (cached_property,)
 
 
-class SegmentationPrediction(Prediction):
+class SegmentationPrediction(ClassificationPrediction):
     """A single segmentation mask prediction for an image.
     It includes a predicted segmentation mask, confidence score, and the predicted label.
     """

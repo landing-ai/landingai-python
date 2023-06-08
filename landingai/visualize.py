@@ -2,6 +2,7 @@
 
 import logging
 from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+import cv2
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -9,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from landingai.common import (
     ClassificationPrediction,
     ObjectDetectionPrediction,
+    OcrPrediction,
     Prediction,
     SegmentationPrediction,
 )
@@ -32,6 +34,55 @@ def overlay_predictions(
         [List[Prediction], Union[np.ndarray, Image.Image], Optional[Dict]], Image.Image
     ] = _OVERLAY_FUNC_MAP[pred_type]
     return overlay_func(predictions, image, options)
+
+
+def overlay_quadrilateral(
+    predictions: List[OcrPrediction],
+    image: Union[np.ndarray, Image.Image],
+    options: Optional[Dict[str, Any]] = None,
+) -> Image:
+    """Draw a quadrilateral on the input image and overlay the text on top of the quadrilateral.
+
+    Parameters
+    ----------
+    predictions
+        A list of OcrPrediction, each of which contains the polygon and the predicted text and score.
+    image
+        The source image to draw the polygon on.
+    options
+        Options to customize the drawing. Currently, no options are supported.
+
+    Returns
+    -------
+    Image
+        The image with the polygon and text drawn.
+    """
+    if isinstance(image, Image.Image):
+        image = np.asarray(image)
+    src_im = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    src_im = cv2.cvtColor(src_im, cv2.COLOR_GRAY2RGB)
+    for pred in predictions:
+        text = pred.text
+        box = np.array(pred.text_location, dtype=np.int32).reshape((-1, 1, 2))
+        cv2.polylines(src_im, [box], True, color=(0, 255, 0), thickness=2)
+        (text_width, text_height) = cv2.getTextSize(
+            text, cv2.FONT_HERSHEY_COMPLEX, fontScale=0.7, thickness=1
+        )[0]
+        box_coords = (
+            (box[0, 0, 0], box[0, 0, 1] - text_height),
+            (box[0, 0, 0] + text_width, box[0, 0, 1]),
+        )
+        cv2.rectangle(src_im, box_coords[0], box_coords[1], (255, 255, 0), cv2.FILLED)
+        cv2.putText(
+            src_im,
+            text,
+            org=(int(box[0, 0, 0]), int(box[0, 0, 1])),
+            fontFace=cv2.FONT_HERSHEY_COMPLEX,
+            fontScale=0.7,
+            color=(255, 0, 0),
+            thickness=1,
+        )
+    return src_im
 
 
 def overlay_bboxes(
@@ -190,4 +241,5 @@ _OVERLAY_FUNC_MAP: Dict[
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,
     ClassificationPrediction: overlay_predicted_class,
+    OcrPrediction: overlay_quadrilateral,
 }

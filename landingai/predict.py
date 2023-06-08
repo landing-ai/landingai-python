@@ -1,6 +1,6 @@
 import io
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import PIL.Image
@@ -14,6 +14,7 @@ from landingai.common import (
     APICredential,
     ClassificationPrediction,
     ObjectDetectionPrediction,
+    OcrPrediction,
     Prediction,
     SegmentationPrediction,
 )
@@ -53,18 +54,26 @@ class Predictor:
             LANDINGAI_API_SECRET or from the .env file.
         """
         self._endpoint_id = endpoint_id
+        self._api_credential = self._load_api_credential(api_key, api_secret)
+        self._session = self._create_session()
+
+    def _load_api_credential(
+        self, api_key: Optional[str] = None, api_secret: Optional[str] = None
+    ) -> APICredential:
+        """Create an APICredential object from the provided api_key and api_secret if they are not none.
+        Otherwise, it will try to load from the environment variables or .env file.
+        """
         if api_key is None or api_secret is None:
             try:
                 api_credential = APICredential()
-                self._api_key = api_credential.api_key
-                self._api_secret = api_credential.api_secret
             except ValidationError:
                 raise ValueError("API credential is not provided")
         else:
-            self._api_key = api_key
-            self._api_secret = api_secret
-        _configure_logger()
-        self._session = self._create_session()
+            api_credential = APICredential(
+                api_key=api_key,
+                api_secret=api_secret
+            )
+        return api_credential
 
     def _create_session(self) -> Session:
         """Create a requests session with retry"""
@@ -89,8 +98,8 @@ class Predictor:
         )  # Since POST is not idempotent we will ony retry on the this specific API
         session.headers.update(
             {
-                "apikey": self._api_key,
-                "apisecret": self._api_secret,
+                "apikey": self._api_credential.api_key,
+                "apisecret": self._api_credential.api_secret,
                 "contentType": "application/json",
             }
         )
@@ -110,20 +119,17 @@ class Predictor:
             Each dictionary is a prediction result.
             The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
-        if image is None or (isinstance(image, np.ndarray) and len(image) == 0):
-            raise ValueError(f"Input image must be non-emtpy, but got: {image}")
-        if isinstance(image, np.ndarray):
-            image = PIL.Image.fromarray(image)
-
-        img_buffer = io.BytesIO()
-        image.save(img_buffer, format="PNG")
-        buffer_bytes = img_buffer.getvalue()
-        img_buffer.close()
-
+        buffer_bytes = self._serialize_image(image)
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
         payload = {"endpoint_id": self._endpoint_id, "device_type": "pylib"}
+        return self._do_post(Predictor._url, files, payload)
+
+    def _do_post(
+        self, endpoint_url: str, files: List[Any], payload: Dict[str, Any]
+    ) -> List[Prediction]:
+        """Call the inference endpoint and extract the prediction result."""
         try:
-            resp = self._session.post(Predictor._url, files=files, params=payload)
+            resp = self._session.post(endpoint_url, files=files, params=payload)
         except requests.exceptions.ConnectionError as e:
             raise ConnectionError(
                 f"Failed to connect to the model server. Please double check the model server url ({Predictor._url}) is correct.\nException detail: {e}"
@@ -134,13 +140,60 @@ class Predictor:
         json_dict = response.json()
         return _extract_prediction(json_dict)
 
+    def _serialize_image(self, image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
+        if image is None or (isinstance(image, np.ndarray) and len(image) == 0):
+            raise ValueError(f"Input image must be non-emtpy, but got: {image}")
+        if isinstance(image, np.ndarray):
+            image = PIL.Image.fromarray(image)
 
-def _configure_logger() -> None:
-    """Configure the logger for the requests library"""
-    # Ensure we can see retries in the logs
-    requests_log = logging.getLogger("urllib3.util.retry")
-    requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate = False
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format="PNG")
+        buffer_bytes = img_buffer.getvalue()
+        img_buffer.close()
+        return buffer_bytes
+
+
+class OcrPredictor(Predictor):
+    _url: str = "https://predict.app.landing.ai/inference/v1/detect-text"
+
+    def __init__(
+        self,
+        # TODO: remove det_mode
+        det_mode: str,
+        threshold: float,
+        api_key: Optional[str] = None,
+        api_secret: Optional[str] = None,
+    ) -> None:
+        self._det_mode = det_mode
+        self._threshold = threshold
+        self._api_crendential = self._load_api_credential(api_key, api_secret)()
+        self._session = self._create_session()
+
+    def predict(
+        self, image, regions_of_interest: Optional[List[List[Tuple[int, int]]]]
+    ) -> List[OcrPrediction]:
+        """Run OCR on the input image and return the prediction result.
+
+        Parameters
+        ----------
+        image
+            The input image to be predicted
+        regions_of_interest
+            A list of region of interest boxes/quadrilateral. Each box is a list of 4 points (x, y).
+            If it is None, the whole image will be used as the region of interest.
+
+        Returns
+        -------
+        List[OcrPrediction]
+            A list of OCR prediction result.
+        """
+        # TODO: crop image to ROI
+        buffer_bytes = self._serialize_image(image)
+        files = [("files", ("image.png", buffer_bytes, "image/png"))]
+        payload = {"device_type": "pylib"}
+        if regions_of_interest:
+            payload["regions_of_interest"] = [regions_of_interest]
+        return self._do_post(OcrPredictor._url, files, payload)
 
 
 def _extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
