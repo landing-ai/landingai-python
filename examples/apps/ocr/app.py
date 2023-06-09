@@ -1,31 +1,26 @@
 import time
 
 import extra_streamlit_components as stx
+import streamlit_pydantic as sp
 import numpy as np
-import pandas as pd
 import streamlit as st
 from PIL import Image
 
 from examples.apps.ocr.predict import DetModel, OcrPredictor
 from examples.apps.ocr.roi import draw_region_of_interests, process_and_display_roi
+from landingai.common import APICredential
 from landingai.visualize import overlay_predictions
 
-language_dict = {
-    "English & Chinese" : "ch",
-    "Spanish" : "es",
-    "French" : "fr",
-    "German" : "german",
-    "Japanese" : "japan",
-    "Korean": "korean"
-}
 
 # Streamlit app code
 def main():
-    # Set app title
     st.title("OCR Demo")
-    lang_df = pd.DataFrame.from_dict(language_dict, orient="index").reset_index()
-    chosen_lang_key = st.selectbox("Select OCR language", lang_df, key="chosen_lang", index=0)
-    chosen_lang = language_dict[chosen_lang_key]
+    st.sidebar.title("Configuration")
+    with st.sidebar:
+        credential = sp.pydantic_form(key="api_credential", model=APICredential, submit_label="Save", ignore_empty_values=True)
+        if credential:
+            st.session_state["credential"] = credential
+            st.info("Saved API credential")
 
     chosen_id = stx.tab_bar(
         data=[
@@ -90,9 +85,13 @@ def main():
             0.5,
             key="th_slider",
         )
-        predictor = OcrPredictor(detection_mode, float(threshold), chosen_lang)
         # Run ocr on the whole image
         if input_images is not None and st.button("Run"):
+            if "credential" not in st.session_state:
+                st.error("Please enter and save your API credential first")
+                return
+            api_credential = st.session_state["credential"]
+            predictor = OcrPredictor(detection_mode, float(threshold))
             begin = time.perf_counter()
             preds = predictor.predict(input_images, roi_boxes=boxes)
             tak_time = time.perf_counter() - begin

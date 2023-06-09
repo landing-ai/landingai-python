@@ -94,7 +94,7 @@ def process_and_display_roi(
 
 
 # TODO: consider move it to landingai.transform
-def get_minarea_rect_crop(img, points):
+def get_minarea_rect_crop(image: np.ndarray, points: List[List[Tuple[int, int]]]) -> np.ndarray:
     bounding_box = cv2.minAreaRect(np.array(points).astype(np.int32))
     points = sorted(list(cv2.boxPoints(bounding_box)), key=lambda x: x[0])
 
@@ -113,12 +113,12 @@ def get_minarea_rect_crop(img, points):
         index_c = 2
 
     box = [points[index_a], points[index_b], points[index_c], points[index_d]]
-    crop_img = get_rotate_crop_image(img, np.array(box))
+    crop_img = get_rotate_crop_image(image, np.array(box))
     return crop_img
 
 
 # TODO: consider move it to landingai.transform
-def get_rotate_crop_image(img, points):
+def get_rotate_crop_image(image: np.ndarray, points: List[List[Tuple[int, int]]]) -> np.ndarray:
     '''
     img_height, img_width = img.shape[0:2]
     left = int(np.min(points[:, 0]))
@@ -143,7 +143,7 @@ def get_rotate_crop_image(img, points):
                           [0, img_crop_height]])
     M = cv2.getPerspectiveTransform(points, pts_std)
     dst_img = cv2.warpPerspective(
-        img,
+        image,
         M, (img_crop_width, img_crop_height),
         borderMode=cv2.BORDER_REPLICATE,
         flags=cv2.INTER_CUBIC)

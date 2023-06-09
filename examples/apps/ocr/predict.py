@@ -26,8 +26,8 @@ class OCRModel:
 
 
 class OcrPredictor:
-    def __init__(self, det_mode: str, threshold: float, language: str) -> None:
-        self._model = OCRModel(lang=language)
+    def __init__(self, det_mode: str, threshold: float) -> None:
+        self._model = OCRModel()
         self._det_mode = det_mode
         self._threshold = threshold
 
