@@ -103,12 +103,12 @@ def sample_images_from_video(
 
 
 def read_from_notebook_webcam() -> Callable[[], str]:
-    # Define function to acquire images from the web browser
-    from IPython.display import display, Javascript
-    from base64 import b64decode
-
+    # Define function to acquire images either directly from the local webcam (i.e. jupyter notebook)or from the web browser (i.e. collab)
     filename = "/tmp/photo.jpg"
+    # Detect if we are running on Google's colab
     try:
+        from IPython.display import display, Javascript
+        from base64 import b64decode
         from google.colab.output import eval_js
 
         def take_photo() -> str:
