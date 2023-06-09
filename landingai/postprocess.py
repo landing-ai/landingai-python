@@ -3,18 +3,20 @@ from collections import defaultdict
 from typing import Dict, List, Sequence, Tuple, Union, cast
 
 from landingai.common import (
+    ClassificationPrediction,
     ObjectDetectionPrediction,
-    Prediction,
     SegmentationPrediction,
 )
 
 
-def class_map(predictions: Sequence[Prediction]) -> Dict[int, str]:
+def class_map(predictions: Sequence[ClassificationPrediction]) -> Dict[int, str]:
     """Return a map from the predicted class/label index to the class/label name."""
     return {pred.label_index: pred.label_name for pred in predictions}
 
 
-def class_counts(predictions: Sequence[Prediction]) -> Dict[int, Tuple[int, str]]:
+def class_counts(
+    predictions: Sequence[ClassificationPrediction],
+) -> Dict[int, Tuple[int, str]]:
     """Compute the distribution of the occurrences of each class.
 
     Returns
@@ -37,7 +39,7 @@ def class_counts(predictions: Sequence[Prediction]) -> Dict[int, Tuple[int, str]
 
 
 def class_pixel_coverage(
-    predictions: Sequence[Prediction],
+    predictions: Sequence[ClassificationPrediction],
     coverage_type: str = "relative",
 ) -> Dict[int, Tuple[float, str]]:
     """Compute the pixel coverage of each class.
