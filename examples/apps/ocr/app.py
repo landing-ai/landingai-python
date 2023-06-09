@@ -2,6 +2,7 @@ import time
 
 import extra_streamlit_components as stx
 import numpy as np
+import pandas as pd
 import streamlit as st
 from PIL import Image
 
@@ -9,11 +10,23 @@ from examples.apps.ocr.predict import DetModel, OcrPredictor
 from examples.apps.ocr.roi import draw_region_of_interests, process_and_display_roi
 from landingai.visualize import overlay_predictions
 
+language_dict = {
+    "English & Chinese" : "ch",
+    "Spanish" : "es",
+    "French" : "fr",
+    "German" : "german",
+    "Japanese" : "japan",
+    "Korean": "korean"
+}
 
 # Streamlit app code
 def main():
     # Set app title
     st.title("OCR Demo")
+    lang_df = pd.DataFrame.from_dict(language_dict, orient="index").reset_index()
+    chosen_lang_key = st.selectbox("Select OCR language", lang_df, key="chosen_lang", index=0)
+    chosen_lang = language_dict[chosen_lang_key]
+
     chosen_id = stx.tab_bar(
         data=[
             stx.TabBarItemData(id=1, title="Upload an image", description=""),
@@ -77,7 +90,7 @@ def main():
             0.5,
             key="th_slider",
         )
-        predictor = OcrPredictor(detection_mode, float(threshold))
+        predictor = OcrPredictor(detection_mode, float(threshold), chosen_lang)
         # Run ocr on the whole image
         if input_images is not None and st.button("Run"):
             begin = time.perf_counter()

@@ -1,13 +1,11 @@
 from typing import Any, Dict, List, Tuple
 
-
+import cv2
 import numpy as np
 import pandas as pd
 import PIL.Image
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
-
-from landingai.transform import crop_rotated_rectangle
 
 
 def draw_region_of_interests(image: PIL.Image.Image) -> Dict[str, Any]:
@@ -15,7 +13,8 @@ def draw_region_of_interests(image: PIL.Image.Image) -> Dict[str, Any]:
     label_color = (
         st.sidebar.color_picker("Annotation color: ", "#EA1010") + "77"
     )  # for alpha from 00 to FF
-    mode = "transform" if st.sidebar.checkbox("Move ROIs", False) else "rect"
+    st.sidebar.write("To draw 4 point polygon left click and draw 3 edges and then right click for the 4th point to close the polygon")
+    mode = "polygon" if st.sidebar.checkbox("4 point polygon", False) else "rect"
     img_width, img_height = image.size
     st.write(
         "Draw as many boxes as needed in the image below to read the text inside those boxes"
@@ -41,6 +40,7 @@ def draw_region_of_interests(image: PIL.Image.Image) -> Dict[str, Any]:
         return {}
     result = canvas_result.json_data
     result["scale_factor"] = scale_factor
+    result["mode"] = mode
     return result
 
 
@@ -53,33 +53,101 @@ def process_and_display_roi(
     annotation = pd.json_normalize(region_of_intrests["objects"])
     if len(annotation) == 0:
         return None, None
-    roi_df = annotation[["top", "left", "width", "height", "scaleX", "scaleY", "angle"]]
-    st.table(roi_df)
     scale_factor = region_of_intrests["scale_factor"]
     # Crop the image based on the selected rectangle
     cropped_images = []
     boxes = []
-    for _, row in roi_df.iterrows():
-        top = int(row["top"] / scale_factor)
-        left = int(row["left"] / scale_factor)
-        height = int(row["height"] / scale_factor)
-        width = int(row["width"] / scale_factor)
-        bottom = int(top + (height * row["scaleY"]))
-        right = int(left + (width * row["scaleX"]))
-        angle = row["angle"]
-        rect = [[left, top], [right, top], [right, bottom], [left, bottom]]
-        cropped_image, quad_box = crop_rotated_rectangle(image, rect, angle)
-        boxes.append(quad_box)
-        # cropped_image = image[top:bottom, left:right]
-        # boxes.append([[left, top], [left + width, top], [left + width, top + height], [left, top + height]])
+    image_np = np.asarray(image)
+    for _, row in annotation.iterrows():
+        if row["type"] == "rect":
+            top = int(row["top"] / scale_factor)
+            left = int(row["left"] / scale_factor)
+            height = int(row["height"] / scale_factor)
+            width = int(row["width"] / scale_factor)
+            bottom = int(top + (height * row["scaleY"]))
+            right = int(left + (width * row["scaleX"]))
+            quad = [[left, top], [right, top], [right, bottom], [left, bottom]]
+            cropped_image = image_np[top:bottom, left:right]
+        else:
+            points = row["path"]
+            if len(points) != 5:
+                st.error("Number of vertices in polygon needs to be 4, Delete the polygon and redraw")
+                return None, None
+                st.error("Unexpected")
+                return None, None
+            quad = np.array([point[1:] for point in points[:4]])
+            quad = (quad // scale_factor).tolist()
+            cropped_image = get_minarea_rect_crop(image_np, quad)
 
+        boxes.append(quad)
         # Rotate image if its vertical
         if cropped_image.shape[0] > cropped_image.shape[1]:
             cropped_image = np.rot90(cropped_image, -1)
         cropped_images.append(cropped_image)
+
     st.image(
         cropped_images,
         channels="RGB",
         caption=[f"ROI Image{n+1}" for n in range(len(cropped_images))],
     )
     return cropped_images, boxes
+
+
+# TODO: consider move it to landingai.transform
+def get_minarea_rect_crop(img, points):
+    bounding_box = cv2.minAreaRect(np.array(points).astype(np.int32))
+    points = sorted(list(cv2.boxPoints(bounding_box)), key=lambda x: x[0])
+
+    index_a, index_b, index_c, index_d = 0, 1, 2, 3
+    if points[1][1] > points[0][1]:
+        index_a = 0
+        index_d = 1
+    else:
+        index_a = 1
+        index_d = 0
+    if points[3][1] > points[2][1]:
+        index_b = 2
+        index_c = 3
+    else:
+        index_b = 3
+        index_c = 2
+
+    box = [points[index_a], points[index_b], points[index_c], points[index_d]]
+    crop_img = get_rotate_crop_image(img, np.array(box))
+    return crop_img
+
+
+# TODO: consider move it to landingai.transform
+def get_rotate_crop_image(img, points):
+    '''
+    img_height, img_width = img.shape[0:2]
+    left = int(np.min(points[:, 0]))
+    right = int(np.max(points[:, 0]))
+    top = int(np.min(points[:, 1]))
+    bottom = int(np.max(points[:, 1]))
+    img_crop = img[top:bottom, left:right, :].copy()
+    points[:, 0] = points[:, 0] - left
+    points[:, 1] = points[:, 1] - top
+    '''
+    assert len(points) == 4, "shape of points must be 4*2"
+    img_crop_width = int(
+        max(
+            np.linalg.norm(points[0] - points[1]),
+            np.linalg.norm(points[2] - points[3])))
+    img_crop_height = int(
+        max(
+            np.linalg.norm(points[0] - points[3]),
+            np.linalg.norm(points[1] - points[2])))
+    pts_std = np.float32([[0, 0], [img_crop_width, 0],
+                          [img_crop_width, img_crop_height],
+                          [0, img_crop_height]])
+    M = cv2.getPerspectiveTransform(points, pts_std)
+    dst_img = cv2.warpPerspective(
+        img,
+        M, (img_crop_width, img_crop_height),
+        borderMode=cv2.BORDER_REPLICATE,
+        flags=cv2.INTER_CUBIC)
+    dst_img_height, dst_img_width = dst_img.shape[0:2]
+    if dst_img_height * 1.0 / dst_img_width >= 1.5:
+        dst_img = np.rot90(dst_img)
+    return dst_img

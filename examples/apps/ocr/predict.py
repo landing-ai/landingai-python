@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 import numpy as np
-import streamlit as st
 from paddleocr import PaddleOCR
 
 from landingai.common import OcrPrediction
@@ -14,38 +13,27 @@ class DetModel(int, Enum):
 
 
 class OCRModel:
-    def __init__(self, device: Optional[str] = "cpu") -> None:
+    def __init__(self, lang: Optional[str] = "ch", device: Optional[str] = "cpu") -> None:
         # Cache all the models during startup
         if device == "cpu":
-            self.pp_inferencer = PaddleOCR(
-                use_angle_cls=True, lang="en", page_num=10, use_gpu=False
-            )
+            self.pp_inferencer = PaddleOCR(use_angle_cls=True, lang=lang, page_num= 10, use_gpu=False)
         else:
-            self.pp_inferencer = PaddleOCR(
-                use_angle_cls=True, lang="en", page_num=10, use_gpu=True
-            )
+            self.pp_inferencer = PaddleOCR(use_angle_cls=True, lang=lang, page_num=10, use_gpu=True)
 
     def __call__(self, img: List[np.ndarray], det_mode: str) -> Dict:
         result_list = self.pp_inferencer.ocr(img, det=bool(DetModel[det_mode].value))
         return result_list
 
 
-# Pre-cache the models
-if "ocr_model" not in st.session_state:
-    model = OCRModel()
-    st.session_state.ocr_model = model
-else:
-    model = st.session_state.ocr_model
-
-
 class OcrPredictor:
-    def __init__(self, det_mode: str, threshold: float) -> None:
+    def __init__(self, det_mode: str, threshold: float, language: str) -> None:
+        self._model = OCRModel(lang=language)
         self._det_mode = det_mode
         self._threshold = threshold
 
     def predict(self, image, roi_boxes) -> List[OcrPrediction]:
         # TODO: crop image to ROI
-        ocr_result = model(image, self._det_mode)
+        ocr_result = self._model(image, self._det_mode)
         if self._det_mode == DetModel.AUTO_DETECT.name:
             ocr_lines = ocr_result[0]
         else:
