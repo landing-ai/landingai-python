@@ -109,7 +109,7 @@ def read_from_notebook_webcam() -> Callable[[], str]:
     try:
         from IPython.display import display, Javascript
         from base64 import b64decode
-        from google.colab.output import eval_js # type: ignore
+        from google.colab.output import eval_js  # type: ignore
 
         def take_photo() -> str:
             quality = 0.8
