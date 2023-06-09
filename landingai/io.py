@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Tuple
-
+from typing import List, Tuple, Callable
 import cv2
 import requests
 
@@ -102,16 +101,20 @@ def sample_images_from_video(
     cap.release()
     return output
 
-def read_from_notebook_webcam():
+
+def read_from_notebook_webcam() -> Callable[[], str]:
     # Define function to acquire images from the web browser
     from IPython.display import display, Javascript
     from base64 import b64decode
-    filename='/tmp/photo.jpg'
+
+    filename = "/tmp/photo.jpg"
     try:
         from google.colab.output import eval_js
-        def take_photo():
-            quality=0.8
-            js = Javascript('''
+
+        def take_photo() -> str:
+            quality = 0.8
+            js = Javascript(
+                """
             async function takePhoto(quality) {
                 const div = document.createElement('div');
                 const capture = document.createElement('button');
@@ -141,18 +144,20 @@ def read_from_notebook_webcam():
                 div.remove();
                 return canvas.toDataURL('image/jpeg', quality);
             }
-            ''')
+            """
+            )
             display(js)
-            data = eval_js('takePhoto({})'.format(quality))
-            binary = b64decode(data.split(',')[1])
-            with open(filename, 'wb') as f:
+            data = eval_js("takePhoto({})".format(quality))
+            binary = b64decode(data.split(",")[1])
+            with open(filename, "wb") as f:
                 f.write(binary)
                 return filename
-    except:
+
+    except ModuleNotFoundError:
         # Capture image from local webcam using OpenCV
         import cv2
-        
-        def take_photo():
+
+        def take_photo() -> str:
             cam = cv2.VideoCapture(0)
             cv2.namedWindow("Press space to take photo")
             cv2.startWindowThread()
@@ -163,7 +168,7 @@ def read_from_notebook_webcam():
                     exit()
                 cv2.imshow("Press space to take photo", frame)
                 k = cv2.waitKey(1)
-                if k%256 == 32:
+                if k % 256 == 32:
                     # SPACE pressed
                     cv2.imwrite(filename, frame)
                     break
@@ -172,4 +177,5 @@ def read_from_notebook_webcam():
             cv2.destroyAllWindows()
             cv2.waitKey(1)
             return filename
+
     return take_photo
