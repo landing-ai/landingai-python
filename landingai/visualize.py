@@ -167,7 +167,7 @@ def overlay_colored_masks(
         The source image to draw the colored masks on.
     options
         Options to customize the drawing. Currently, it supports the following options:
-        1. `color_map`: bool, default empty. A map of label names to colors. For any labels that don't have a color, a color will be assigned to it.
+        1. `color_map`: dict, default empty. A map of label names to colors. For any labels that don't have a color, a color will be assigned to it.
         The color is any value acceptable by PIL. The label name are case insensitive.
         Example:
             ```
