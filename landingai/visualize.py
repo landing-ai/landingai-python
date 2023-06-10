@@ -71,15 +71,14 @@ def overlay_quadrilateral(
     if texts is None or len(texts) != len(boxes):
         texts = [None] * len(boxes)
     for _, (box, txt) in enumerate(zip(boxes, texts)):
-        color = (random.randint(0, 255), random.randint(0, 255),
-                 random.randint(0, 255))
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         draw_left.polygon(box, fill=color)
         img_right_text = _draw_box_text((w, h), box, txt)
         pts = np.array(box, np.int32).reshape((-1, 1, 2))
         cv2.polylines(img_right_text, [pts], True, color, 1)
         img_right = cv2.bitwise_and(img_right, img_right_text)
     img_left = Image.blend(image, img_left, 0.5)
-    img_show = Image.new('RGB', (w * 2, h), (255, 255, 255))
+    img_show = Image.new("RGB", (w * 2, h), (255, 255, 255))
     img_show.paste(img_left, (0, 0, w, h))
     img_show.paste(Image.fromarray(img_right), (w, 0, w * 2, h))
     return img_show
@@ -245,28 +244,33 @@ _OVERLAY_FUNC_MAP: Dict[
 }
 
 
-def _draw_box_text(img_size: Tuple[int, int], box: List[Tuple[int, int]], text: Optional[str]=None) -> np.ndarray:
+def _draw_box_text(
+    img_size: Tuple[int, int], box: List[Tuple[int, int]], text: Optional[str] = None
+) -> np.ndarray:
     box_height = int(
-        math.sqrt((box[0][0] - box[3][0])**2 + (box[0][1] - box[3][1])**2))
+        math.sqrt((box[0][0] - box[3][0]) ** 2 + (box[0][1] - box[3][1]) ** 2)
+    )
     box_width = int(
-        math.sqrt((box[0][0] - box[1][0])**2 + (box[0][1] - box[1][1])**2))
+        math.sqrt((box[0][0] - box[1][0]) ** 2 + (box[0][1] - box[1][1]) ** 2)
+    )
 
     if box_height > 2 * box_width and box_height > 30:
-        img_text = Image.new('RGB', (box_height, box_width), (255, 255, 255))
+        img_text = Image.new("RGB", (box_height, box_width), (255, 255, 255))
         draw_text = ImageDraw.Draw(img_text)
         if text:
             font = _create_font(text, (box_height, box_width))
             draw_text.text([0, 0], text, fill=(0, 0, 0), font=font)
         img_text = img_text.transpose(Image.ROTATE_270)
     else:
-        img_text = Image.new('RGB', (box_width, box_height), (255, 255, 255))
+        img_text = Image.new("RGB", (box_width, box_height), (255, 255, 255))
         draw_text = ImageDraw.Draw(img_text)
         if text:
             font = _create_font(text, (box_width, box_height))
             draw_text.text([0, 0], text, fill=(0, 0, 0), font=font)
 
     pts1 = np.float32(
-        [[0, 0], [box_width, 0], [box_width, box_height], [0, box_height]])
+        [[0, 0], [box_width, 0], [box_width, box_height], [0, box_height]]
+    )
     pts2 = np.array(box, dtype=np.float32)
     M = cv2.getPerspectiveTransform(pts1, pts2)
 
@@ -277,11 +281,16 @@ def _draw_box_text(img_size: Tuple[int, int], box: List[Tuple[int, int]], text: 
         img_size,
         flags=cv2.INTER_NEAREST,
         borderMode=cv2.BORDER_CONSTANT,
-        borderValue=(255, 255, 255))
+        borderValue=(255, 255, 255),
+    )
     return img_right_text
 
 
-def _create_font(txt: str, size: Tuple[int, int], font_path: str="./landingai/fonts/default_font_ch_en.ttf"):
+def _create_font(
+    txt: str,
+    size: Tuple[int, int],
+    font_path: str = "./landingai/fonts/default_font_ch_en.ttf",
+):
     font_size = int(size[1] * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
     length = font.getsize(txt)[0]
