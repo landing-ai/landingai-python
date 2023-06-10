@@ -1,11 +1,12 @@
 """The landingai.visualize module contains functions to visualize the prediction results."""
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+import random
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
 import cv2
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 
 from landingai.common import (
     ClassificationPrediction,
@@ -101,12 +102,12 @@ def overlay_bboxes(
         The source image to draw the bounding boxes on.
     options
         Options to customize the drawing. Currently, it supports the following options:
-        1. bbox_style: str, the style of the bounding box.
+        1. `bbox_style`: str, the style of the bounding box.
             - "default": draw a rectangle with the label right on top of the rectangle. (default option)
             - "flag": draw a vertical line connects the detected object and the label. No rectangle is drawn.
             - "t-label": draw a rectangle with a vertical line on top of the rectangle, which points to the label.
             For more information, see https://github.com/shoumikchow/bbox-visualizer
-        2. draw_label: bool, default True. If False, the label won't be drawn. This option is only valid when bbox_style is "default". This option is ignored otherwise.
+        2. `draw_label`: bool, default True. If False, the label won't be drawn. This option is only valid when bbox_style is "default". This option is ignored otherwise.
 
     Returns
     -------
@@ -165,8 +166,17 @@ def overlay_colored_masks(
     image
         The source image to draw the colored masks on.
     options
-        Options to customize the drawing. Currently, no options are supported.
-
+        Options to customize the drawing. Currently, it supports the following options:
+        1. `color_map`: bool, default empty. A map of label names to colors. For any labels that don't have a color, a color will be assigned to it.
+        The color is any value acceptable by PIL. The label name are case insensitive.
+        Example:
+            ```
+            {
+                "label1": "red",
+                "label2": "#add8e6",
+            }
+            ```
+        2. `mask_alpha`: float, default 0.5. The alpha value of the colored masks. The value should be between 0 and 1.
     Returns
     -------
     Image.Image
@@ -179,10 +189,51 @@ def overlay_colored_masks(
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image).convert(mode="L")
     masks = [pred.decoded_boolean_mask.astype(np.bool_) for pred in predictions]
-    return cast(
-        Image.Image,
-        overlay_masks(image, masks, mask_alpha=0.5, return_pil_image=True),
+    labels = [pred.label_name for pred in predictions]
+    mask_alpha = options.get("mask_alpha", 0.5)
+    cmap = _populate_missing_colors(
+        options.get("color_map", {}), set(labels), mask_alpha
     )
+    colors = [cmap[label.upper()] for label in labels]
+    result = overlay_masks(
+        image,
+        masks,
+        labels=labels,
+        colors=colors,
+        mask_alpha=mask_alpha,
+        return_pil_image=True,
+    )
+    return cast(Image.Image, result)
+
+
+def _populate_missing_colors(
+    color_map: Dict[str, Union[str, Tuple[int, int, int]]],
+    unique_labels: Set[str],
+    mask_alpha: float,
+) -> Dict[str, Tuple[float, float, float, float]]:
+    color_map = {k.upper(): v for k, v in color_map.items()}
+    result: Dict[str, Tuple[float, float, float, float]] = {}
+    random.seed(0)
+    for label in unique_labels:
+        color = color_map.get(label.upper(), "")
+        if not color:
+            color_array = [
+                random.random(),
+                random.random(),
+                random.random(),
+                mask_alpha,
+            ]
+        else:
+            color_array = cast(List[float], ImageColor.getrgb(color))
+            if len(color_array) == 4:
+                _LOGGER.warning(f"The alpha value in the color ({color}) is ignored.")
+                color_array = color_array[:-1]
+            color_array = [c / 255.0 for c in color_array]
+            color_array = color_array + [mask_alpha]
+        result[label.upper()] = cast(
+            Tuple[float, float, float, float], tuple(color_array)
+        )
+    return result
 
 
 def overlay_predicted_class(
@@ -200,7 +251,7 @@ def overlay_predicted_class(
         The source image to draw the colored masks on.
     options
         Options to customize the drawing. Currently, it supports the following options:
-        1. text_position: tuple[int, int]. The position of the text relative to the left bottom of the image. The default value is (10, 25).
+        1. `text_position`: tuple[int, int]. The position of the text relative to the left bottom of the image. The default value is (10, 25).
 
     Returns
     -------
