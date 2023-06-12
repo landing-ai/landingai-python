@@ -1,5 +1,6 @@
 import math
 from collections import defaultdict
+from itertools import groupby
 from typing import Dict, List, Sequence, Tuple, Union, cast
 
 from landingai.common import (
@@ -96,6 +97,7 @@ def segmentation_class_pixel_coverage(
     """Compute the pixel coverage of each class.
     The coverage is defined as the percentage of pixels that are predicted as the class
     over the sum total number of pixels of every mask.
+    If the predictions are from multiple images, the coverage is the average coverage across all images.
 
     Parameters
     ----------
@@ -116,16 +118,19 @@ def segmentation_class_pixel_coverage(
             }
         ```
     """
-    total_pixels: int = sum([math.prod(pred.mask_shape) for pred in predictions])
-    pixel_counts: Dict[int, List] = defaultdict(lambda: [0, ""])
+    pixel_coverages = []
+    label_map = {}
     for pred in predictions:
-        pixel_counts[pred.label_index][0] += pred.num_predicted_pixels
-        pixel_counts[pred.label_index][1] = pred.label_name
-    coverages: Dict[int, Tuple[float, str]] = {}
-    if coverage_type == "relative":
-        total_pixels = sum([math.prod(pred.mask_shape) for pred in predictions])
-    else:
-        total_pixels = 1
-    for label_index, (num_pixels, class_name) in pixel_counts.items():
-        coverages[label_index] = (num_pixels / total_pixels, class_name)
-    return coverages
+        coverage = cast(float, pred.num_predicted_pixels)
+        if coverage_type == "relative":
+            coverage /= math.prod(pred.mask_shape)
+        pixel_coverages.append((pred.label_index, coverage))
+        label_map[pred.label_index] = pred.label_name
+
+    sorted(pixel_coverages, key=lambda x: x[0])
+    coverage_by_label: Dict[int, Tuple[float, str]] = {}
+    for label_index, group in groupby(pixel_coverages, key=lambda x: x[0]):
+        cov_vals = [item[1] for item in list(group)]
+        avg_coverage = sum(cov_vals) / len(cov_vals) if len(cov_vals) > 0 else 0
+        coverage_by_label[label_index] = (avg_coverage, label_map[label_index])
+    return coverage_by_label

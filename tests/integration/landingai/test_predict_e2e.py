@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageChops
 
 from landingai.common import SegmentationPrediction
 from landingai.predict import Predictor
@@ -110,8 +110,18 @@ def test_vp_predict():
     for actual, expected in zip(preds, _EXPECTED_VP_PREDS):
         _assert_seg_mask(actual, expected)
     logging.info(preds)
-    img_with_masks = overlay_predictions(preds, img)
-    img_with_masks.save("tests/output/test_vp.jpg")
+    color_map = {
+        "Trees": "green",
+        "Structure": "#FFFF00",  # yellow
+        "Brown Field": "red",
+        "Green Field": "blue",
+    }
+    options = {"color_map": color_map}
+    img_with_masks = overlay_predictions(preds, img, options)
+    img_with_masks.save("tests/output/test_vp.png")
+    expected = Image.open("tests/data/images/expected_vp_masks.png")
+    diff = ImageChops.difference(img_with_masks.resize((512, 512)), expected)
+    assert diff.getbbox() is None, "Expected and actual images should be the same"
 
 
 def test_class_predict():
