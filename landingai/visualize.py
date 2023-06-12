@@ -1,11 +1,13 @@
 """The landingai.visualize module contains functions to visualize the prediction results."""
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+import math
+import random
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
 import cv2
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 
 from landingai.common import (
     ClassificationPrediction,
@@ -36,12 +38,12 @@ def overlay_predictions(
     return overlay_func(predictions, image, options)
 
 
-def overlay_quadrilateral(
+def overlay_ocr_predictions(
     predictions: List[OcrPrediction],
     image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
-    """Draw a quadrilateral on the input image and overlay the text on top of the quadrilateral.
+    """Draw the predicted texts and boxes on the input image with a side-by-side view.
 
     Parameters
     ----------
@@ -57,32 +59,27 @@ def overlay_quadrilateral(
     Image
         The image with the polygon and text drawn.
     """
-    if isinstance(image, Image.Image):
-        image = np.asarray(image)
-    src_im = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    src_im = cv2.cvtColor(src_im, cv2.COLOR_GRAY2RGB)
-    for pred in predictions:
-        text = pred.text
-        box = np.array(pred.text_location, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.polylines(src_im, [box], True, color=(0, 255, 0), thickness=2)
-        (text_width, text_height) = cv2.getTextSize(
-            text, cv2.FONT_HERSHEY_COMPLEX, fontScale=0.7, thickness=1
-        )[0]
-        box_coords = (
-            (box[0, 0, 0], box[0, 0, 1] - text_height),
-            (box[0, 0, 0] + text_width, box[0, 0, 1]),
-        )
-        cv2.rectangle(src_im, box_coords[0], box_coords[1], (255, 255, 0), cv2.FILLED)
-        cv2.putText(
-            src_im,
-            text,
-            org=(int(box[0, 0, 0]), int(box[0, 0, 1])),
-            fontFace=cv2.FONT_HERSHEY_COMPLEX,
-            fontScale=0.7,
-            color=(255, 0, 0),
-            thickness=1,
-        )
-    return Image.fromarray(src_im)
+    if isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
+    texts = [pred.text for pred in predictions]
+    boxes = [pred.text_location for pred in predictions]
+    h, w = image.height, image.width
+    img_left = image.copy()
+    img_right = np.ones((h, w, 3), dtype=np.uint8) * 255
+    random.seed(0)
+    draw_left = ImageDraw.Draw(img_left)
+    for _, (box, txt) in enumerate(zip(boxes, texts)):
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        draw_left.polygon(box, fill=color)
+        img_right_text = _draw_box_text((w, h), box, txt)
+        pts = np.array(box, np.int32).reshape((-1, 1, 2))
+        cv2.polylines(img_right_text, [pts], True, color, 1)
+        img_right = cv2.bitwise_and(img_right, img_right_text)
+    img_left = Image.blend(image, img_left, 0.5)
+    img_show = Image.new("RGB", (w * 2, h), (255, 255, 255))
+    img_show.paste(img_left, (0, 0, w, h))
+    img_show.paste(Image.fromarray(img_right), (w, 0, w * 2, h))
+    return img_show
 
 
 def overlay_bboxes(
@@ -101,12 +98,12 @@ def overlay_bboxes(
         The source image to draw the bounding boxes on.
     options
         Options to customize the drawing. Currently, it supports the following options:
-        1. bbox_style: str, the style of the bounding box.
+        1. `bbox_style`: str, the style of the bounding box.
             - "default": draw a rectangle with the label right on top of the rectangle. (default option)
             - "flag": draw a vertical line connects the detected object and the label. No rectangle is drawn.
             - "t-label": draw a rectangle with a vertical line on top of the rectangle, which points to the label.
             For more information, see https://github.com/shoumikchow/bbox-visualizer
-        2. draw_label: bool, default True. If False, the label won't be drawn. This option is only valid when bbox_style is "default". This option is ignored otherwise.
+        2. `draw_label`: bool, default True. If False, the label won't be drawn. This option is only valid when bbox_style is "default". This option is ignored otherwise.
 
     Returns
     -------
@@ -165,8 +162,17 @@ def overlay_colored_masks(
     image
         The source image to draw the colored masks on.
     options
-        Options to customize the drawing. Currently, no options are supported.
-
+        Options to customize the drawing. Currently, it supports the following options:
+        1. `color_map`: dict, default empty. A map of label names to colors. For any labels that don't have a color, a color will be assigned to it.
+        The color is any value acceptable by PIL. The label name are case insensitive.
+        Example:
+            ```
+            {
+                "label1": "red",
+                "label2": "#add8e6",
+            }
+            ```
+        2. `mask_alpha`: float, default 0.5. The alpha value of the colored masks. The value should be between 0 and 1.
     Returns
     -------
     Image.Image
@@ -179,10 +185,51 @@ def overlay_colored_masks(
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image).convert(mode="L")
     masks = [pred.decoded_boolean_mask.astype(np.bool_) for pred in predictions]
-    return cast(
-        Image.Image,
-        overlay_masks(image, masks, mask_alpha=0.5, return_pil_image=True),
+    labels = [pred.label_name for pred in predictions]
+    mask_alpha = options.get("mask_alpha", 0.5)
+    cmap = _populate_missing_colors(
+        options.get("color_map", {}), set(labels), mask_alpha
     )
+    colors = [cmap[label.upper()] for label in labels]
+    result = overlay_masks(
+        image,
+        masks,
+        labels=labels,
+        colors=colors,
+        mask_alpha=mask_alpha,
+        return_pil_image=True,
+    )
+    return cast(Image.Image, result)
+
+
+def _populate_missing_colors(
+    color_map: Dict[str, Union[str, Tuple[int, int, int]]],
+    unique_labels: Set[str],
+    mask_alpha: float,
+) -> Dict[str, Tuple[float, float, float, float]]:
+    color_map = {k.upper(): v for k, v in color_map.items()}
+    result: Dict[str, Tuple[float, float, float, float]] = {}
+    random.seed(0)
+    for label in unique_labels:
+        color = color_map.get(label.upper(), "")
+        if not color:
+            color_array = [
+                random.random(),
+                random.random(),
+                random.random(),
+                mask_alpha,
+            ]
+        else:
+            color_array = cast(List[float], ImageColor.getrgb(color))
+            if len(color_array) == 4:
+                _LOGGER.warning(f"The alpha value in the color ({color}) is ignored.")
+                color_array = color_array[:-1]
+            color_array = [c / 255.0 for c in color_array]
+            color_array = color_array + [mask_alpha]
+        result[label.upper()] = cast(
+            Tuple[float, float, float, float], tuple(color_array)
+        )
+    return result
 
 
 def overlay_predicted_class(
@@ -200,7 +247,7 @@ def overlay_predicted_class(
         The source image to draw the colored masks on.
     options
         Options to customize the drawing. Currently, it supports the following options:
-        1. text_position: tuple[int, int]. The position of the text relative to the left bottom of the image. The default value is (10, 25).
+        1. `text_position`: tuple[int, int]. The position of the text relative to the left bottom of the image. The default value is (10, 25).
 
     Returns
     -------
@@ -241,5 +288,61 @@ _OVERLAY_FUNC_MAP: Dict[
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,
     ClassificationPrediction: overlay_predicted_class,
-    OcrPrediction: overlay_quadrilateral,
+    OcrPrediction: overlay_ocr_predictions,
 }
+
+
+def _draw_box_text(
+    img_size: Tuple[int, int], box: List[Tuple[int, int]], text: Optional[str] = None
+) -> np.ndarray:
+    box_height = int(
+        math.sqrt((box[0][0] - box[3][0]) ** 2 + (box[0][1] - box[3][1]) ** 2)
+    )
+    box_width = int(
+        math.sqrt((box[0][0] - box[1][0]) ** 2 + (box[0][1] - box[1][1]) ** 2)
+    )
+
+    if box_height > 2 * box_width and box_height > 30:
+        img_text = Image.new("RGB", (box_height, box_width), (255, 255, 255))
+        draw_text = ImageDraw.Draw(img_text)
+        if text:
+            font = _create_font(text, (box_height, box_width))
+            draw_text.text((0, 0), text, fill=(0, 0, 0), font=font)
+        img_text = img_text.transpose(Image.ROTATE_270)
+    else:
+        img_text = Image.new("RGB", (box_width, box_height), (255, 255, 255))
+        draw_text = ImageDraw.Draw(img_text)
+        if text:
+            font = _create_font(text, (box_width, box_height))
+            draw_text.text((0, 0), text, fill=(0, 0, 0), font=font)
+
+    pts1 = np.array(
+        [[0, 0], [box_width, 0], [box_width, box_height], [0, box_height]],
+        dtype=np.float32,
+    )
+    pts2 = np.array(box, dtype=np.float32)
+    M = cv2.getPerspectiveTransform(pts1, pts2)
+
+    img_right_text: np.ndarray = cv2.warpPerspective(
+        np.asarray(img_text, dtype=np.uint8),
+        M,
+        img_size,
+        flags=cv2.INTER_NEAREST,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(255, 255, 255),
+    )
+    return img_right_text
+
+
+def _create_font(
+    txt: str,
+    size: Tuple[int, int],
+    font_path: str = "./landingai/fonts/default_font_ch_en.ttf",
+) -> ImageFont.FreeTypeFont:
+    font_size = int(size[1] * 0.99)
+    font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
+    length = font.getsize(txt)[0]
+    if length > size[0]:
+        font_size = int(font_size * size[0] / length)
+        font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
+    return font
