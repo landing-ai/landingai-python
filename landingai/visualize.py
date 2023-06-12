@@ -1,7 +1,9 @@
 """The landingai.visualize module contains functions to visualize the prediction results."""
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+import math
+import random
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
 import cv2
 
 import numpy as np
@@ -36,12 +38,12 @@ def overlay_predictions(
     return overlay_func(predictions, image, options)
 
 
-def overlay_quadrilateral(
+def overlay_ocr_predictions(
     predictions: List[OcrPrediction],
     image: Union[np.ndarray, Image.Image],
     options: Optional[Dict[str, Any]] = None,
 ) -> Image.Image:
-    """Draw a quadrilateral on the input image and overlay the text on top of the quadrilateral.
+    """Draw the predicted texts and boxes on the input image with a side-by-side view.
 
     Parameters
     ----------
@@ -57,32 +59,27 @@ def overlay_quadrilateral(
     Image
         The image with the polygon and text drawn.
     """
-    if isinstance(image, Image.Image):
-        image = np.asarray(image)
-    src_im = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    src_im = cv2.cvtColor(src_im, cv2.COLOR_GRAY2RGB)
-    for pred in predictions:
-        text = pred.text
-        box = np.array(pred.text_location, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.polylines(src_im, [box], True, color=(0, 255, 0), thickness=2)
-        (text_width, text_height) = cv2.getTextSize(
-            text, cv2.FONT_HERSHEY_COMPLEX, fontScale=0.7, thickness=1
-        )[0]
-        box_coords = (
-            (box[0, 0, 0], box[0, 0, 1] - text_height),
-            (box[0, 0, 0] + text_width, box[0, 0, 1]),
-        )
-        cv2.rectangle(src_im, box_coords[0], box_coords[1], (255, 255, 0), cv2.FILLED)
-        cv2.putText(
-            src_im,
-            text,
-            org=(int(box[0, 0, 0]), int(box[0, 0, 1])),
-            fontFace=cv2.FONT_HERSHEY_COMPLEX,
-            fontScale=0.7,
-            color=(255, 0, 0),
-            thickness=1,
-        )
-    return Image.fromarray(src_im)
+    if isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
+    texts = [pred.text for pred in predictions]
+    boxes = [pred.text_location for pred in predictions]
+    h, w = image.height, image.width
+    img_left = image.copy()
+    img_right = np.ones((h, w, 3), dtype=np.uint8) * 255
+    random.seed(0)
+    draw_left = ImageDraw.Draw(img_left)
+    for _, (box, txt) in enumerate(zip(boxes, texts)):
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        draw_left.polygon(box, fill=color)
+        img_right_text = _draw_box_text((w, h), box, txt)
+        pts = np.array(box, np.int32).reshape((-1, 1, 2))
+        cv2.polylines(img_right_text, [pts], True, color, 1)
+        img_right = cv2.bitwise_and(img_right, img_right_text)
+    img_left = Image.blend(image, img_left, 0.5)
+    img_show = Image.new("RGB", (w * 2, h), (255, 255, 255))
+    img_show.paste(img_left, (0, 0, w, h))
+    img_show.paste(Image.fromarray(img_right), (w, 0, w * 2, h))
+    return img_show
 
 
 def overlay_bboxes(
@@ -241,5 +238,61 @@ _OVERLAY_FUNC_MAP: Dict[
     ObjectDetectionPrediction: overlay_bboxes,
     SegmentationPrediction: overlay_colored_masks,
     ClassificationPrediction: overlay_predicted_class,
-    OcrPrediction: overlay_quadrilateral,
+    OcrPrediction: overlay_ocr_predictions,
 }
+
+
+def _draw_box_text(
+    img_size: Tuple[int, int], box: List[Tuple[int, int]], text: Optional[str] = None
+) -> np.ndarray:
+    box_height = int(
+        math.sqrt((box[0][0] - box[3][0]) ** 2 + (box[0][1] - box[3][1]) ** 2)
+    )
+    box_width = int(
+        math.sqrt((box[0][0] - box[1][0]) ** 2 + (box[0][1] - box[1][1]) ** 2)
+    )
+
+    if box_height > 2 * box_width and box_height > 30:
+        img_text = Image.new("RGB", (box_height, box_width), (255, 255, 255))
+        draw_text = ImageDraw.Draw(img_text)
+        if text:
+            font = _create_font(text, (box_height, box_width))
+            draw_text.text((0, 0), text, fill=(0, 0, 0), font=font)
+        img_text = img_text.transpose(Image.ROTATE_270)
+    else:
+        img_text = Image.new("RGB", (box_width, box_height), (255, 255, 255))
+        draw_text = ImageDraw.Draw(img_text)
+        if text:
+            font = _create_font(text, (box_width, box_height))
+            draw_text.text((0, 0), text, fill=(0, 0, 0), font=font)
+
+    pts1 = np.array(
+        [[0, 0], [box_width, 0], [box_width, box_height], [0, box_height]],
+        dtype=np.float32,
+    )
+    pts2 = np.array(box, dtype=np.float32)
+    M = cv2.getPerspectiveTransform(pts1, pts2)
+
+    img_right_text: np.ndarray = cv2.warpPerspective(
+        np.asarray(img_text, dtype=np.uint8),
+        M,
+        img_size,
+        flags=cv2.INTER_NEAREST,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(255, 255, 255),
+    )
+    return img_right_text
+
+
+def _create_font(
+    txt: str,
+    size: Tuple[int, int],
+    font_path: str = "./landingai/fonts/default_font_ch_en.ttf",
+) -> ImageFont.FreeTypeFont:
+    font_size = int(size[1] * 0.99)
+    font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
+    length = font.getsize(txt)[0]
+    if length > size[0]:
+        font_size = int(font_size * size[0] / length)
+        font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
+    return font
