@@ -120,8 +120,8 @@ class SegmentationPrediction(ClassificationPrediction):
     @cached_property
     def decoded_colored_mask(self) -> np.ndarray:
         """Decoded colored segmentation mask.
-        It is a three-dimensional numpy array (HWC) where the non-zero pixels are the predictions.
-        The color of the prediction is the randomly assigned.
+        It is a three-dimensional numpy array (HWC) where the predicted pixels are colored.
+        The color is randomly assigned for each mask.
         """
         mask_3d = np.expand_dims(self.decoded_boolean_mask, -1)
         mask_3d = cv2.cvtColor(mask_3d, cv2.COLOR_GRAY2RGB)
