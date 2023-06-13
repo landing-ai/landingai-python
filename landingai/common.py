@@ -3,6 +3,7 @@ import re
 from functools import cached_property
 from typing import Dict, List, Tuple
 
+import cv2
 import numpy as np
 from pydantic import BaseModel, BaseSettings
 
@@ -115,6 +116,17 @@ class SegmentationPrediction(ClassificationPrediction):
         This is useful if you want to overlay multiple segmentation masks into one.
         """
         return self.decoded_boolean_mask * self.label_index
+
+    @cached_property
+    def decoded_colored_mask(self) -> np.ndarray:
+        """Decoded colored segmentation mask.
+        It is a three-dimensional numpy array (HWC) where the non-zero pixels are the predictions.
+        The color of the prediction is the randomly assigned.
+        """
+        mask_3d = np.expand_dims(self.decoded_boolean_mask, -1)
+        mask_3d = cv2.cvtColor(mask_3d, cv2.COLOR_GRAY2RGB)
+        random_color = np.random.randint(0, 255, size=3, dtype=np.uint8)
+        return mask_3d * random_color
 
     @cached_property
     def num_predicted_pixels(self) -> int:
