@@ -125,8 +125,8 @@ class SegmentationPrediction(ClassificationPrediction):
         """
         mask_3d = np.expand_dims(self.decoded_boolean_mask, -1)
         mask_3d = cv2.cvtColor(mask_3d, cv2.COLOR_GRAY2RGB)
-        random_color = np.random.randint(0, 255, size=3, dtype=np.uint8)
-        return mask_3d * random_color
+        random_color = np.random.randint(0, 255, size=3, dtype=np.uint8)  # type: ignore
+        return mask_3d * random_color  # type: ignore
 
     @cached_property
     def num_predicted_pixels(self) -> int:
