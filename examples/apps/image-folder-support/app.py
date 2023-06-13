@@ -1,4 +1,5 @@
 import logging
+import math
 import tempfile
 from dataclasses import dataclass
 from functools import cached_property
@@ -60,21 +61,46 @@ class ImageFolderResult:
 
     @cached_property
     def dataframe(self) -> pd.DataFrame:
-        predictions = self.image_predictions
-        images = [pred.image for pred in predictions]
-        image_paths = [str(pred.local_image_path) for pred in predictions]
-        class_counts_all = {
-            class_name: [0] * len(images) for class_name in self.class_map.values()
-        }
-        for i, res in enumerate(predictions):
-            for count, class_name in res.class_counts.values():
-                class_counts_all[class_name][i] = count
+        if not self.image_predictions:
+            return pd.DataFrame()
+        class_names = self.class_map.values()
+        data = []
+        for pred_result in self.image_predictions:
+            pred_json = {
+                "image_path": str(pred_result.local_image_path),
+                "total_pixel_count": math.prod(pred_result.image.shape[:2]),
+            }
+            for cls_name in class_names:
+                if type(pred_result.predictions[0]) == SegmentationPrediction:
+                    coverage_by_class = segmentation_class_pixel_coverage(
+                        pred_result.predictions, "relative"
+                    )
+                    pixel_count_by_class = segmentation_class_pixel_coverage(
+                        pred_result.predictions, "absolute"
+                    )
+                else:
+                    coverage_by_class = {}
+                    pixel_count_by_class = {}
 
-        data = {
-            "image_path": image_paths,
-        }
-        data.update(class_counts_all)
-        return pd.DataFrame(data)
+                cls_cnt_map = {
+                    cls_name: val
+                    for (val, cls_name) in pred_result.class_counts.values()
+                }
+                pixel_cnt_map = {
+                    cls_name: val for (val, cls_name) in pixel_count_by_class.values()
+                }
+                coverage_map = {
+                    cls_name: val for (val, cls_name) in coverage_by_class.values()
+                }
+                pred_json[cls_name] = {
+                    "class_count": cls_cnt_map.get(cls_name, 0),
+                    "pixel_count": pixel_cnt_map.get(cls_name, 0),
+                    "pixel_coverage": coverage_map.get(cls_name, 0.0),
+                }
+            data.append(pred_json)
+
+        df = pd.json_normalize(data, max_level=1)
+        return df
 
 
 def bulk_inference(image_paths: list[str], image_folder_path: str) -> ImageFolderResult:
@@ -188,7 +214,9 @@ if local_image_folder:
                 label=f"Total {len(image_paths)} images",
                 images=img_with_preds,
                 key="preview_pred_images",
-                captions=[f"{p.name}" for p in image_paths],
+                captions=[
+                    f"{p.img_with_preds_path.name}" for p in result.image_predictions
+                ],
                 use_container_width=False,
             )
             img_path_str = str(img_path)
@@ -211,6 +239,13 @@ if local_image_folder:
                         title="Predicted pixel distribution over a single image",
                     )
                     st.plotly_chart(fig)
+                    colored_masks = [pred.decoded_colored_mask for pred in preds]
+                    label_names = [pred.label_name for pred in res.predictions]
+                    selected_label = st.radio(
+                        "Select a label to visualize", label_names, index=0
+                    )
+                    selected_mask = colored_masks[label_names.index(selected_label)]
+                    st.image(selected_mask)
 
         all_preds = []
         for pred in result.image_predictions:
