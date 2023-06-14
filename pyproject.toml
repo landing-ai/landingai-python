@@ -18,7 +18,7 @@ packages = [{include = "landingai"}]
 [tool.poetry.dependencies]  # main dependency group
 python = ">=3.8"
 
-opencv-python-headless = ">=4.5"
+opencv-python = ">=4.5"
 numpy = ">=1.21.0"
 pillow = ">=9.1.1"
 pydantic = { version = "*", extras = ["dotenv"] }
