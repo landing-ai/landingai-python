@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
-from typing import List, Tuple, Callable
+from typing import Callable, List, Tuple, Union
+
 import cv2
 import requests
 
@@ -102,14 +103,15 @@ def sample_images_from_video(
     return output
 
 
-def read_from_notebook_webcam() -> Callable[[], str]:
+def read_from_notebook_webcam(webcam_source: Union[str, int] = 0) -> Callable[[], str]:
     # Define function to acquire images either directly from the local webcam (i.e. jupyter notebook)or from the web browser (i.e. collab)
     filename = "/tmp/photo.jpg"
     # Detect if we are running on Google's colab
     try:
-        from IPython.display import display, Javascript
         from base64 import b64decode
+
         from google.colab.output import eval_js  # type: ignore
+        from IPython.display import Javascript, display
 
         def take_photo() -> str:
             quality = 0.8
@@ -158,7 +160,7 @@ def read_from_notebook_webcam() -> Callable[[], str]:
         import cv2
 
         def take_photo() -> str:
-            cam = cv2.VideoCapture(0)
+            cam = cv2.VideoCapture(webcam_source)
             cv2.namedWindow("Press space to take photo")
             cv2.startWindowThread()
             while True:
