@@ -5,6 +5,17 @@ import responses
 
 from landingai.io import probe_video, read_file, sample_images_from_video
 
+# TODO: solve the problem of exit code 134 when running the following test in GitHub Actions
+# @patch("landingai.io.cv2.waitKey")
+# @patch("landingai.io.cv2.VideoCapture")
+# def test_read_from_notebook_webcam(mock_video_capture, mock_wait_key):
+#     mock_video_capture.return_value.read.return_value = (True, np.zeros((480, 640, 3)))
+#     mock_wait_key.return_value = 288
+#     take_photo_func = read_from_notebook_webcam()
+#     filepath = take_photo_func()
+#     image = PIL.Image.open(filepath)
+#     assert image.size == (640, 480)
+
 
 def test_sample_images_from_video(tmp_path: Path):
     test_video_file_path = "tests/data/videos/test.mp4"
