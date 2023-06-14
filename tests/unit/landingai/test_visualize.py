@@ -54,12 +54,12 @@ def test_overlay_ocr_predition():
     json_preds = [
         {
             "score": 0.861878514289856,
-            "text": "\\u516c\\u53f8\\u540d\\u79f0",
+            "text": "公司名称",
             "text_location": [[99, 19], [366, 19], [366, 75], [99, 75]],
         },
         {
             "score": 0.9647054672241211,
-            "text": "\\u4e1a\\u52a1\\u65b9\\u5411",
+            "text": "业务方向",
             "text_location": [[577, 21], [835, 21], [835, 77], [577, 77]],
         },
         {
@@ -69,7 +69,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9655991792678833,
-            "text": "AI\\u5de5\\u5177",
+            "text": "AI工具",
             "text_location": [[625, 105], [785, 105], [785, 155], [625, 155]],
         },
         {
@@ -79,7 +79,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.7428176999092102,
-            "text": "\\u82af\\u7247",
+            "text": "芯片",
             "text_location": [[652, 173], [763, 176], [761, 232], [650, 229]],
         },
         {
@@ -89,7 +89,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.906830906867981,
-            "text": "\\u4ee3\\u7801\\u7f16\\u8f91",
+            "text": "代码编辑",
             "text_location": [[597, 253], [817, 253], [817, 302], [597, 302]],
         },
         {
@@ -99,7 +99,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9909729361534119,
-            "text": "\\u8bbe\\u8ba1",
+            "text": "设计",
             "text_location": [[649, 323], [767, 321], [769, 378], [651, 381]],
         },
         {
@@ -109,7 +109,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9266898036003113,
-            "text": "AI\\u6cd5\\u5f8b\\u987e\\u95ee",
+            "text": "AI法律顾问",
             "text_location": [[575, 402], [835, 402], [835, 448], [575, 448]],
         },
         {
@@ -119,7 +119,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9329562187194824,
-            "text": "\\u4f1a\\u8ba1\\u8f6f\\u4ef6",
+            "text": "会计软件",
             "text_location": [[597, 474], [817, 474], [817, 523], [597, 523]],
         },
         {
@@ -129,7 +129,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9562898278236389,
-            "text": "\\u5bb6\\u957f\\u865a\\u62df\\u52a9\\u7406",
+            "text": "家长虚拟助理",
             "text_location": [[545, 550], [870, 550], [870, 595], [545, 595]],
         },
         {
@@ -139,7 +139,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.971221923828125,
-            "text": "\\u5f00\\u53d1\\u8005\\u5de5\\u5177",
+            "text": "开发者工具",
             "text_location": [[570, 624], [842, 624], [842, 669], [570, 669]],
         },
         {
@@ -149,7 +149,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9924381971359253,
-            "text": "\\u5f00\\u6e90\\u6570\\u636e\\u5e93",
+            "text": "开源数据库",
             "text_location": [[571, 698], [842, 698], [842, 742], [571, 742]],
         },
         {
@@ -159,7 +159,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9257971048355103,
-            "text": "\\u7b14\\u8bb0\\u5e94\\u7528",
+            "text": "笔记应用",
             "text_location": [[598, 771], [816, 771], [816, 819], [598, 819]],
         },
         {
@@ -169,7 +169,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9975636601448059,
-            "text": "\\u82f1\\u8bed\\u5b66\\u4e60",
+            "text": "英语学习",
             "text_location": [[599, 842], [814, 845], [814, 894], [599, 892]],
         },
         {
@@ -179,7 +179,7 @@ def test_overlay_ocr_predition():
         },
         {
             "score": 0.9847884178161621,
-            "text": "\\u97f3\\u89c6\\u9891\\u7f16\\u8f91\\u5b50\\u4f4d",
+            "text": "音视频编辑",
             "text_location": [[571, 919], [916, 911], [917, 963], [572, 970]],
         },
     ]
