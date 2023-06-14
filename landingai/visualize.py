@@ -121,7 +121,7 @@ def overlay_bboxes(
         image = np.asarray(image)
     if options is None:
         options = {}
-    bbox_style = options.get("bbox_style", "default")
+    bbox_style = options.get("bbox_style", "default").lower()
     for pred in predictions:
         bbox = pred.bboxes
         label = f"{pred.label_name} | {pred.score:.4f}"
@@ -131,10 +131,11 @@ def overlay_bboxes(
             draw_bg = options.get("draw_bg", True)
             label_at_top = options.get("top", True)
             image = bbv.draw_rectangle(image, pred.bboxes)
-            if bbox_style == "default" and not options.get("no_label", False):
-                image = bbv.add_label(
-                    image, label, bbox, draw_bg=draw_bg, top=label_at_top
-                )
+            if bbox_style == "default":
+                if options.get("draw_label", True):
+                    image = bbv.add_label(
+                        image, label, bbox, draw_bg=draw_bg, top=label_at_top
+                    )
             elif bbox_style == "t-label":
                 image = bbv.add_T_label(image, label, bbox, draw_bg=draw_bg)
             else:
