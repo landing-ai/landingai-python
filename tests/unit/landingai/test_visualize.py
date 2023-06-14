@@ -185,6 +185,6 @@ def test_overlay_ocr_predition():
     ]
     preds = [OcrPrediction(**pred) for pred in json_preds]
     result_img = visualize.overlay_predictions(preds, img)
-    expected = PIL.Image.open("tests/data/images/expected_ocr_overlay1.png")
+    expected = PIL.Image.open("tests/data/images/expected_ocr_overlay.png")
     diff = PIL.ImageChops.difference(result_img, expected)
     assert diff.getbbox() is None, "Expected and actual images should be the same"
