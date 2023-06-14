@@ -50,7 +50,7 @@ def test_overlay_bboxes():
 
 
 def test_overlay_ocr_predition():
-    img = PIL.Image.open("tests/data/images/ocr_test.jpg")
+    img = PIL.Image.open("tests/data/images/ocr_test.png")
     json_preds = [
         {
             "score": 0.861878514289856,
