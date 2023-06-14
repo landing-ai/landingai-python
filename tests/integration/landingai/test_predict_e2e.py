@@ -1,11 +1,9 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict
 
 import numpy as np
 from PIL import Image, ImageChops
 
-from landingai.common import SegmentationPrediction
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
 

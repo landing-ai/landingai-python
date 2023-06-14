@@ -2,7 +2,6 @@ import logging
 import io
 from unittest.mock import patch
 from pathlib import Path
-from typing import Any, Dict
 
 import numpy as np
 import pytest
@@ -20,9 +19,9 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
-from landingai.common import SegmentationPrediction
 from landingai.predict import Predictor, EdgePredictor
 from landingai.visualize import overlay_predictions
+
 
 def test_predict_with_none():
     with pytest.raises(ValueError) as excinfo:

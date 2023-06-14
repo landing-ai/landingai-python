@@ -5,6 +5,7 @@ import pytest
 
 from landingai.common import SegmentationPrediction
 
+
 @pytest.fixture
 def seg_mask_validator():
     def assert_seg_mask(pred: SegmentationPrediction, expected: Dict[str, Any]):
@@ -19,6 +20,7 @@ def seg_mask_validator():
         if "encoded_mask" in expected:
             assert pred.encoded_mask == expected["encoded_mask"]
     return assert_seg_mask
+
 
 @pytest.fixture
 def expected_seg_prediction():
