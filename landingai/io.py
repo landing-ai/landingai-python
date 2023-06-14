@@ -1,4 +1,5 @@
 import logging
+import tempfile
 from pathlib import Path
 from typing import Callable, List, Tuple, Union
 
@@ -105,7 +106,8 @@ def sample_images_from_video(
 
 def read_from_notebook_webcam(webcam_source: Union[str, int] = 0) -> Callable[[], str]:
     # Define function to acquire images either directly from the local webcam (i.e. jupyter notebook)or from the web browser (i.e. collab)
-    filename = "/tmp/photo.jpg"
+    local_cache_dir = Path(tempfile.mkdtemp())
+    filename = str(local_cache_dir / "photo.jpg")
     # Detect if we are running on Google's colab
     try:
         from base64 import b64decode
