@@ -409,7 +409,6 @@ class _Extractor:
             for id, bitmap_info in encoded_predictions.items()
         ]
 
-
     PREDICTION_EXTRACTOR = {
         "ObjectDetectionPrediction": _extract_od_prediction.__func__,
         "SegmentationPrediction": _extract_seg_prediction.__func__,
@@ -594,7 +593,7 @@ class _EdgeExtractor(_Extractor):
         return predictions
 
 
-def _create_session(url:str, num_retry:int, headers:Dict[str, str]) -> Session:
+def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Session:
     """Create a requests session with retry"""
     session = Session()
     retries = Retry(
