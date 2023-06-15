@@ -2,6 +2,7 @@
 
 import logging
 import math
+from pathlib import Path
 import random
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
 import cv2
@@ -338,7 +339,7 @@ def _draw_box_text(
 def _create_font(
     txt: str,
     size: Tuple[int, int],
-    font_path: str = "./landingai/fonts/default_font_ch_en.ttf",
+    font_path: str = str(Path("./landingai/fonts/default_font_ch_en.ttf").resolve()),
 ) -> ImageFont.FreeTypeFont:
     font_size = int(size[1] * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
