@@ -1,0 +1,1 @@
+"""The vision pipeline is a layer that allows chaining image processing operations as a sequential pipeline. The main class passed throughout a pipeline is the `FrameSet` which typically contains a source image and derivative metadata and images."""
