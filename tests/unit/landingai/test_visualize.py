@@ -192,4 +192,4 @@ def test_overlay_ocr_predition():
     diff_cnt = np.count_nonzero(result_img_np - expected_np)
     assert (
         diff_cnt / np.prod(result_img_np.shape) < 0.01
-    ), "The number of different pixels is greater than 1%."
+    ), f"The percentage of different pixels ({diff_cnt / np.prod(result_img_np.shape)}) is greater than 1%."
