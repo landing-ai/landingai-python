@@ -341,7 +341,7 @@ def _create_font(
     size: Tuple[int, int],
     font_path: str = str(Path(__file__).parent / "fonts" / "default_font_ch_en.ttf"),
 ) -> ImageFont.FreeTypeFont:
-    font_size = int(size[1] * 0.99)
+    font_size = int(min(size) * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
     length = font.getsize(txt)[0]
     if length > size[0]:
