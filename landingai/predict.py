@@ -460,7 +460,6 @@ class _EdgeExtractor(_Extractor):
             }
         }
         """
-        print("edge extractor")
         return [
             ClassificationPrediction(
                 score=response["predictions"]["score"],
@@ -643,7 +642,7 @@ def _do_inference(
     endpoint_url: str,
     files: List[Any],
     payload: Dict[str, Any],
-    extractorClass: Type[_Extractor],
+    extractor_class: Type[_Extractor],
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
     try:
@@ -656,4 +655,4 @@ def _do_inference(
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()
     json_dict = response.json()
-    return extractorClass.extract_prediction(json_dict)
+    return extractor_class.extract_prediction(json_dict)
