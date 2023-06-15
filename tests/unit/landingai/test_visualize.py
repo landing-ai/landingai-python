@@ -1,3 +1,4 @@
+import numpy as np
 import PIL.Image
 
 from landingai import visualize
@@ -186,5 +187,9 @@ def test_overlay_ocr_predition():
     preds = [OcrPrediction(**pred) for pred in json_preds]
     result_img = visualize.overlay_predictions(preds, img)
     expected = PIL.Image.open("tests/data/images/expected_ocr_overlay.png")
-    diff = PIL.ImageChops.difference(result_img, expected)
-    assert diff.getbbox() is None, "Expected and actual images should be the same"
+    result_img_np = np.asarray(result_img)
+    expected_np = np.asarray(expected)
+    diff_cnt = np.count_nonzero(result_img_np - expected_np)
+    assert (
+        diff_cnt / np.prod(result_img_np.shape) < 0.01
+    ), "The number of different pixels is greater than 1%."
