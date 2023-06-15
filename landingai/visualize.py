@@ -125,7 +125,7 @@ def overlay_bboxes(
     bbox_style = options.get("bbox_style", "default").lower()
     for pred in predictions:
         bbox = pred.bboxes
-        label = f"{pred.label_name} | {pred.score:.4f}"
+        label = f"{pred.label_name} | {pred.score:.2f}"
         if bbox_style == "flag":
             image = bbv.draw_flag_with_label(image, label, bbox)
         else:
@@ -263,7 +263,7 @@ def overlay_predicted_class(
     assert len(predictions) == 1
     text_position = options.get("text_position", (10, 25))
     prediction = predictions[0]
-    text = f"{prediction.label_name} {prediction.score:.4f}"
+    text = f"{prediction.label_name} {prediction.score:.2f}"
     draw = ImageDraw.Draw(image)
     font = _get_pil_font()
     xy = (text_position[0], image.size[1] - text_position[1])
