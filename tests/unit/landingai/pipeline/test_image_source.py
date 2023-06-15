@@ -36,7 +36,7 @@ def test_image_folder_with_glob_patterns(input_image_folder):
     assert len(list(ImageFolder(str(input_image_folder)))) == 8
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def input_image_files(tmp_path_factory):
     tmp_dir = tmp_path_factory.mktemp("image_folder")
     file_names = [
