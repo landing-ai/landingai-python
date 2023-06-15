@@ -339,7 +339,7 @@ def _draw_box_text(
 def _create_font(
     txt: str,
     size: Tuple[int, int],
-    font_path: str = str(Path(__file__).parent / "fonts" / "default_font_ch_en.ttf"),
+    font_path: str = str(Path(__file__).parent / "fonts/default_font_ch_en.ttf"),
 ) -> ImageFont.FreeTypeFont:
     font_size = int(min(size) * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
