@@ -1,5 +1,7 @@
+import logging
 import io
 from unittest.mock import patch
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -17,7 +19,8 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
-from landingai.predict import Predictor
+from landingai.predict import Predictor, EdgePredictor
+from landingai.visualize import overlay_predictions
 
 
 def test_predict_with_none():
@@ -223,6 +226,81 @@ def test_predict_matching_expected_request_body():
         "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", "fake_key", "fake_secret"
     )
     predictor.predict(img)
+
+
+@responses.activate
+def test_edge_class_predict():
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
+    responses._add_from_file(
+        file_path="tests/data/responses/test_edge_class_predict.yaml"
+    )
+    # Project: https://app.landing.ai/app/376/pr/26119078438913/deployment?device=tiger-team-integration-tests
+    # run LandingEdge.CLI with cmdline parameters: run-online -k "your_api_key" -s "your_secret_key" -r 26119078438913 \
+    #                                            -m "59eff733-1dcd-4ace-b104-9041c745f1da" -n test_edge_cli --port 8123
+    predictor = EdgePredictor("localhost", 8123)
+    img = Image.open("tests/data/images/wildfire1.jpeg")
+    assert img is not None
+    preds = predictor.predict(img)
+    assert len(preds) == 1, "Result should not be empty or None"
+    assert preds[0].label_name == "HasFire"
+    assert preds[0].label_index == 0
+    np.testing.assert_almost_equal(
+        preds[0].score, 0.99565023, decimal=3, err_msg="class score mismatch"
+    )
+    logging.info(preds)
+    img_with_masks = overlay_predictions(preds, img)
+    img_with_masks.save("tests/output/test_edge_class.jpg")
+
+
+@responses.activate
+def test_edge_od_predict():
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
+    # Endpoint: https://app.landing.ai/app/376/pr/11165/deployment?device=tiger-team-integration-tests
+    # run LandingEdge.CLI with cmdline parameters: run-online -k "your_api_key" -s "your_secret_key" -r 11165 \
+    #                                    -m "5d0b04ce-8327-465c-b270-6913d92f5936" -n test_edge_cli --port 8123
+    predictor = EdgePredictor("localhost", 8123)
+    responses._add_from_file(file_path="tests/data/responses/test_edge_od_predict.yaml")
+    img = np.asarray(Image.open("tests/data/images/cereal1.jpeg"))
+    assert img is not None
+    # Call LandingLens inference endpoint with Predictor.predict()
+    preds = predictor.predict(img)
+    assert len(preds) == 3, "Result should not be empty or None"
+    expected_scores = [0.993014, 0.992160, 0.954738]
+    expected_bboxes = [
+        (945, 1603, 1118, 1795),
+        (436, 1037, 640, 1203),
+        (1515, 1419, 1977, 1787),
+    ]
+    for i, pred in enumerate(preds):
+        assert pred.label_name == "Screw"
+        assert pred.label_index == 1
+        np.testing.assert_almost_equal(
+            pred.score, expected_scores[i], decimal=3, err_msg="OD score mismatch"
+        )
+        assert pred.bboxes == expected_bboxes[i]
+    logging.info(preds)
+    img_with_preds = overlay_predictions(predictions=preds, image=img)
+    img_with_preds.save("tests/output/test_edge_od.jpg")
+
+
+@responses.activate
+def test_edge_seg_predict(expected_seg_prediction, seg_mask_validator):
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
+    responses._add_from_file(
+        file_path="tests/data/responses/test_edge_seg_predict.yaml"
+    )
+    # Project: https://app.landing.ai/app/376/pr/26113016987660/deployment?device=tiger-team-integration-tests
+    # run LandingEdge.CLI with cmdline parameters: run-online -k "your_api_key" -s "your_secret_key" -r 26113016987660 \
+    #                                          -m "1a2b49dd-25c0-45fa-9f1c-4433acee80cd" -n test_edge_cli --port 8123
+    predictor = EdgePredictor("localhost", 8123)
+    img = Image.open("tests/data/images/cereal1.jpeg")
+    assert img is not None
+    preds = predictor.predict(img)
+    assert len(preds) == 1, "Result should not be empty or None"
+    seg_mask_validator(preds[0], expected_seg_prediction)
+    logging.info(preds)
+    img_with_masks = overlay_predictions(preds, img)
+    img_with_masks.save("tests/output/test_edge_seg.jpg")
 
 
 def _read_image_as_png_bytes(file_path: str) -> bytes:

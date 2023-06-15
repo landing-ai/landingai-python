@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"type":"ClassificationPrediction","predictions":{"labelName":"HasFire","defectId":77008,"labelIndex":0,"score":0.9956502318382263},"metadata":{"image_id":"","inspection_station_id":"","location_id":"","capture_timestamp":"2023-06-12T22:10:45.2830543-07:00"}}'
+    content_type: text/plain
+    method: POST
+    status: 200
+    url: http://localhost:8123/images
