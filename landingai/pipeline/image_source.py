@@ -3,6 +3,7 @@
 import glob
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Iterator as IteratorType
 from typing import List, Optional, Union
 
 from landingai.vision_pipeline import FrameSet
@@ -78,7 +79,7 @@ class ImageFolder(ImageSourceBase):
                 )
             self._image_paths.sort()
 
-    def __iter__(self) -> Iterator[FrameSet]:
+    def __iter__(self) -> IteratorType[FrameSet]:
         for img_path in self._image_paths:
             meta = {"image_path": img_path}
             yield FrameSet.from_image(img_path, metadata=meta)
