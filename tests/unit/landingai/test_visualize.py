@@ -1,7 +1,7 @@
 import PIL.Image
 
 from landingai import visualize
-from landingai.common import ObjectDetectionPrediction, OcrPrediction
+from landingai.common import ObjectDetectionPrediction
 
 
 def test_overlay_bboxes():
