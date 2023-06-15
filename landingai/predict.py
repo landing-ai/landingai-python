@@ -1,6 +1,6 @@
 import io
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Type
 
 import numpy as np
 import PIL.Image
@@ -643,7 +643,7 @@ def _do_inference(
     endpoint_url: str,
     files: List[Any],
     payload: Dict[str, Any],
-    extractorClass: type[_Extractor],
+    extractorClass: Type[_Extractor],
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
     try:
