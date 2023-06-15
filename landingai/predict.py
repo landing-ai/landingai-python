@@ -61,7 +61,7 @@ class Predictor:
                 "apikey": self._api_credential.api_key,
                 "apisecret": self._api_credential.api_secret,
                 "contentType": "application/json",
-            }
+            },
         )
 
     def _load_api_credential(
@@ -134,7 +134,7 @@ class OcrPredictor(Predictor):
                 "apikey": self._api_credential.api_key,
                 "apisecret": self._api_credential.api_secret,
                 "contentType": "application/json",
-            }
+            },
         )
 
     def predict(
@@ -163,7 +163,9 @@ class OcrPredictor(Predictor):
         if "regions_of_interest" in kwargs:
             rois: List[List[Tuple[int, int]]] = kwargs["regions_of_interest"]
             payload["regions_of_interest"] = [rois]
-        return _do_inference(self._session, OcrPredictor._url, files, payload, _Extractor)
+        return _do_inference(
+            self._session, OcrPredictor._url, files, payload, _Extractor
+        )
 
 
 class EdgePredictor(Predictor):
@@ -174,11 +176,7 @@ class EdgePredictor(Predictor):
     ) -> None:
         self._url = f"http://{host}:{port}/images"
         self._session = _create_session(
-            self._url,
-            self._num_retry,
-            {
-                "contentType": "application/json"
-            }
+            self._url, self._num_retry, {"contentType": "application/json"}
         )
 
     def predict(
@@ -203,6 +201,7 @@ class EdgePredictor(Predictor):
 
 class _Extractor:
     """A class that extract the raw JSON inference result to Predict Results instances."""
+
     @staticmethod
     def _extract_class_prediction(
         response: Dict[str, Any]
@@ -244,7 +243,9 @@ class _Extractor:
         ]
 
     @staticmethod
-    def _extract_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPrediction]:
+    def _extract_od_prediction(
+        response: Dict[str, Any]
+    ) -> List[ObjectDetectionPrediction]:
         """Extract Object Detection prediction result from response
 
         Parameters
@@ -354,7 +355,9 @@ class _Extractor:
         ]
 
     @staticmethod
-    def _extract_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+    def _extract_seg_prediction(
+        response: Dict[str, Any]
+    ) -> List[SegmentationPrediction]:
         """Extract Segmentation prediction result from response
 
         Parameters
@@ -382,7 +385,9 @@ class _Extractor:
         ]
 
     @staticmethod
-    def _extract_vp_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+    def _extract_vp_prediction(
+        response: Dict[str, Any]
+    ) -> List[SegmentationPrediction]:
         """Extract Visual Prompting result from response
 
         Parameters
@@ -459,7 +464,9 @@ class _EdgeExtractor(_Extractor):
         ]
 
     @staticmethod
-    def _extract_edge_od_prediction(response: Dict[str, Any]) -> List[ObjectDetectionPrediction]:
+    def _extract_edge_od_prediction(
+        response: Dict[str, Any]
+    ) -> List[ObjectDetectionPrediction]:
         """Extract Object Detection prediction result from edge inference response
 
         Parameters
@@ -552,7 +559,9 @@ class _EdgeExtractor(_Extractor):
         ]
 
     @staticmethod
-    def _extract_edge_seg_prediction(response: Dict[str, Any]) -> List[SegmentationPrediction]:
+    def _extract_edge_seg_prediction(
+        response: Dict[str, Any]
+    ) -> List[SegmentationPrediction]:
         """Extract Segmentation prediction result from response
 
         Parameters
@@ -619,7 +628,11 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
 
 
 def _do_inference(
-    session: Session, endpoint_url: str, files: List[Any], payload: Dict[str, Any], extractorClass: type[_Extractor]
+    session: Session,
+    endpoint_url: str,
+    files: List[Any],
+    payload: Dict[str, Any],
+    extractorClass: type[_Extractor],
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
     try:

@@ -244,7 +244,9 @@ def test_edge_class_predict():
     assert len(preds) == 1, "Result should not be empty or None"
     assert preds[0].label_name == "HasFire"
     assert preds[0].label_index == 0
-    np.testing.assert_almost_equal(preds[0].score, 0.99565023, decimal=3, err_msg='class score mismatch')
+    np.testing.assert_almost_equal(
+        preds[0].score, 0.99565023, decimal=3, err_msg="class score mismatch"
+    )
     logging.info(preds)
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_edge_class.jpg")
@@ -257,9 +259,7 @@ def test_edge_od_predict():
     # run LandingEdge.CLI with cmdline parameters: run-online -k "your_api_key" -s "your_secret_key" -r 11165 \
     #                                    -m "5d0b04ce-8327-465c-b270-6913d92f5936" -n test_edge_cli --port 8123
     predictor = EdgePredictor("localhost", 8123)
-    responses._add_from_file(
-        file_path="tests/data/responses/test_edge_od_predict.yaml"
-    )
+    responses._add_from_file(file_path="tests/data/responses/test_edge_od_predict.yaml")
     img = np.asarray(Image.open("tests/data/images/cereal1.jpeg"))
     assert img is not None
     # Call LandingLens inference endpoint with Predictor.predict()
@@ -274,7 +274,9 @@ def test_edge_od_predict():
     for i, pred in enumerate(preds):
         assert pred.label_name == "Screw"
         assert pred.label_index == 1
-        np.testing.assert_almost_equal(pred.score, expected_scores[i], decimal=3, err_msg='OD score mismatch')
+        np.testing.assert_almost_equal(
+            pred.score, expected_scores[i], decimal=3, err_msg="OD score mismatch"
+        )
         assert pred.bboxes == expected_bboxes[i]
     logging.info(preds)
     img_with_preds = overlay_predictions(predictions=preds, image=img)
