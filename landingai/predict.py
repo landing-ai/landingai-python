@@ -414,20 +414,24 @@ class _Extractor:
             for id, bitmap_info in encoded_predictions.items()
         ]
 
-    PREDICTION_EXTRACTOR = {
-        "ObjectDetectionPrediction": _extract_od_prediction.__func__,
-        "SegmentationPrediction": _extract_seg_prediction.__func__,
-        "ClassificationPrediction": _extract_class_prediction.__func__,
-        "SegmentationPredictionVP": _extract_vp_prediction.__func__,
-    }
-
     def extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
         response_type = response.get("backbonetype")
         if response_type is None and response["type"] == "SegmentationPrediction":
             response_type = "SegmentationPredictionVP"  # Visual Prompting response
         if response_type is None:
             response_type = response["type"]  # Classification response
-        predictions = _Extractor.PREDICTION_EXTRACTOR[response_type](response)
+        if response_type == "ObjectDetectionPrediction":
+            predictions = _Extractor._extract_od_prediction(response)
+        elif response_type == "SegmentationPrediction":
+            predictions = _Extractor._extract_seg_prediction(response)
+        elif response_type == "ClassificationPrediction":
+            predictions = _Extractor._extract_class_prediction(response)
+        elif response_type == "SegmentationPredictionVP":
+            predictions = _Extractor._extract_vp_prediction(response)
+        else:
+            raise NotImplementedError(
+                f"{response_type} is not implemented in _Extractor"
+            )
         return predictions  # type: ignore
 
 
@@ -588,17 +592,20 @@ class _EdgeExtractor(_Extractor):
             for id, bitmap_info in encoded_predictions.items()
         ]
 
-    PREDICTION_EXTRACTOR = {
-        "ObjectDetectionPrediction": _extract_edge_od_prediction.__func__,
-        "SegmentationPrediction": _extract_edge_seg_prediction.__func__,
-        "ClassificationPrediction": _extract_edge_class_prediction.__func__,
-    }
-
     def extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
         response_type = response.get("type")
         if response_type is None:
             response_type = response["type"]
-        predictions = _EdgeExtractor.PREDICTION_EXTRACTOR[response_type](response)
+        if response_type == "ObjectDetectionPrediction":
+            predictions = _EdgeExtractor._extract_edge_od_prediction(response)
+        elif response_type == "SegmentationPrediction":
+            predictions = _EdgeExtractor._extract_edge_seg_prediction(response)
+        elif response_type == "ClassificationPrediction":
+            predictions = _EdgeExtractor._extract_edge_class_prediction(response)
+        else:
+            raise NotImplementedError(
+                f"{response_type} is not implemented in EdgeExtractor"
+            )
         return predictions
 
 
