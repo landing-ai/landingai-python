@@ -64,7 +64,7 @@ class ImageFolder(ImageSourceBase):
         """
         self._source = source
         self._image_paths: List[str] = []
-        self._index = 0
+
         if source is None and glob_pattern is None:
             raise ValueError("Either 'source' or 'glob_pattern' must be provided.")
         if glob_pattern is not None:
