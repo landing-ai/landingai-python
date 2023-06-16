@@ -4,6 +4,7 @@
 import logging
 import threading
 import time
+import glob
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Union
 
@@ -58,8 +59,38 @@ class FrameSet(BaseModel):
 
     @classmethod
     def from_image(cls, file: str) -> "FrameSet":
+        """Creates a FrameSet from an image file
+
+        Parameters
+        ----------
+        file : Path to file
+
+        Returns
+        -------
+        FrameSet : New FrameSet containing a single image
+        """
+
         im = Image.open(file)
         return cls(frames=[Frame(image=im)])
+
+    @classmethod
+    def from_directory(cls, glob_expression: str) -> "FrameSet":
+        """Creates a FrameSet with all the files matching a glob expression
+
+        Parameters
+        ----------
+        glob_expression : (e.g /tmp/*.jpg)
+
+        Returns
+        -------
+        FrameSet : New FrameSet containing all matching images
+        """
+
+        images = glob.glob(glob_expression)
+        frames = []
+        for file in images:
+            frames.append(Frame(image=Image.open(file)))
+        return cls(frames=frames)
 
     @classmethod
     def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
@@ -166,11 +197,22 @@ class FrameSet(BaseModel):
         image_src: if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
         """
         # TODO: Should show be a end leaf?
-        for frame in self.frames:
-            if image_src == "":
-                frame.image.show()
-            else:
-                frame.other_images[image_src].show()
+        # Check if we are on a notebook context
+        try: 
+            from IPython.display import display 
+            for frame in self.frames:
+                if image_src == "":
+                    display(frame.image)
+                else:
+                    display(frame.other_images[image_src])
+        except ModuleNotFoundError:
+            # Use PIL's implementation
+            for frame in self.frames:
+                if image_src == "":
+                    # frame.image.show()
+                    display(frame.image)
+                else:
+                    frame.other_images[image_src].show()
 
         # # TODO: Implement image stacking when we have multiple frames (https://answers.opencv.org/question/175912/how-to-display-multiple-images-in-one-window/)
         # """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.

@@ -34,6 +34,10 @@ class Prediction(BaseModel):
     score: float
     """The confidence score of this prediction."""
 
+    def num_predicted_pixels(self) -> int:
+        """Return the number of pixels within the prediction"""
+        raise NotImplementedError()
+
 
 class ClassificationPrediction(Prediction):
     """A single classification prediction for an image."""
