@@ -57,7 +57,7 @@ class ImageFolder(ImageSourceBase):
             If source is a list of files, the order of the input files is preserved.
             Currently only local file paths are supported.
         glob_pattern
-            One or more python glob pattern(s) (case sensitive) to grab only wanted files in the folder. E.g. "/home/user/images/*.jpg"
+            One or more python glob pattern(s) to grab only wanted files in the folder. E.g. "/home/user/images/*.jpg".
             NOTE: If `glob_pattern` is provided, the `source` parameter is ignored.
             For more information about glob pattern, see https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob
 

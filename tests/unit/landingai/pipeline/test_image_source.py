@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+from typing import List
+
 import PIL.Image
 import pytest
 
@@ -28,47 +32,27 @@ def test_image_folder_with_input_files(input_image_files):
 
 
 def test_image_folder_with_glob_patterns(input_image_folder):
+    folder = input_image_folder
+    jpg_cnt = 2 if os.name == "nt" else 1
     # Test __len__
-    assert (
-        len(
-            ImageFolder(
-                glob_pattern=[
-                    str(input_image_folder / "*.jpg"),
-                    str(input_image_folder / "*.JPG"),
-                ]
-            )
-        )
-        == 2
-    )
-    assert len(ImageFolder(glob_pattern=str(input_image_folder / "*.bmp"))) == 1
+    assert len(ImageFolder(glob_pattern=[str(folder / "*.jpg")])) == jpg_cnt
+    assert len(ImageFolder(glob_pattern=str(folder / "*.bmp"))) == 1
     # Test __iter__
-    assert (
-        len(
-            list(
-                ImageFolder(
-                    glob_pattern=[
-                        str(input_image_folder / "*.png"),
-                        str(input_image_folder / "*.PNG"),
-                    ]
-                )
-            )
-        )
-        == 2
-    )
-    assert len(list(ImageFolder(str(input_image_folder)))) == 8
+    assert len(list(ImageFolder(glob_pattern=[str(folder / "*.jpg")]))) == jpg_cnt
+    assert len(list(ImageFolder(str(folder)))) == 8
     # Test glob pattern on nested files
-    assert len(ImageFolder(glob_pattern=str(input_image_folder / "**/*.jpg"))) == 4
+    assert len(ImageFolder(glob_pattern=str(folder / "**/*.png"))) == 4
 
 
 @pytest.fixture
-def input_image_files(tmp_path_factory):
+def input_image_files(tmp_path_factory) -> List[Path]:
     tmp_dir = tmp_path_factory.mktemp("image_folder")
     file_names = [
         "test1.jpg",
         "test2.JPG",
         "test3.jpeg",
         "test4.png",
-        "test5.PNG",
+        "test5.jpx",
         "test6.tiff",
         "test7.bmp",
         "test8.gif",
@@ -79,20 +63,20 @@ def input_image_files(tmp_path_factory):
         PIL.Image.new(mode="RGB", size=(20, 20)).save(file_path)
         file_paths.append(file_path)
     # Create a sub-directory with nested image files and non-image files
-    sub_dir = _create_file_under(tmp_dir, "sub_dir", "test9.jpg")
-    _create_file_under(sub_dir, "double-nested", "test10.jpg")
+    sub_dir = _create_file_under(tmp_dir, "sub_dir", "test9.png")
+    _create_file_under(sub_dir, "double-nested", "test10.png")
     _create_file_under(sub_dir, None, "test.txt")
-    _create_file_under(tmp_dir, "sub_dir2", "test11.jpg")
+    _create_file_under(tmp_dir, "sub_dir2", "test11.png")
     return file_paths
 
 
-def _create_file_under(tmp_dir, sub_dir, name):
+def _create_file_under(tmp_dir, sub_dir, name) -> Path:
     if sub_dir is not None:
         sub_dir = tmp_dir / sub_dir
     else:
         sub_dir = tmp_dir
     sub_dir.mkdir(exist_ok=True, parents=True)
-    if name.endswith(".jpg"):
+    if name.endswith(".png"):
         PIL.Image.new(mode="RGB", size=(10, 10)).save(sub_dir / name)
     elif name.endswith(".txt"):
         (sub_dir / name).touch()
@@ -102,5 +86,5 @@ def _create_file_under(tmp_dir, sub_dir, name):
 
 
 @pytest.fixture
-def input_image_folder(input_image_files):
+def input_image_folder(input_image_files) -> Path:
     return input_image_files[0].parent
