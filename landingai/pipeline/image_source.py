@@ -72,7 +72,7 @@ class ImageFolder(ImageSourceBase):
                 glob_pattern = [glob_pattern]
             for pattern in glob_pattern:
                 self._image_paths.extend(list(glob.glob(pattern, recursive=True)))
-            sorted(self._image_paths)
+            self._image_paths.sort()
         elif isinstance(source, list):
             self._image_paths = source
         else:
