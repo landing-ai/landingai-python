@@ -4,7 +4,7 @@ import glob
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Iterator as IteratorType
-from typing import List, Optional, Union
+from typing import List, Union
 
 from landingai.vision_pipeline import FrameSet
 
