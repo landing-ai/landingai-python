@@ -11,6 +11,29 @@ from landingai.predict import Predictor
 CROP_BOX = (1300, 600, 1700, 800)
 
 
+def bbox_ious(a, b):
+    # based off of torchvision's box_iou https://pytorch.org/vision/main/generated/torchvision.ops.box_iou.html
+    def box_area(a):
+        return (a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1])
+
+    def inter_union(a, b):
+        area1 = box_area(a)
+        area2 = box_area(b)
+
+        lt = np.maximum(a[:, None, :2], b[:, :2])  # [N, M, 2]
+        rb = np.minimum(a[:, None, 2:], b[:, 2:])  # [N, M, 2]
+
+        wh = (rb - lt).clip(min=0)  # [N, M, 2]
+        inter = wh[:, :, 0] * wh[:, :, 1]
+
+        union = area1[:, None] + area2 - inter
+        return inter, union
+
+    inter, union = inter_union(a, b)
+    iou = inter / union
+    return iou
+
+
 def crop(image: npt.NDArray, box: tuple[int, ...] = CROP_BOX) -> npt.NDArray:
     return image[box[1] : box[3], box[0] : box[2]]
 
