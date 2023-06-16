@@ -2,6 +2,7 @@
 
 import logging
 import math
+from pathlib import Path
 import random
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
 import cv2
@@ -121,20 +122,21 @@ def overlay_bboxes(
         image = np.asarray(image)
     if options is None:
         options = {}
-    bbox_style = options.get("bbox_style", "default")
+    bbox_style = options.get("bbox_style", "default").lower()
     for pred in predictions:
         bbox = pred.bboxes
-        label = f"{pred.label_name} | {pred.score:.4f}"
+        label = f"{pred.label_name} | {pred.score:.2f}"
         if bbox_style == "flag":
             image = bbv.draw_flag_with_label(image, label, bbox)
         else:
             draw_bg = options.get("draw_bg", True)
             label_at_top = options.get("top", True)
             image = bbv.draw_rectangle(image, pred.bboxes)
-            if bbox_style == "default" and not options.get("no_label", False):
-                image = bbv.add_label(
-                    image, label, bbox, draw_bg=draw_bg, top=label_at_top
-                )
+            if bbox_style == "default":
+                if options.get("draw_label", True):
+                    image = bbv.add_label(
+                        image, label, bbox, draw_bg=draw_bg, top=label_at_top
+                    )
             elif bbox_style == "t-label":
                 image = bbv.add_T_label(image, label, bbox, draw_bg=draw_bg)
             else:
@@ -261,7 +263,7 @@ def overlay_predicted_class(
     assert len(predictions) == 1
     text_position = options.get("text_position", (10, 25))
     prediction = predictions[0]
-    text = f"{prediction.label_name} {prediction.score:.4f}"
+    text = f"{prediction.label_name} {prediction.score:.2f}"
     draw = ImageDraw.Draw(image)
     font = _get_pil_font()
     xy = (text_position[0], image.size[1] - text_position[1])
@@ -337,9 +339,9 @@ def _draw_box_text(
 def _create_font(
     txt: str,
     size: Tuple[int, int],
-    font_path: str = "./landingai/fonts/default_font_ch_en.ttf",
+    font_path: str = str(Path(__file__).parent / "fonts/default_font_ch_en.ttf"),
 ) -> ImageFont.FreeTypeFont:
-    font_size = int(size[1] * 0.99)
+    font_size = int(min(size) * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
     length = font.getsize(txt)[0]
     if length > size[0]:
