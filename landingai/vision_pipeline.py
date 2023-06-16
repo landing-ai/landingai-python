@@ -5,7 +5,7 @@ import logging
 import threading
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import cv2
 import numpy as np
@@ -57,9 +57,11 @@ class FrameSet(BaseModel):
     frames: List[Frame] = []  # Start with empty frame set
 
     @classmethod
-    def from_image(cls, file: str) -> "FrameSet":
+    def from_image(
+        cls, file: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> "FrameSet":
         im = Image.open(file)
-        return cls(frames=[Frame(image=im)])
+        return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
     def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":

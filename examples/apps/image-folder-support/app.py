@@ -14,6 +14,7 @@ from PIL.Image import Image
 from streamlit_image_select import image_select
 
 from landingai.common import Prediction, SegmentationPrediction
+from landingai.pipeline.image_source import ImageFolder
 from landingai.postprocess import (
     class_counts,
     class_map,
@@ -170,24 +171,22 @@ if local_image_folder:
         )
         st.stop()
 
-    image_paths = []
-    for ext in _SUPPORTED_IMAGE_FORMATS:
-        image_paths.extend(list(Path(local_image_folder).glob(f"*.{ext}")))
-    if not image_paths:
+    folder_source = ImageFolder(source=local_image_folder)
+    if len(folder_source) == 0:
         st.warning(
             f"No images found in {local_image_folder}. Supported image formats: {_SUPPORTED_IMAGE_FORMATS}"
         )
         st.stop()
 
     logging.info(
-        f"Found {len(image_paths)} images in {local_image_folder}: {image_paths}"
+        f"Found {len(folder_source)} images in {local_image_folder}: {folder_source}"
     )
     with st.expander("Preview input images"):
         img_path = image_select(
-            label=f"Total {len(image_paths)} images",
-            images=image_paths,
+            label=f"Total {len(folder_source)} images",
+            images=folder_source.image_paths,
             key="preview_input_images",
-            captions=[f"{p.name}" for p in image_paths],
+            captions=[f"{Path(p).name}" for p in folder_source.image_paths],
             use_container_width=False,
         )
         img_path_str = str(img_path)
@@ -199,7 +198,7 @@ if local_image_folder:
         "Run inferences",
         on_click=bulk_inference,
         kwargs={
-            "image_paths": image_paths,
+            "image_paths": folder_source.image_paths,
             "image_folder_path": local_image_folder,
         },
         type="secondary",
@@ -211,7 +210,7 @@ if local_image_folder:
         ]
         with st.expander("Preview prediction results"):
             img_path = image_select(
-                label=f"Total {len(image_paths)} images",
+                label=f"Total {len(folder_source)} images",
                 images=img_with_preds,
                 key="preview_pred_images",
                 captions=[
