@@ -47,13 +47,15 @@ class ImageFolder(ImageSourceBase):
         ----------
         source
             A list of file paths or the path to the folder path that contains the images.
-            A folder path can be either a absolute or relative folder path, in `str` or `Path` type. E.g. "/home/user/images"
-            Currently only local file paths are supported.
+            A folder path can be either an absolute or relative folder path, in `str` or `Path` type. E.g. "/home/user/images".
             If you provide a folder path, all the files directly within the folder will be read (including non-image files).
             Nested files and sub-directories will be ignored.
-            If your folder has both image and non-image files, consider using `glob_pattern` to filter out unwanted files.
+            Consider using `glob_pattern` if you need to:
+              1. filter out unwanted files, e.g. your folder has both image and non-image files
+              2. read nested image files, e.g. `/home/user/images/**/*.jpg`.
             The ordering of images is based on the file name alphabetically if source is a folder path.
             If source is a list of files, the order of the input files is preserved.
+            Currently only local file paths are supported.
         glob_pattern
             One or more python glob pattern(s) (case sensitive) to grab only wanted files in the folder. E.g. "/home/user/images/*.jpg"
             NOTE: If `glob_pattern` is provided, the `source` parameter is ignored.
