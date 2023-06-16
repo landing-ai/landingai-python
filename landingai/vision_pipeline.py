@@ -1,4 +1,4 @@
-"""The vision pipeline is a layer that allows chaining image processing operations as a sequential pipeline. The main class passed throughout a pipeline is the `FrameSet` which typically contains a source image and derivative metadata and images.
+"""The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images.
 """
 
 import logging
@@ -20,13 +20,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Frame(BaseModel):
-    """A Frame stores a main image, its metadata and potentially derived images. This class will be mostly used internally by the FrameSet."""
+    """A Frame stores a main image, its metadata and potentially other derived images. This class will be mostly used internally by the FrameSet clase. A pipeline will `FrameSet` since it is more general and a can also keep new `Frames` extracted from existing ones"""
 
     image: Image.Image
-    """Main image"""
+    """Main image generated typically at the beginning of a pipeline"""
 
     other_images: Dict[str, Image.Image] = {}
-    """Other derivative images associated with this frame (e.g. detection overlay)"""
+    """Other derivative images associated with this the main image. For example: `FrameSet.overlay_predictions` will store the resulting image on `Frame.other_images["overlay"]"""
 
     predictions: List[Prediction] = []
     """List of predictions for the main image"""
@@ -72,6 +72,15 @@ class FrameSet(BaseModel):
     # TODO: Is it worth to emulate a full container? - https://docs.python.org/3/reference/datamodel.html#emulating-container-types
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
+
+    def is_empty(self) -> bool:
+        """Check if the FrameSet is empty
+        Returns
+        -------
+        bool
+            True if the are no Frames on the FrameSet
+        """
+        return not self.frames  # True if the list is empty
 
     def run_predict(self, predictor: Predictor) -> "FrameSet":
         """Run a cloud inference model
@@ -218,11 +227,11 @@ class NetworkedCamera(BaseModel):
 
     stream_url: str
     motion_detection_threshold: int
-    capture_interval: float
+    capture_interval: Union[float, None] = None
     previous_frame: Union[Frame, None] = None
     _last_capture_time: datetime = PrivateAttr()
     _cap: Any = PrivateAttr()  # cv2.VideoCapture
-    _FPS: int = PrivateAttr()
+    _inter_frame_interval: int = PrivateAttr()
     _lock: Any = PrivateAttr()  # threading.Lock
     _t: Any = PrivateAttr()  # threading.Thread
 
@@ -253,7 +262,9 @@ class NetworkedCamera(BaseModel):
         self._last_capture_time = datetime.now()
         # FPS = 1/X
         # self.FPS_MS = int(self.FPS * 1000)
-        self._FPS = 1 / cap.get(cv2.CAP_PROP_FPS)  # Get the source's framerate
+        self._inter_frame_interval = 1 / cap.get(
+            cv2.CAP_PROP_FPS
+        )  # Get the source's framerate
         self._cap = cap
         self._lock = threading.Lock()
         self._t = threading.Thread(target=self._reader)
@@ -267,30 +278,29 @@ class NetworkedCamera(BaseModel):
     def _reader(self) -> None:
         while True:
             with self._lock:
-                ret = self._cap.grab()
-                time.sleep(self._FPS)  # Limit acquisition speed
-            if not ret:
-                raise Exception(f"Connection to camera broken ({self.stream_url})")
+                ret = self._cap.grab()  # non-blocking call
+                if not ret:
+                    raise Exception(f"Connection to camera broken ({self.stream_url})")
+            time.sleep(self._inter_frame_interval)  # Limit acquisition speed
 
     # retrieve latest frame
     def get_latest_frame(self) -> "FrameSet":
         """Return the most up to date frame by dropping all by the latest frame. This function is blocking"""
+        if self.capture_interval is not None:
+            t = datetime.now()
+            delta = (t - self._last_capture_time).total_seconds()
+            if delta <= self.capture_interval:
+                time.sleep(delta)
+            self._last_capture_time = t
         with self._lock:
-            if self.capture_interval is not None:
-                t = datetime.now()
-                delta = (t - self._last_capture_time).total_seconds()
-                if delta <= self.capture_interval:
-                    time.sleep(delta)
-                self._last_capture_time = t
-
-            ret, frame = self._cap.retrieve()
+            ret, frame = self._cap.retrieve()  # non-blocking call
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
-            if self.motion_detection_threshold > 0:
-                if self._detect_motion(frame):
-                    return FrameSet.from_array(frame)
-                else:
-                    return FrameSet()  # Empty frame
+        if self.motion_detection_threshold > 0:
+            if self._detect_motion(frame):
+                return FrameSet.from_array(frame)
+            else:
+                return FrameSet()  # Empty frame
 
         return FrameSet.from_array(frame)
 

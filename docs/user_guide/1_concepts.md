@@ -16,28 +16,28 @@ This section explains important high-level concepts that will help you better us
 
 ### Model Deployment Options
 
-Before using this library for inference, you need train your model in `LandingLens` and [deploy it](https://support.landing.ai/docs/deployment-options).
+Before using this library for inference, you need train your model in LandingLens and [deploy it](https://support.landing.ai/docs/deployment-options).
 
 This library supports two deployment options:
 - [Cloud Deployment](https://support.landing.ai/landinglens/docs/cloud-deployment)
 - LandingEdge (support coming soon...)
 
-The easiest way to get started is using `CloudDeployment`.
+The easiest way to get started is using a Cloud Deployment.
 
 ### Inference and Predictor
 
-You can use this `landingai` library to get inference results from a model you trained on `LandingLens`.
-The library calls the endpoint of your deployed model for inference results. The endpoint could either be hosted on a `LandingLens` server (`CloudDeployment`) or on your own server via `LandingEdge`.
+You can use this `landingai` library to get inference results from a model you trained on LandingLens.
+The library calls the endpoint of your deployed model for inference results. The endpoint could either be hosted on a LandingLens server (i.e. Cloud Deployment) or on your own server using LandingEdge.
 
 The actual computation of model inference does not happen on the library side, it happens on the model server side.
 
-This library has abstracted out the complexity of server communication, error handling, and result parsing into a simple class called `landingai.predict.Predictor`. For more information, see `landingai.predict.Predictor` in the API doc.
+This library abstracts out the complexity of server communication, error handling, and result parsing into a simple class called `landingai.predict.Predictor`. For more information, see `landingai.predict.Predictor` in the API doc.
 
-### Prediction Result
+### Prediction Results
 
 Once you get inference results, you can process them further based on your business needs.
 
-It's helpful to know what the result schema will look like before you process the results. Here are the scema definitions for each project type:
+Depending on the AI task the result schema will be different. Here are the schema definitions for each project type:
 
 - Classification:`landingai.common.ClassificationPrediction`
 - Object Detection:`landingai.common.ObjectDetectionPrediction`
@@ -45,3 +45,11 @@ It's helpful to know what the result schema will look like before you process th
 - Visual Prompting: `landingai.common.SegmentationPrediction`
 
 This library also defines a parent class, `landingai.common.Prediction`, which represent a generic prediction that contains all the shared attributes across all of the subclasses.
+
+### Building sophisticated vision pipelines
+
+Real world problems require a multi step approach in order to get results. For example: if we want to produce statistics about the cars going over a bridge, we will need to take images from a live RTSP stream and act when motion is detected. We will also need to use object detection to identify individual cars and track them as they traverse the frame. We will then need to classify the cars and collect statistics to produce the desired report.
+
+While this image processing pipeline may seem daunting, it has many commonalities with other vision problems. This is why we developed a vision pipeline concept where `Frames` produced by an image source can be passed across processing modules using method chaining. 
+
+For more details about vision pipelines, look into [*Vision Pipelines user guide*](#vision-pipelines)
