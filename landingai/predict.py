@@ -70,7 +70,7 @@ class Predictor:
         """Create an APICredential object from the provided api_key and api_secret if they are not none.
         Otherwise, it will try to load from the environment variables or .env file.
         """
-        if api_key is None:  # api_secret is now optional
+        if api_key is None or api_secret is None:
             try:
                 api_credential = APICredential()
             except ValidationError:

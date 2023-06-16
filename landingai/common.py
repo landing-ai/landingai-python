@@ -1,7 +1,7 @@
 import math
 import re
 from functools import cached_property
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -20,7 +20,7 @@ class APICredential(BaseSettings):
     """
 
     api_key: str
-    api_secret: Union[str, None]
+    api_secret: str
 
     class Config:
         env_file = ".env"

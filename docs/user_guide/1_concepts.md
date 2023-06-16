@@ -22,7 +22,7 @@ This library supports two deployment options:
 - [Cloud Deployment](https://support.landing.ai/landinglens/docs/cloud-deployment)
 - LandingEdge (support coming soon...)
 
-The easiest way to get started is using A Cloud Deployment.
+The easiest way to get started is using a Cloud Deployment.
 
 ### Inference and Predictor
 
@@ -48,8 +48,8 @@ This library also defines a parent class, `landingai.common.Prediction`, which r
 
 ### Building sophisticated vision pipelines
 
-Real world problems require a multi step approach in order to get results. For example: if we want to count the number and model of cars going over a bridge, we will need to take images from a live RTSP stream and act when motion is detected. We will also need to use object detection to identify individual cars and track them as they traverse the frame. We will then need to classify the cars and collect statistics to product the desired report.
+Real world problems require a multi step approach in order to get results. For example: if we want to produce statistics about the cars going over a bridge, we will need to take images from a live RTSP stream and act when motion is detected. We will also need to use object detection to identify individual cars and track them as they traverse the frame. We will then need to classify the cars and collect statistics to produce the desired report.
 
-While this image processing pipeline may seem daunting, it has a many commonalities with other vision problems. This is why we developed a vision pipeline concept where `Frames` produced by an image source can be passed across processing modules using method chaining. 
+While this image processing pipeline may seem daunting, it has many commonalities with other vision problems. This is why we developed a vision pipeline concept where `Frames` produced by an image source can be passed across processing modules using method chaining. 
 
 For more details about vision pipelines, look into [*Vision Pipelines user guide*](#vision-pipelines)
