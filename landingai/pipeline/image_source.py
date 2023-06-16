@@ -8,8 +8,6 @@ from typing import List, Optional, Union
 
 from landingai.vision_pipeline import FrameSet
 
-_SUPPORTED_IMAGE_FORMATS = ["jpg", "jpeg", "png", "tiff", "bmp", "gif"]
-
 
 class ImageSourceBase(Iterator):
     """The base class for all image sources."""
@@ -31,7 +29,8 @@ class ImageFolder(ImageSourceBase):
 
     Example 2:
     ```
-    folder = ImageFolder(glob_pattern="/home/user/images/*.jpg")
+    # Read all jpg files in the folder (including nested files)
+    folder = ImageFolder(glob_pattern="/home/user/images/**/*.jpg")
     for image_batch in folder:
         print(image_batch[0].image.size)
     ```
@@ -40,21 +39,23 @@ class ImageFolder(ImageSourceBase):
     def __init__(
         self,
         source: Union[Path, str, List[str], None] = None,
-        glob_pattern: Optional[str] = None,
+        glob_pattern: Union[str, List[str], None] = None,
     ) -> None:
         """Constructor for ImageFolder.
 
         Parameters
         ----------
         source
-            A list of file names or the path to the folder path that contains the images.
+            A list of file paths or the path to the folder path that contains the images.
             A folder path can be either a absolute or relative folder path, in `str` or `Path` type. E.g. "/home/user/images"
-            Currently only supports local file paths.
-            Within the folder, the images can be in any of the supported formats: jpg, jpeg, png, tiff, bmp, gif. Other file formats will be ignored.
+            Currently only local file paths are supported.
+            If you provide a folder path, all the files directly within the folder will be read (including non-image files).
+            Nested files and sub-directories will be ignored.
+            If your folder has both image and non-image files, consider using `glob_pattern` to filter out unwanted files.
             The ordering of images is based on the file name alphabetically if source is a folder path.
             If source is a list of files, the order of the input files is preserved.
         glob_pattern
-            A python glob pattern (case sensitive) to grab only wanted files in the folder. E.g. "/home/user/images/*.jpg"
+            One or more python glob pattern(s) (case sensitive) to grab only wanted files in the folder. E.g. "/home/user/images/*.jpg"
             NOTE: If `glob_pattern` is provided, the `source` parameter is ignored.
             For more information about glob pattern, see https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob
 
@@ -65,18 +66,16 @@ class ImageFolder(ImageSourceBase):
         if source is None and glob_pattern is None:
             raise ValueError("Either 'source' or 'glob_pattern' must be provided.")
         if glob_pattern is not None:
-            self._image_paths = list(glob.glob(glob_pattern))
+            if isinstance(glob_pattern, str):
+                glob_pattern = [glob_pattern]
+            for pattern in glob_pattern:
+                self._image_paths.extend(list(glob.glob(pattern, recursive=True)))
             sorted(self._image_paths)
         elif isinstance(source, list):
             self._image_paths = source
         else:
             assert isinstance(source, str) or isinstance(source, Path)
-            folder_path = Path(source)
-            for ext in _SUPPORTED_IMAGE_FORMATS:
-                self._image_paths.extend([str(p) for p in folder_path.glob(f"*.{ext}")])
-                self._image_paths.extend(
-                    [str(p) for p in folder_path.glob(f"*.{ext.upper()}")]
-                )
+            self._image_paths = [str(x) for x in Path(source).glob("*") if x.is_file()]
             self._image_paths.sort()
 
     def __iter__(self) -> IteratorType[FrameSet]:
