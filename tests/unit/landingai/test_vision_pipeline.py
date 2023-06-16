@@ -4,7 +4,7 @@ import numpy as np
 from landingai.vision_pipeline import NetworkedCamera
 
 
-def test_NetworkedCamera():
+def test_networked_camera():
     # Use a video to simulate a live camera and test motion detection
     test_video_file_path = "tests/data/videos/countdown.mp4"
     Camera = NetworkedCamera(
