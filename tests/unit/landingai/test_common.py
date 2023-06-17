@@ -52,7 +52,6 @@ def test_load_api_key_from_env_file(tmp_path):
         APIKey()
     # reset back to the default config
     APIKey.__config__.env_file = ".env"
-    env_file.unlink()
 
 
 def test_load_credential():

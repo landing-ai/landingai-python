@@ -12,7 +12,7 @@ def test_segmentation_class_pixel_coverage():
         file_path="tests/data/responses/default_vp_model_response.yaml"
     )
     endpoint_id = "63035608-9d24-4342-8042-e4b08e084fde"
-    predictor = Predictor(endpoint_id, "fake_key_12345", "fake_secret_12345")
+    predictor = Predictor(endpoint_id, api_key="land_sk_12345")
     img = np.asarray(Image.open("tests/data/images/farm-coverage.jpg"))
     predictions = []
     for img in [img] * 3:

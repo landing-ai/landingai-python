@@ -2,6 +2,7 @@ import math
 import re
 from functools import cached_property
 from typing import Dict, List, Tuple
+from typing_extensions import deprecated
 
 import cv2
 import numpy as np
@@ -10,6 +11,10 @@ from pydantic import BaseModel, BaseSettings, validator
 from landingai.exceptions import InvalidApiKeyError
 
 
+@deprecated(
+    "Use `APIKey` instead, this class is kept for users who have legacy API key.",
+    category=None,
+)
 class APICredential(BaseSettings):
     """The API credentials of an organization in LandingLens.
     NOTE: This is a legacy way to authenticate with the LandingLens API. Consider using the `APIKey` class instead.
