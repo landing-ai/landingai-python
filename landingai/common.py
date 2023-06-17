@@ -40,8 +40,7 @@ class APICredential(BaseSettings):
 class APIKey(BaseSettings):
     """The API key of an user in a particular organization in LandingLens.
     It's also known as the "API Key v2" in LandingLens.
-    The difference between this v2 key and the legacy API key is that the v2 key only requires a single API key string.
-    The new v2 key string always starts with "land_sk_" prefix.
+    The difference between this v2 key and the legacy API key is that the v2 key is a single string, and the string always starts with "land_sk_" prefix.
     NOTE: This is the recommended way to authenticate with the LandingLens API.
 
     It supports loading from environment variables or .env files.
