@@ -6,7 +6,7 @@ import threading
 import time
 import glob
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Union, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import cv2
 import numpy as np
@@ -58,7 +58,9 @@ class FrameSet(BaseModel):
     frames: List[Frame] = []  # Start with empty frame set
 
     @classmethod
-    def from_image(cls, file: str) -> "FrameSet":
+    def from_image(
+        cls, file: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> "FrameSet":
         """Creates a FrameSet from an image file
 
         Parameters
@@ -71,7 +73,7 @@ class FrameSet(BaseModel):
         """
 
         im = Image.open(file)
-        return cls(frames=[Frame(image=im)])
+        return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
     def from_directory(cls, glob_expression: str) -> "FrameSet":
