@@ -6,7 +6,7 @@ import threading
 import time
 import glob
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, Optional
 
 import cv2
 import numpy as np
@@ -104,6 +104,15 @@ class FrameSet(BaseModel):
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
 
+    def _repr_pretty_(self, pp, cycle) -> str:
+        # Enable a pretty output on Jupiter notebooks `Display()` function
+        pp.text(
+            self.json(
+                # exclude={"frames": {"__all__": {"image", "other_images"}}},
+                indent=2
+            )
+        )
+
     def is_empty(self) -> bool:
         """Check if the FrameSet is empty
         Returns
@@ -124,10 +133,12 @@ class FrameSet(BaseModel):
             frame.predictions = predictor.predict(np.asarray(frame.image))
         return self
 
-    def overlay_predictions(self) -> "FrameSet":  # TODO: Optional where to store
+    def overlay_predictions(
+        self, options: Optional[Dict[str, Any]] = None
+    ) -> "FrameSet":  # TODO: Optional where to store
         for frame in self.frames:
             frame.other_images["overlay"] = overlay_predictions(
-                frame.predictions, np.asarray(frame.image)
+                frame.predictions, np.asarray(frame.image), options
             )
         return self
 
@@ -198,8 +209,9 @@ class FrameSet(BaseModel):
         """
         # TODO: Should show be a end leaf?
         # Check if we are on a notebook context
-        try: 
-            from IPython.display import display 
+        try:
+            from IPython.display import display
+
             for frame in self.frames:
                 if image_src == "":
                     display(frame.image)
@@ -260,6 +272,13 @@ class FrameSet(BaseModel):
             if not function(self.frames[i]):
                 self.frames.pop(i)
         return self
+
+    class Config:
+        # Add some encoders to prevent large structures from being printed
+        json_encoders = {
+            np.ndarray: lambda a: f"<np.ndarray: {a.shape}>",
+            Image.Image: lambda i: f"<Image.Image: {i.size}>",
+        }
 
 
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will tart to lag behind realtime.

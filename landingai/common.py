@@ -34,6 +34,7 @@ class Prediction(BaseModel):
     score: float
     """The confidence score of this prediction."""
 
+    @property
     def num_predicted_pixels(self) -> int:
         """Return the number of pixels within the prediction"""
         raise NotImplementedError()
