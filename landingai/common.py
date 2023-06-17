@@ -16,7 +16,7 @@ from landingai.exceptions import InvalidApiKeyError
     category=None,
 )
 class APICredential(BaseSettings):
-    """The API credentials of an organization in LandingLens.
+    """The API credentials of an user in a particular organization in LandingLens.
     NOTE: This is a legacy way to authenticate with the LandingLens API. Consider using the `APIKey` class instead.
 
     It supports loading from environment variables or .env files.
@@ -38,7 +38,7 @@ class APICredential(BaseSettings):
 
 
 class APIKey(BaseSettings):
-    """The API key of an organization in LandingLens.
+    """The API key of an user in a particular organization in LandingLens.
     It's also known as the "API Key v2" in LandingLens.
     The difference between this v2 key and the legacy API key is that the v2 key only requires a single API key string.
     The new v2 key string always starts with "land_sk_" prefix.
