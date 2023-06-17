@@ -5,11 +5,15 @@ from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
-from pydantic import BaseModel, BaseSettings
+from pydantic import BaseModel, BaseSettings, validator
+
+from landingai.exceptions import InvalidApiKeyError
 
 
 class APICredential(BaseSettings):
     """The API credentials of an organization in LandingLens.
+    NOTE: This is a legacy way to authenticate with the LandingLens API. Consider using the `APIKey` class instead.
+
     It supports loading from environment variables or .env files.
 
     The supported name of the environment variables are (case-insensitive):
@@ -21,6 +25,38 @@ class APICredential(BaseSettings):
 
     api_key: str
     api_secret: str
+
+    class Config:
+        env_file = ".env"
+        env_prefix = "landingai_"
+        case_sensitive = False
+
+
+class APIKey(BaseSettings):
+    """The API key of an organization in LandingLens.
+    It's also known as the "API Key v2" in LandingLens.
+    The difference between this v2 key and the legacy API key is that the v2 key only requires a single API key string.
+    The new v2 key string always starts with "land_sk_" prefix.
+    NOTE: This is the recommended way to authenticate with the LandingLens API.
+
+    It supports loading from environment variables or .env files.
+
+    The supported name of the environment variables are (case-insensitive):
+    - LANDINGAI_API_KEY
+
+    Environment variables will always take priority over values loaded from a dotenv file.
+    """
+
+    api_key: str
+
+    @validator("api_key")
+    def is_api_key_valid(cls, key: str) -> str:
+        """Check if the API key is a v2 key."""
+        if not key.startswith("land_sk_"):
+            raise InvalidApiKeyError(
+                f"API key (v2) must start with 'land_sk_' prefix, but it's {key}."
+            )
+        return key
 
     class Config:
         env_file = ".env"

@@ -1,5 +1,6 @@
 import logging
 import io
+import os
 from unittest.mock import patch
 from pathlib import Path
 
@@ -8,11 +9,13 @@ import pytest
 import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
+from landingai.common import APIKey
 
 from landingai.exceptions import (
     BadRequestError,
     ClientError,
     InternalServerError,
+    InvalidApiKeyError,
     PermissionDeniedError,
     RateLimitExceededError,
     ServiceUnavailableError,
@@ -25,13 +28,13 @@ from landingai.visualize import overlay_predictions
 
 def test_predict_with_none():
     with pytest.raises(ValueError) as excinfo:
-        Predictor("12345", "key", "secret").predict(None)
+        Predictor("12345", api_key="land_sk_1111").predict(None)
     assert "Input image must be non-emtpy, but got: None" in str(excinfo.value)
 
 
 def test_predict_with_empty_array():
     with pytest.raises(ValueError) as excinfo:
-        Predictor("12345", "key", "secret").predict(np.array([]))
+        Predictor("12345", api_key="land_sk_1111").predict(np.array([]))
     assert "Input image must be non-emtpy, but got: []" in str(excinfo.value)
 
 
@@ -44,7 +47,9 @@ def test_predict_500():
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
     with pytest.raises(InternalServerError) as excinfo:
-        Predictor("db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", "key", "secret").predict(img)
+        Predictor(
+            "db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", api_key="land_sk_1111"
+        ).predict(img)
     assert (
         "Internal server error. The model server encountered an unexpected condition and failed. Please report this issue to LandingLens support for further assistant."
         in str(excinfo.value)
@@ -60,7 +65,9 @@ def test_predict_504():
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
     with pytest.raises(ServiceUnavailableError) as excinfo:
-        Predictor("db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", "key", "secret").predict(img)
+        Predictor(
+            "db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", api_key="land_sk_1111"
+        ).predict(img)
     assert "Service temporarily unavailable. Please try again in a few minutes." in str(
         excinfo.value
     )
@@ -75,7 +82,9 @@ def test_predict_503():
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
     with pytest.raises(ServiceUnavailableError) as excinfo:
-        Predictor("db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", "key", "secret").predict(img)
+        Predictor(
+            "db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", api_key="land_sk_1111"
+        ).predict(img)
     assert "Service temporarily unavailable. Please try again in a few minutes." in str(
         excinfo.value
     )
@@ -91,9 +100,9 @@ def test_predict_404():
     img = Image.open(img_path)
     with pytest.raises(BadRequestError) as excinfo:
         with patch.object(Predictor, "_url", "https://predict.app.landing.ai/v0/foo"):
-            Predictor("8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", "key", "secret").predict(
-                img
-            )
+            Predictor(
+                "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", api_key="land_sk_1111"
+            ).predict(img)
     assert (
         "Endpoint doesn't exist. Please check the inference url path and other configuration is correct and try again. If this issue persists, please report this issue to LandingLens support for further assistant."
         in str(excinfo.value)
@@ -109,7 +118,9 @@ def test_predict_400():
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
     with pytest.raises(ClientError) as excinfo:
-        Predictor("db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", "key", "secret").predict(img)
+        Predictor(
+            "db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4", api_key="land_sk_1111"
+        ).predict(img)
     assert (
         "Client error. Please check your configuration and inference request is well-formed and try again. If this issue persists, please report this issue to LandingLens support for further assistant."
         in str(excinfo.value)
@@ -125,7 +136,9 @@ def test_predict_300():
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
     with pytest.raises(UnexpectedRedirectError) as excinfo:
-        Predictor("8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", "key", "secret").predict(img)
+        Predictor(
+            "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", api_key="land_sk_1111"
+        ).predict(img)
     assert (
         "Unexpected redirect. Please report this issue to LandingLens support for further assistant."
         in str(excinfo.value)
@@ -142,7 +155,9 @@ def test_predict_429_rate_limited():
     img = Image.open(img_path)
     with pytest.raises(RateLimitExceededError) as excinfo:
         Predictor._num_retry = 1
-        Predictor("8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", "key", "secret").predict(img)
+        Predictor(
+            "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", api_key="land_sk_1111"
+        ).predict(img)
     assert (
         "Rate limit exceeded. You have sent too many requests in a minute. Please wait for a minute before sending new requests. Contact your account admin or LandingLens support for how to increase your rate limit."
         in str(excinfo.value)
@@ -160,8 +175,7 @@ def test_predict_403_run_out_of_credits():
     with pytest.raises(PermissionDeniedError) as excinfo:
         Predictor(
             "dfa79692-75eb-4a48-b02e-b273751adbae",
-            "1r1c7i0c1pnmp1oac1748fnrnerh7dg",
-            "mreiix1wmm8da3qnzfe7xivwq53rsajnl7k8re0iz14zmm1s6gepdien82r871",
+            api_key="land_sk_1r1c7i0c1pnmp1oac1748fnrnerh7dg",
         ).predict(img)
     assert (
         "Permission denied. Please check your account has enough credits or your enterprise contract is not expired or if you have access to this endpoint. Contact your account admin for more information."
@@ -179,7 +193,8 @@ def test_predict_401_with_wrong_api_key():
     img = Image.open(img_path)
     with pytest.raises(UnauthorizedError) as excinfo:
         Predictor(
-            "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", "wrong_key", "wrong_secret"
+            "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43",
+            api_key="land_sk_wrong_key",
         ).predict(img)
     assert "Unauthorized. Please check your API key and API secret is correct." in str(
         excinfo.value
@@ -195,7 +210,7 @@ def test_predict_422_with_wrong_endpoint_id():
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
     with pytest.raises(BadRequestError) as excinfo:
-        Predictor("12345", "correct_api_key", "correct_secret").predict(img)
+        Predictor("12345", api_key="land_sk_correct_key").predict(img)
     assert "Bad request. Please check your Endpoint ID is correct." in str(
         excinfo.value
     )
@@ -223,7 +238,8 @@ def test_predict_matching_expected_request_body():
         },
     )
     predictor = Predictor(
-        "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", "fake_key", "fake_secret"
+        "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43",
+        api_key="land_sk_1111",
     )
     predictor.predict(img)
 
@@ -310,3 +326,42 @@ def _read_image_as_png_bytes(file_path: str) -> bytes:
     data = img_buffer.getvalue()
     assert data is not None
     return data
+
+
+def test_load_api_credential_invalid_key():
+    with pytest.raises(InvalidApiKeyError):
+        Predictor("endpoint_1234")
+    with pytest.raises(InvalidApiKeyError):
+        Predictor("endpoint_1234", api_key="fake_key")
+    with pytest.raises(InvalidApiKeyError):
+        os.environ["landingai_api_key"] = "1234"
+        Predictor("endpoint_1234")
+
+
+def test_load_api_credential_from_constructor():
+    predictor = Predictor("endpoint_1234", api_key="land_sk_1234")
+    assert predictor._api_credential.api_key == "land_sk_1234"
+
+
+def test_load_api_credential_from_env_var():
+    os.environ["landingai_api_key"] = "land_sk_123"
+    predictor = Predictor("endpoint_1234")
+    assert predictor._api_credential.api_key == "land_sk_123"
+    del os.environ["landingai_api_key"]
+
+
+def test_load_api_credential_from_env_file(tmp_path):
+    env_file: Path = tmp_path / ".env"
+    env_file.write_text(
+        """
+                        LANDINGAI_API_KEY="land_sk_12345"
+                        LANDINGAI_API_SECRET="abcd"
+                        """
+    )
+    # Overwrite the default env_prefix to avoid conflict with the real .env
+    APIKey.__config__.env_file = str(env_file)
+    predictor = Predictor("endpoint_1234")
+    assert predictor._api_credential.api_key == "land_sk_12345"
+    # reset back to the default config
+    APIKey.__config__.env_file = ".env"
+    env_file.unlink()

@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 import numpy as np
@@ -51,7 +52,10 @@ def test_od_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Endpoint: https://app.landing.ai/app/376/pr/11165/deployment?device=tiger-team-integration-tests
     endpoint_id = "db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    # TODO: Replace with v2 API key
+    os.environ["landingai_api_key"] = _API_KEY
+    os.environ["landingai_api_secret"] = _API_SECRET
+    predictor = Predictor(endpoint_id)
     img = np.asarray(Image.open("tests/data/images/cereal1.jpeg"))
     assert img is not None
     # Call LandingLens inference endpoint with Predictor.predict()
@@ -71,13 +75,18 @@ def test_od_predict():
     logging.info(preds)
     img_with_preds = overlay_predictions(predictions=preds, image=img)
     img_with_preds.save("tests/output/test_od.jpg")
+    del os.environ["landingai_api_key"]
+    del os.environ["landingai_api_secret"]
 
 
 def test_seg_predict(expected_seg_prediction, seg_mask_validator):
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Project: https://app.landing.ai/app/376/pr/26113016987660/deployment?device=tiger-team-integration-tests
     endpoint_id = "72fdc6c2-20f1-4f5e-8df4-62387acec6e4"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    # TODO: Replace with v2 API key
+    os.environ["landingai_api_key"] = _API_KEY
+    os.environ["landingai_api_secret"] = _API_SECRET
+    predictor = Predictor(endpoint_id)
     img = Image.open("tests/data/images/cereal1.jpeg")
     assert img is not None
     preds = predictor.predict(img)
@@ -86,13 +95,18 @@ def test_seg_predict(expected_seg_prediction, seg_mask_validator):
     logging.info(preds)
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_seg.jpg")
+    del os.environ["landingai_api_key"]
+    del os.environ["landingai_api_secret"]
 
 
 def test_vp_predict(seg_mask_validator):
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Project: https://app.landing.ai/app/376/pr/26098103179275/deployment?device=tiger-example
     endpoint_id = "63035608-9d24-4342-8042-e4b08e084fde"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    # TODO: Replace with v2 API key
+    os.environ["landingai_api_key"] = _API_KEY
+    os.environ["landingai_api_secret"] = _API_SECRET
+    predictor = Predictor(endpoint_id)
     img = np.asarray(Image.open("tests/data/images/farm-coverage.jpg"))
     assert img is not None
     preds = predictor.predict(img)
@@ -112,13 +126,18 @@ def test_vp_predict(seg_mask_validator):
     expected = Image.open("tests/data/images/expected_vp_masks.png")
     diff = ImageChops.difference(img_with_masks.resize((512, 512)), expected)
     assert diff.getbbox() is None, "Expected and actual images should be the same"
+    del os.environ["landingai_api_key"]
+    del os.environ["landingai_api_secret"]
 
 
 def test_class_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Project: https://app.landing.ai/app/376/pr/26119078438913/deployment?device=tiger-team-integration-tests
     endpoint_id = "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    # TODO: Replace with v2 API key
+    os.environ["landingai_api_key"] = _API_KEY
+    os.environ["landingai_api_secret"] = _API_SECRET
+    predictor = Predictor(endpoint_id)
     img = Image.open("tests/data/images/wildfire1.jpeg")
     assert img is not None
     preds = predictor.predict(img)
@@ -129,6 +148,89 @@ def test_class_predict():
     logging.info(preds)
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_class.jpg")
+    del os.environ["landingai_api_key"]
+    del os.environ["landingai_api_secret"]
+
+
+# TODO: re-enable below test after OCR endpoint is deployed to prod
+@pytest.mark.skip(reason="OCR endpoint is not deployed to prod yet")
+def test_ocr_predict():
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
+    predictor = OcrPredictor(
+        # TODO: replace with a prod key after the OCR endpoint is deployed to prod
+        api_key="land_sk_6uttU3npa5V0MUgPWb6j33ZuszsGBqVGs4wnoSR91LBwpbjZpG",
+        api_secret="1234",
+    )
+    img = Image.open("tests/data/images/ocr_test.png")
+    assert img is not None
+    # Test multi line
+    preds = predictor.predict(img, mode="multi-text")
+    logging.info(preds)
+    expected_texts = [
+        "公司名称",
+        "业务方向",
+        "Anysphere",
+        "AI工具",
+        "Atomic Semi",
+        "芯片",
+        "Cursor",
+        "代码编辑",
+        "Diagram",
+        "设计",
+        "Harvey",
+        "AI法律顾问",
+        "Kick",
+        "会计软件",
+        "Milo",
+        "家长虚拟助理",
+        "qqbot.dev",
+        "开发者工具",
+        "EdgeDB",
+        "开源数据库",
+        "Mem Labs",
+        "笔记应用",
+        "Speak",
+        "英语学习",
+        "Descript",
+        "音视频编辑",
+        "量子位",
+    ]
+    assert len(preds) == len(expected_texts)
+    for pred, expected in zip(preds, expected_texts):
+        assert pred.text == expected
+
+    img_with_masks = overlay_predictions(preds, img)
+    img_with_masks.save("tests/output/test_ocr_multiline.jpg")
+    # Test single line
+    preds = predictor.predict(
+        img,
+        mode="single-text",
+        regions_of_interest=[
+            [[99, 19], [366, 19], [366, 75], [99, 75]],
+            [[599, 842], [814, 845], [814, 894], [599, 892]],
+        ],
+    )
+    logging.info(preds)
+    expected = [
+        {
+            "text": "公司名称",
+            "location": [(99, 19), (366, 19), (366, 75), (99, 75)],
+            "score": 0.8279303908348083,
+        },
+        {
+            "text": "英语学习",
+            "location": [(599, 842), (814, 845), (814, 894), (599, 892)],
+            "score": 0.939440906047821,
+        },
+    ]
+    for pred, expected in zip(preds, expected):
+        assert pred.text == expected["text"]
+        assert pred.location == expected["location"]
+        assert pred.score == expected["score"]
+    img_with_masks = overlay_predictions(preds, img)
+    img_with_masks.save("tests/output/test_ocr_singleline.jpg")
+    del os.environ["landingai_api_key"]
+    del os.environ["landingai_api_secret"]
 
 
 # TODO: re-enable below test after OCR endpoint is deployed to prod

@@ -1,12 +1,27 @@
 ## Manage API Credentials
 
-Here are the three ways to configure your API Key and API Secret, ordered by the priority in which they are loaded:
+If you send images to an endpoint through API (Cloud Deployment), you must add your API Key to the API call. You can generate the API Key in LandingLens. This API key is also known as API key v2. See [here](https://support.landing.ai/docs/api-key-and-api-secret) for more information.
 
-1. Pass them as function parameters. See `landingai.predict.Predictor`.
-2. Set them as environment variables. For example: `export LANDINGAI_API_KEY=...`, `export LANDINGAI_API_SECRET=...`.
-3. Store them in an `.env` file under your project root directory. For example, here is a set of credentials in an `.env` file:
+Once you have generated the API key, here are three ways to configure your API Key, ordered by the priority in which they are loaded:
+
+1. Pass it as function parameters. See `landingai.predict.Predictor`.
+2. Set it as environment variables. For example: `export LANDINGAI_API_KEY=...`.
+3. Store it in an `.env` file under your project root directory. For example, here is a set of credentials in an `.env` file:
 
 ```
-   LANDINGAI_API_KEY=v7b0hdyfj6271xy2o9lmiwkkcb12345
-   LANDINGAI_API_SECRET=ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq312345
+   LANDINGAI_API_KEY=land_sk_v7b0hdyfj6271xy2o9lmiwkkcb12345
 ```
+
+### Legacy API key and secret
+
+In the past, LandingLens supports generating a key and secret pair, which is known as API key v1. This approach is not recommended anymore.
+But if you have a v1 key and secret pair, you can still use the Python SDK via either setting environment variables or an `.env` file, i.e. the #2 and #3 methods above.
+
+### FAQ
+
+#### What's the difference between the v1 API key and v2 API key
+
+Here are a few differences:
+1. The v2 API key always starts with a prefix "land_sk_" whereas the v1 API key doesn't.
+2. The v1 API key always comes with a secret string, and the SDK requires both whereas the v2 API key only has a single string.
+3. Users can only generate v2 API keys after July 2023.
