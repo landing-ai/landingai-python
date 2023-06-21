@@ -77,7 +77,10 @@ class ImageFolder(ImageSourceBase):
             self._image_paths = source
         else:
             assert isinstance(source, str) or isinstance(source, Path)
-            self._image_paths = [str(x) for x in Path(source).glob("*") if x.is_file()]
+            p=Path(source)
+            if not p.exists():
+                raise ValueError(f"Path '{p}' does not exist.")
+            self._image_paths = [str(x) for x in p.glob("*") if x.is_file()]
             self._image_paths.sort()
 
     def __iter__(self) -> IteratorType[FrameSet]:
