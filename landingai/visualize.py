@@ -63,7 +63,7 @@ def overlay_ocr_predictions(
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     texts = [pred.text for pred in predictions]
-    boxes = [pred.text_location for pred in predictions]
+    boxes = [pred.location for pred in predictions]
     h, w = image.height, image.width
     img_left = image.copy()
     img_right = np.ones((h, w, 3), dtype=np.uint8) * 255

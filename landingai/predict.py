@@ -1,6 +1,7 @@
 import io
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union, Type
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 import numpy as np
 import PIL.Image
@@ -14,6 +15,7 @@ from landingai.common import (
     APICredential,
     ClassificationPrediction,
     ObjectDetectionPrediction,
+    OcrPrediction,
     Prediction,
     SegmentationPrediction,
 )
@@ -98,7 +100,9 @@ class Predictor:
         buffer_bytes = self._serialize_image(image)
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
         payload = {"endpoint_id": self._endpoint_id, "device_type": "pylib"}
-        return _do_inference(self._session, Predictor._url, files, payload, _Extractor)
+        return _do_inference(
+            self._session, Predictor._url, files, payload, _CloudExtractor
+        )
 
     def _serialize_image(self, image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
         if image is None or (isinstance(image, np.ndarray) and len(image) == 0):
@@ -114,19 +118,30 @@ class Predictor:
 
 
 class OcrPredictor(Predictor):
-    _url: str = "https://predict.app.landing.ai/inference/v1/detect-text"
+    """A class that calls your OCR inference endpoint on the LandingLens platform."""
+
+    _url: str = "https://predict.app.staging.landing.ai/inference/v1/detect-text"
 
     def __init__(
         self,
-        # TODO: remove det_mode
-        det_mode: str,
-        threshold: float,
+        threshold: float = 0.5,
+        *,
         api_key: Optional[str] = None,
         api_secret: Optional[str] = None,
     ) -> None:
-        self._det_mode = det_mode
+        """OCR Predictor constructor
+
+        Parameters
+        ----------
+        threshold:
+            The minimum confidence threshold of the prediction to keep, by default 0.5
+        api_key
+            The API Key of your LandingLens organization.
+            If not provided, it will try to load from the environment variable
+            LANDINGAI_API_KEY or from the .env file.
+        """
         self._threshold = threshold
-        self._api_crendential = self._load_api_credential(api_key, api_secret)
+        self._api_credential = self._load_api_credential(api_key, api_secret)
         self._session = _create_session(
             OcrPredictor._url,
             self._num_retry,
@@ -146,9 +161,15 @@ class OcrPredictor(Predictor):
         ----------
         image
             The input image to be predicted
+        mode:
+            The mode of this prediction. It can be either "multi-text" (default) or "single-text".
+            In "multi-text" mode, the predictor will detect multiple lines of text in the image.
+            In "single-text" mode, the predictor will detect a single line of text in the image.
         regions_of_interest
-            A list of region of interest boxes/quadrilateral. Each box is a list of 4 points (x, y).
-            If it is None, the whole image will be used as the region of interest.
+            A list of region of interest boxes/quadrilateral. Each quadrilateral is a list of 4 points (x, y).
+            In "single-text" mode, the caller must provide a list of quadrilateral(s) that cover the text in the image.
+            Each quadrilateral is a list of 4 points (x, y), and it should cover a single line of text in the image.
+            In "multi-text" mode, regions_of_interest is not required. If it is None, the whole image will be used as the region of interest.
 
         Returns
         -------
@@ -156,16 +177,40 @@ class OcrPredictor(Predictor):
             A list of OCR prediction result.
         """
 
-        # TODO: crop image to ROI
         buffer_bytes = self._serialize_image(image)
-        files = [("files", ("image.png", buffer_bytes, "image/png"))]
-        payload: Dict[str, Any] = {"device_type": "pylib"}
+        files = [("images", ("image.png", buffer_bytes, "image/png"))]
+        mode: str = kwargs.get("mode", "multi-text")
+        if mode not in ["multi-text", "single-text"]:
+            raise ValueError(
+                f"mode must be either 'multi-text' or 'single-text', but got: {mode}"
+            )
+        if mode == "single-text" and "regions_of_interest" not in kwargs:
+            raise ValueError(
+                "regions_of_interest parameter must be provided in single-text mode."
+            )
+        data = {}
         if "regions_of_interest" in kwargs:
             rois: List[List[Tuple[int, int]]] = kwargs["regions_of_interest"]
-            payload["regions_of_interest"] = [rois]
-        return _do_inference(
-            self._session, OcrPredictor._url, files, payload, _Extractor
+            rois_payload = []
+            for roi in rois:
+                rois_payload.append(
+                    {
+                        "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
+                        "mode": mode,
+                    }
+                )
+            data["rois"] = json.dumps([rois_payload])
+
+        payload: Dict[str, Any] = {"device_type": "pylib"}
+        preds = _do_inference(
+            self._session,
+            OcrPredictor._url,
+            files,
+            payload,
+            _OcrExtractor,
+            data=data,
         )
+        return [pred for pred in preds if pred.score >= self._threshold]
 
 
 class EdgePredictor(Predictor):
@@ -200,6 +245,14 @@ class EdgePredictor(Predictor):
 
 
 class _Extractor:
+    """The base class for all extractors. This is useful for type checking."""
+
+    @staticmethod
+    def extract_prediction(response: Any) -> List[Prediction]:
+        raise NotImplementedError()
+
+
+class _CloudExtractor(_Extractor):
     """A class that extract the raw JSON inference result to Predict Results instances."""
 
     @staticmethod
@@ -423,13 +476,13 @@ class _Extractor:
             response_type = response["type"]  # Classification response
         predictions: List[Prediction]
         if response_type == "ObjectDetectionPrediction":
-            predictions = _Extractor._extract_od_prediction(response)  # type: ignore
+            predictions = _CloudExtractor._extract_od_prediction(response)  # type: ignore
         elif response_type == "SegmentationPrediction":
-            predictions = _Extractor._extract_seg_prediction(response)  # type: ignore
+            predictions = _CloudExtractor._extract_seg_prediction(response)  # type: ignore
         elif response_type == "ClassificationPrediction":
-            predictions = _Extractor._extract_class_prediction(response)  # type: ignore
+            predictions = _CloudExtractor._extract_class_prediction(response)  # type: ignore
         elif response_type == "SegmentationPredictionVP":
-            predictions = _Extractor._extract_vp_prediction(response)  # type: ignore
+            predictions = _CloudExtractor._extract_vp_prediction(response)  # type: ignore
         else:
             raise NotImplementedError(
                 f"{response_type} is not implemented in _Extractor"
@@ -612,6 +665,23 @@ class _EdgeExtractor(_Extractor):
         return predictions
 
 
+class _OcrExtractor(_Extractor):
+    """A class that extract the raw JSON inference result to OcrPrediction instances."""
+
+    @staticmethod
+    def extract_prediction(response: List[List[Dict[str, Any]]]) -> List[Prediction]:
+        """Extract a batch of OCR prediction results from the response."""
+        preds = [
+            OcrPrediction(
+                text=pred["text"],
+                location=[(coord["x"], coord["y"]) for coord in pred["location"]],
+                score=pred["score"],
+            )
+            for pred in response[0]  # batch size is always 1
+        ]
+        return cast(List[Prediction], preds)
+
+
 def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Session:
     """Create a requests session with retry"""
     session = Session()
@@ -643,10 +713,12 @@ def _do_inference(
     files: List[Any],
     payload: Dict[str, Any],
     extractor_class: Type[_Extractor],
+    *,
+    data: Optional[Dict[str, Any]] = None,
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
     try:
-        resp = session.post(endpoint_url, files=files, params=payload)
+        resp = session.post(endpoint_url, files=files, params=payload, data=data)
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError(
             f"Failed to connect to the model server. Please double check the model server url ({endpoint_url}) is correct.\nException detail: {e}"

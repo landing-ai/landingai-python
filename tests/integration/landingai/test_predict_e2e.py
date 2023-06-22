@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageChops
 
-from landingai.predict import Predictor
+from landingai.predict import OcrPredictor, Predictor
 from landingai.visualize import overlay_predictions
 
 _API_KEY = "v7b0hdyfj6271xy2o9lmiwkkcbdpvt1"
@@ -128,3 +128,79 @@ def test_class_predict():
     logging.info(preds)
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_class.jpg")
+
+
+def test_ocr_predict():
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
+    predictor = OcrPredictor(
+        api_key="wmn35j5z2qpo9mvofrgc321sxr1adg2",
+        api_secret="b51gsiwti2343w0tqq3j64ps6o95kwy15y859u50y3u032hci1odjhszabsou5",
+    )
+    img = Image.open("tests/data/images/ocr_test.png")
+    assert img is not None
+    # Test multi line
+    preds = predictor.predict(img, mode="multi-text")
+    logging.info(preds)
+    expected_texts = [
+        "公司名称",
+        "业务方向",
+        "Anysphere",
+        "AI工具",
+        "Atomic Semi",
+        "芯片",
+        "Cursor",
+        "代码编辑",
+        "Diagram",
+        "设计",
+        "Harvey",
+        "AI法律顾问",
+        "Kick",
+        "会计软件",
+        "Milo",
+        "家长虚拟助理",
+        "qqbot.dev",
+        "开发者工具",
+        "EdgeDB",
+        "开源数据库",
+        "Mem Labs",
+        "笔记应用",
+        "Speak",
+        "英语学习",
+        "Descript",
+        "音视频编辑",
+        "量子位",
+    ]
+    assert len(preds) == len(expected_texts)
+    for pred, expected in zip(preds, expected_texts):
+        assert pred.text == expected
+
+    img_with_masks = overlay_predictions(preds, img)
+    img_with_masks.save("tests/output/test_ocr_multiline.jpg")
+    # Test single line
+    preds = predictor.predict(
+        img,
+        mode="single-text",
+        regions_of_interest=[
+            [[99, 19], [366, 19], [366, 75], [99, 75]],
+            [[599, 842], [814, 845], [814, 894], [599, 892]],
+        ],
+    )
+    logging.info(preds)
+    expected = [
+        {
+            "text": "公司名称",
+            "location": [(99, 19), (366, 19), (366, 75), (99, 75)],
+            "score": 0.8279303908348083,
+        },
+        {
+            "text": "英语学习",
+            "location": [(599, 842), (814, 845), (814, 894), (599, 892)],
+            "score": 0.939440906047821,
+        },
+    ]
+    for pred, expected in zip(preds, expected):
+        assert pred.text == expected["text"]
+        assert pred.location == expected["location"]
+        assert pred.score == expected["score"]
+    img_with_masks = overlay_predictions(preds, img)
+    img_with_masks.save("tests/output/test_ocr_singleline.jpg")

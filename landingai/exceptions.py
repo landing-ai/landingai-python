@@ -2,7 +2,7 @@
 
 import logging
 from pprint import pformat
-from typing import Any, Dict, Union, cast
+from typing import Any, Dict, List, Union, cast
 
 from requests import PreparedRequest, Response
 from requests.structures import CaseInsensitiveDict
@@ -124,18 +124,18 @@ class HttpResponse:
     def __str__(self) -> str:
         return pformat(self.__dict__)
 
-    def json(self) -> Dict[str, Any]:
+    def json(self) -> Union[Dict[str, Any], List[Any]]:
         """Get json body from the response.
         NOTE: make sure you have checked the response and you are expecting a JSON body in response
 
         Returns
         -------
-        Dict[str, Any]
-            the json body of the response
+        Union[Dict[str, Any], List[Any]]
+            the json body of the response. Currently, it could be either a dict or a list. (It may support more types in the future)
         """
-        assert isinstance(
-            self.data, dict
-        ), f"expecting a dict instance, but it's f{type(self.data)} typed."
+        assert isinstance(self.data, dict) or isinstance(
+            self.data, list
+        ), f"expecting a dict or list instance, but it's f{type(self.data)} typed."
         return self.data
 
     @classmethod
