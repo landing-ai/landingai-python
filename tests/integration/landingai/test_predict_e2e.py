@@ -133,8 +133,9 @@ def test_class_predict():
 def test_ocr_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     predictor = OcrPredictor(
-        api_key="wmn35j5z2qpo9mvofrgc321sxr1adg2",
-        api_secret="b51gsiwti2343w0tqq3j64ps6o95kwy15y859u50y3u032hci1odjhszabsou5",
+        # TODO: replace with a prod key after the OCR endpoint is deployed to prod
+        api_key="land_sk_6uttU3npa5V0MUgPWb6j33ZuszsGBqVGs4wnoSR91LBwpbjZpG",
+        api_secret="1234",
     )
     img = Image.open("tests/data/images/ocr_test.png")
     assert img is not None
