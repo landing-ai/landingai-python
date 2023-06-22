@@ -57,6 +57,10 @@ class FrameSet(BaseModel):
 
     frames: List[Frame] = []  # Start with empty frame set
 
+    # @classmethod
+    # def from_frameset_list(cls, list: List["FrameSet"] = None) -> "FrameSet":
+    #     return cls(frames=list)
+
     @classmethod
     def from_image(
         cls, file: str, metadata: Optional[Dict[str, Any]] = None
@@ -76,26 +80,20 @@ class FrameSet(BaseModel):
         return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
-    def from_directory(cls, glob_expression: str) -> "FrameSet":
-        """Creates a FrameSet with all the files matching a glob expression
+    def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
+        """Creates a FrameSet from a image encode as ndarray
 
         Parameters
         ----------
-        glob_expression : (e.g /tmp/*.jpg)
+        array : np.ndarray
+            Image
+        is_BGR : bool, optional
+            Assume OpenCV's BGR color space? Defaults to True
 
         Returns
         -------
-        FrameSet : New FrameSet containing all matching images
+        FrameSet
         """
-
-        images = glob.glob(glob_expression)
-        frames = []
-        for file in images:
-            frames.append(Frame(image=Image.open(file)))
-        return cls(frames=frames)
-
-    @classmethod
-    def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
         # img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
         if is_BGR:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
@@ -203,7 +201,7 @@ class FrameSet(BaseModel):
             c += 1
         return self
 
-    def show_image(self, image_src: str = "") -> "FrameSet":
+    def show_image(self, image_src: str = "", clear_nb_cell: bool = False) -> "FrameSet":
         """Open an a window and display all the images.
         Parameters
         ----------
@@ -212,13 +210,15 @@ class FrameSet(BaseModel):
         # TODO: Should show be a end leaf?
         # Check if we are on a notebook context
         try:
-            from IPython.display import display
+            from IPython import display
 
             for frame in self.frames:
+                if clear_nb_cell:
+                    display.clear_output(wait=True)
                 if image_src == "":
-                    display(frame.image)
+                    display.display(frame.image)
                 else:
-                    display(frame.other_images[image_src])
+                    display.display(frame.other_images[image_src])
         except ModuleNotFoundError:
             # Use PIL's implementation
             for frame in self.frames:
