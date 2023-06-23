@@ -1,0 +1,5 @@
+streamlit
+streamlit-drawable-canvas
+extra-streamlit-components
+streamlit-pydantic
+landingai
