@@ -59,8 +59,8 @@ class OcrPrediction(Prediction):
     text: str
     """The predicted text."""
 
-    text_location: List[Tuple[int, int]]
-    """A quadrilateral polygon that represents the location of the text."""
+    location: List[Tuple[int, int]]
+    """A quadrilateral polygon that represents the location of the text. It is a list of four (x, y) coordinates."""
 
 
 class ObjectDetectionPrediction(ClassificationPrediction):
