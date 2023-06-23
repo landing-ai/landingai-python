@@ -97,7 +97,7 @@ def match_dets_with_prev(
     for prev_det_idx, det_idx in enumerate(prev_det_to_det):
         if iou[prev_det_idx, det_idx] != 0.0:
             matches[prev_det_idx] = det_idx
-    unmatched = set([i for i in range(len(detections))]) - set(prev_det_to_det)
+    unmatched = set([i for i in range(len(detections))]) - set(matches.values())
     return matches, unmatched
 
 
