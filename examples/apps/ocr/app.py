@@ -1,23 +1,46 @@
+import logging
 import time
+from enum import Enum
 
 import extra_streamlit_components as stx
-import streamlit_pydantic as sp
 import numpy as np
 import streamlit as st
+import streamlit_pydantic as sp
 from PIL import Image
 
-from examples.apps.ocr.predict import DetModel, OcrPredictor
 from examples.apps.ocr.roi import draw_region_of_interests, process_and_display_roi
 from landingai.common import APICredential
+from landingai.predict import OcrPredictor
 from landingai.visualize import overlay_predictions
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(filename)s %(funcName)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+
+class DetModel(str, Enum):
+    AUTO_DETECT = "multi-text"
+    MANUAL_ROI = "single-text"
+
+
+class OcrAPICredential(APICredential):
+    api_key: str = "land_sk_6uttU3npa5V0MUgPWb6j33ZuszsGBqVGs4wnoSR91LBwpbjZpG"
+    api_secret: str = ""
 
 
 # Streamlit app code
 def main():
-    st.title("OCR Demo")
+    st.title("OCR App")
     st.sidebar.title("Configuration")
     with st.sidebar:
-        credential = sp.pydantic_form(key="api_credential", model=APICredential, submit_label="Save", ignore_empty_values=True)
+        credential = sp.pydantic_form(
+            key="api_credential",
+            model=OcrAPICredential,
+            submit_label="Save",
+            ignore_empty_values=True,
+        )
         if credential:
             st.session_state["credential"] = credential
             st.info("Saved API credential")
@@ -45,17 +68,17 @@ def main():
             DetModel.AUTO_DETECT.name,
             DetModel.MANUAL_ROI.name,
         ],
-        help=f"Auto Detect - Ideal for reading text in multiple lines or single line where each line is a collection of words. "
-        f"Examples are reading text in a document, print, label or image where location of text is dynamic."
-        f"Manual ROI - For more complex use cases draw a ROI for every word to be read. The text location has to be the same for every image ",
+        help="Auto Detect - Ideal for reading text in multiple lines or single line where each line is a collection of words. "
+        "Examples are reading text in a document, print, label or image where location of text is dynamic."
+        "Manual ROI - For more complex use cases draw a ROI for every word to be read. The text location has to be the same for every image ",
     )
     st.markdown(
-        f":blue[Auto Detect] - Ideal for reading text in multiple lines or single line where each line is a stream of characters."
-        f"Examples are reading text in a document, print, label or image where location of text is dynamic."
+        ":blue[Auto Detect] - Ideal for reading text in multiple lines or single line where each line is a stream of characters."
+        "Examples are reading text in a document, print, label or image where location of text is dynamic."
     )
     st.markdown(
-        f":blue[Manual ROI] - Ideal for For more complex use cases where user draws a box encapsulating every word to be read.  "
-        f"Used when auto detect modes fail to locate text reliably. The text location has to be the same for every image "
+        ":blue[Manual ROI] - Ideal for For more complex use cases where user draws a box encapsulating every word to be read.  "
+        "Used when auto detect modes fail to locate text reliably. The text location has to be the same for every image "
     )
 
     # Add image viewer
@@ -91,9 +114,17 @@ def main():
                 st.error("Please enter and save your API credential first")
                 return
             api_credential = st.session_state["credential"]
-            predictor = OcrPredictor(detection_mode, float(threshold))
+            predictor = OcrPredictor(
+                threshold=float(threshold),
+                api_key=api_credential.api_key,
+                api_secret=api_credential.api_secret,
+            )
             begin = time.perf_counter()
-            preds = predictor.predict(input_images, roi_boxes=boxes)
+            mode = DetModel[detection_mode].value
+            logging.info(
+                f"Running OCR prediction in {mode} mode with threshold {threshold} and rois: {boxes}"
+            )
+            preds = predictor.predict(image, mode=mode, regions_of_interest=boxes)
             tak_time = time.perf_counter() - begin
             display_image = overlay_predictions(preds, image_np)
             st.image(
