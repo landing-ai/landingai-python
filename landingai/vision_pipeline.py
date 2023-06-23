@@ -201,7 +201,9 @@ class FrameSet(BaseModel):
             c += 1
         return self
 
-    def show_image(self, image_src: str = "", clear_nb_cell: bool = False) -> "FrameSet":
+    def show_image(
+        self, image_src: str = "", clear_nb_cell: bool = False
+    ) -> "FrameSet":
         """Open an a window and display all the images.
         Parameters
         ----------
@@ -294,9 +296,9 @@ class NetworkedCamera(BaseModel):
     previous_frame: Union[Frame, None] = None
     _last_capture_time: datetime = PrivateAttr()
     _cap: Any = PrivateAttr()  # cv2.VideoCapture
-    _inter_frame_interval: int = PrivateAttr()
-    _lock: Any = PrivateAttr()  # threading.Lock
     _t: Any = PrivateAttr()  # threading.Thread
+    _t_lock: Any = PrivateAttr()  # threading.Lock
+    _t_running: bool = PrivateAttr()
 
     def __init__(
         self,
@@ -315,7 +317,9 @@ class NetworkedCamera(BaseModel):
         if not cap.isOpened():
             cap.release()
             raise Exception(f"Could not open stream ({stream_url})")
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Limit buffering to 1 frames
+        cap.set(
+            cv2.CAP_PROP_BUFFERSIZE, 2
+        )  # Limit buffering to 2 frames in order to avoid backlog (i.e. lag)
 
         super().__init__(
             stream_url=stream_url,
@@ -323,28 +327,31 @@ class NetworkedCamera(BaseModel):
             capture_interval=capture_interval,
         )
         self._last_capture_time = datetime.now()
-        # FPS = 1/X
-        # self.FPS_MS = int(self.FPS * 1000)
-        self._inter_frame_interval = 1 / cap.get(
-            cv2.CAP_PROP_FPS
-        )  # Get the source's framerate
         self._cap = cap
-        self._lock = threading.Lock()
+        self._t_lock = threading.Lock()
         self._t = threading.Thread(target=self._reader)
         self._t.daemon = True
+        self._t_running = False
         self._t.start()
 
     def __del__(self) -> None:
+        self._t_running = False
+        self._t.join(timeout=10)
         self._cap.release()
 
     # grab frames as soon as they are available
     def _reader(self) -> None:
-        while True:
-            with self._lock:
+        self._t_running = True
+        # inter_frame_interval = 1 / self._cap.get(cv2.CAP_PROP_FPS)  # Get the source's framerate (FPS = 1/X)
+        inter_frame_interval = (
+            1 / 30
+        )  # Some sources miss report framerate so we use a conservative number
+        while self._t_running:
+            with self._t_lock:
                 ret = self._cap.grab()  # non-blocking call
                 if not ret:
                     raise Exception(f"Connection to camera broken ({self.stream_url})")
-            time.sleep(self._inter_frame_interval)  # Limit acquisition speed
+            time.sleep(inter_frame_interval)  # Limit acquisition speed
 
     # retrieve latest frame
     def get_latest_frame(self) -> "FrameSet":
@@ -355,7 +362,7 @@ class NetworkedCamera(BaseModel):
             if delta <= self.capture_interval:
                 time.sleep(delta)
             self._last_capture_time = t
-        with self._lock:
+        with self._t_lock:
             ret, frame = self._cap.retrieve()  # non-blocking call
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
