@@ -13,7 +13,6 @@ def test_networked_camera():
 
     # Get the first frame and the next frame where motion is detected. I keep the detection threshold low to make the test fast
     i = iter(Camera)
-    print(f"FPS {Camera._inter_frame_interval}")
     frame1 = next(i)
     while True:
         # if we cannot get any motion detection (e.g. Threshold 100%), next() will throw an exception and fail the test
