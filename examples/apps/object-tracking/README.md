@@ -11,4 +11,4 @@ Then run:
 streamlit run main.py
 ```
 
-![object-tracking](https://github.com/landing-ai/landingai-python/blob/object-tracking/examples/apps/object-tracking/assets/app.png)
+![object-tracking](https://github.com/landing-ai/landingai-python/blob/main/examples/apps/object-tracking/assets/app.png)
