@@ -43,17 +43,20 @@ This library needs to communicate with the LandingLens platform to perform certa
 Run inference using the endpoint you created in LandingLens:
 
 - Install the Python library.
-- Create a `Predictor` fucntion with your Endpoint ID, API Key, and API Secret.
+- Create a `Predictor` class with your Endpoint ID, API Key, and API Secret.
+- Load your image into a NumPy array (below the image is "image.png")
 - Call the `predict()` function with an image (using the NumPy array format).
 
 ```python
+imoprt numpy as np
+from PIL import Image
 from landingai.predict import Predictor
 # Find your API key and secrets
 endpoint_id = "FILL_YOUR_INFERENCE_ENDPOINT_ID"
 api_key = "FILL_YOUR_API_KEY"
 api_secret = "FILL_YOUR_API_SECRET"
 # Load your image
-image = ...
+image = np.asarray(Image.open("image.png"))
 # Run inference
 predictor = Predictor(endpoint_id, api_key, api_secret)
 predictions = predictor.predict(image)
