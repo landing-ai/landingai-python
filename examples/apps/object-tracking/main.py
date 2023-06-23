@@ -6,7 +6,7 @@ st.write(
     "This application will grab the latest 10 second traffic clip of the Pacific Coast Highway"
     "going to Malibu and count the number of cars going northbound, southbound and parked."
 )
-st.write("Please enter you LandingLens API credentials and CloudInference Endpoint ID")
+st.write("Please enter your LandingLens API credentials and CloudInference Endpoint ID")
 api_key = st.text_input(
     "LandingLens API Key", value=st.session_state.get("api_key", "")
 )
