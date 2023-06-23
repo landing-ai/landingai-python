@@ -189,7 +189,7 @@ class OcrPredictor(Predictor):
                 "regions_of_interest parameter must be provided in single-text mode."
             )
         data = {}
-        rois: List[List[Tuple[int, int]]] = kwargs.get("regions_of_interest")
+        rois: List[List[Tuple[int, int]]] = kwargs.get("regions_of_interest", [])
         if rois:
             rois_payload = []
             for roi in rois:
