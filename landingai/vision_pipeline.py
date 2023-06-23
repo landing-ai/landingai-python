@@ -56,15 +56,43 @@ class FrameSet(BaseModel):
 
     frames: List[Frame] = []  # Start with empty frame set
 
+    # @classmethod
+    # def from_frameset_list(cls, list: List["FrameSet"] = None) -> "FrameSet":
+    #     return cls(frames=list)
+
     @classmethod
     def from_image(
         cls, file: str, metadata: Optional[Dict[str, Any]] = None
     ) -> "FrameSet":
+        """Creates a FrameSet from an image file
+
+        Parameters
+        ----------
+        file : Path to file
+
+        Returns
+        -------
+        FrameSet : New FrameSet containing a single image
+        """
+
         im = Image.open(file)
         return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
     def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
+        """Creates a FrameSet from a image encode as ndarray
+
+        Parameters
+        ----------
+        array : np.ndarray
+            Image
+        is_BGR : bool, optional
+            Assume OpenCV's BGR color space? Defaults to True
+
+        Returns
+        -------
+        FrameSet
+        """
         # img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
         if is_BGR:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
@@ -74,6 +102,17 @@ class FrameSet(BaseModel):
     # TODO: Is it worth to emulate a full container? - https://docs.python.org/3/reference/datamodel.html#emulating-container-types
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
+
+    def _repr_pretty_(self, pp, cycle) -> str:  # type: ignore
+        # Enable a pretty output on Jupiter notebooks `Display()` function
+        return str(
+            pp.text(
+                self.json(
+                    # exclude={"frames": {"__all__": {"image", "other_images"}}},
+                    indent=2
+                )
+            )
+        )
 
     def is_empty(self) -> bool:
         """Check if the FrameSet is empty
@@ -95,10 +134,12 @@ class FrameSet(BaseModel):
             frame.predictions = predictor.predict(np.asarray(frame.image))
         return self
 
-    def overlay_predictions(self) -> "FrameSet":  # TODO: Optional where to store
+    def overlay_predictions(
+        self, options: Optional[Dict[str, Any]] = None
+    ) -> "FrameSet":  # TODO: Optional where to store
         for frame in self.frames:
             frame.other_images["overlay"] = overlay_predictions(
-                frame.predictions, np.asarray(frame.image)
+                frame.predictions, np.asarray(frame.image), options
             )
         return self
 
@@ -161,18 +202,33 @@ class FrameSet(BaseModel):
             c += 1
         return self
 
-    def show_image(self, image_src: str = "") -> "FrameSet":
+    def show_image(
+        self, image_src: str = "", clear_nb_cell: bool = False
+    ) -> "FrameSet":
         """Open an a window and display all the images.
         Parameters
         ----------
         image_src: if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
         """
         # TODO: Should show be a end leaf?
-        for frame in self.frames:
-            if image_src == "":
-                frame.image.show()
-            else:
-                frame.other_images[image_src].show()
+        # Check if we are on a notebook context
+        try:
+            from IPython import display
+
+            for frame in self.frames:
+                if clear_nb_cell:
+                    display.clear_output(wait=True)
+                if image_src == "":
+                    display.display(frame.image)
+                else:
+                    display.display(frame.other_images[image_src])
+        except ModuleNotFoundError:
+            # Use PIL's implementation
+            for frame in self.frames:
+                if image_src == "":
+                    frame.image.show()
+                else:
+                    frame.other_images[image_src].show()
 
         # # TODO: Implement image stacking when we have multiple frames (https://answers.opencv.org/question/175912/how-to-display-multiple-images-in-one-window/)
         # """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.
@@ -221,6 +277,13 @@ class FrameSet(BaseModel):
                 self.frames.pop(i)
         return self
 
+    class Config:
+        # Add some encoders to prevent large structures from being printed
+        json_encoders = {
+            np.ndarray: lambda a: f"<np.ndarray: {a.shape}>",
+            Image.Image: lambda i: f"<Image.Image: {i.size}>",
+        }
+
 
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will tart to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
@@ -233,9 +296,9 @@ class NetworkedCamera(BaseModel):
     previous_frame: Union[Frame, None] = None
     _last_capture_time: datetime = PrivateAttr()
     _cap: Any = PrivateAttr()  # cv2.VideoCapture
-    _inter_frame_interval: int = PrivateAttr()
-    _lock: Any = PrivateAttr()  # threading.Lock
     _t: Any = PrivateAttr()  # threading.Thread
+    _t_lock: Any = PrivateAttr()  # threading.Lock
+    _t_running: bool = PrivateAttr()
 
     def __init__(
         self,
@@ -254,7 +317,9 @@ class NetworkedCamera(BaseModel):
         if not cap.isOpened():
             cap.release()
             raise Exception(f"Could not open stream ({stream_url})")
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Limit buffering to 1 frames
+        cap.set(
+            cv2.CAP_PROP_BUFFERSIZE, 2
+        )  # Limit buffering to 2 frames in order to avoid backlog (i.e. lag)
 
         super().__init__(
             stream_url=stream_url,
@@ -262,28 +327,31 @@ class NetworkedCamera(BaseModel):
             capture_interval=capture_interval,
         )
         self._last_capture_time = datetime.now()
-        # FPS = 1/X
-        # self.FPS_MS = int(self.FPS * 1000)
-        self._inter_frame_interval = 1 / cap.get(
-            cv2.CAP_PROP_FPS
-        )  # Get the source's framerate
         self._cap = cap
-        self._lock = threading.Lock()
+        self._t_lock = threading.Lock()
         self._t = threading.Thread(target=self._reader)
         self._t.daemon = True
+        self._t_running = False
         self._t.start()
 
     def __del__(self) -> None:
+        self._t_running = False
+        self._t.join(timeout=10)
         self._cap.release()
 
     # grab frames as soon as they are available
     def _reader(self) -> None:
-        while True:
-            with self._lock:
+        self._t_running = True
+        # inter_frame_interval = 1 / self._cap.get(cv2.CAP_PROP_FPS)  # Get the source's framerate (FPS = 1/X)
+        inter_frame_interval = (
+            1 / 30
+        )  # Some sources miss report framerate so we use a conservative number
+        while self._t_running:
+            with self._t_lock:
                 ret = self._cap.grab()  # non-blocking call
                 if not ret:
                     raise Exception(f"Connection to camera broken ({self.stream_url})")
-            time.sleep(self._inter_frame_interval)  # Limit acquisition speed
+            time.sleep(inter_frame_interval)  # Limit acquisition speed
 
     # retrieve latest frame
     def get_latest_frame(self) -> "FrameSet":
@@ -294,7 +362,7 @@ class NetworkedCamera(BaseModel):
             if delta <= self.capture_interval:
                 time.sleep(delta)
             self._last_capture_time = t
-        with self._lock:
+        with self._t_lock:
             ret, frame = self._cap.retrieve()  # non-blocking call
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")

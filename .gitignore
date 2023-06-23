@@ -90,3 +90,6 @@ tests/output
 docs/*.html
 docs/*.js
 docs/landingai
+
+# Local or WIP files
+local/

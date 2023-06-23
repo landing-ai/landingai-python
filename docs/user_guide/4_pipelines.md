@@ -5,7 +5,7 @@ Pipelines can simplify complex vision tasks by breaking it into a sequence of op
 The following example shows a basic pipeline that applies several processing layers starting from a single image. In this case after running inference (i.e. `run_predict`), the `overlay_predictions` function creates a copy of the original image (i.e. `frs[0].image`) and populates `frs[0].other_images["overlay"]` with the results. 
 
 ```python
-frs= FrameSet.fromImage("sample_images/1196.png")
+frs= FrameSet.from_image("sample_images/1196.png")
 frs.run_predict(predictor=...)
 .overlay_predictions()
 .show_image() 
