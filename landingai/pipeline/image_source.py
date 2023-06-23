@@ -77,7 +77,7 @@ class ImageFolder(ImageSourceBase):
             self._image_paths = source
         else:
             assert isinstance(source, str) or isinstance(source, Path)
-            p=Path(source)
+            p = Path(source)
             if not p.exists():
                 raise ValueError(f"Path '{p}' does not exist.")
             self._image_paths = [str(x) for x in p.glob("*") if x.is_file()]

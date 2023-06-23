@@ -4,7 +4,6 @@
 import logging
 import threading
 import time
-import glob
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -104,12 +103,14 @@ class FrameSet(BaseModel):
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
 
-    def _repr_pretty_(self, pp, cycle) -> str:
+    def _repr_pretty_(self, pp, cycle) -> str:  # type: ignore
         # Enable a pretty output on Jupiter notebooks `Display()` function
-        pp.text(
-            self.json(
-                # exclude={"frames": {"__all__": {"image", "other_images"}}},
-                indent=2
+        return str(
+            pp.text(
+                self.json(
+                    # exclude={"frames": {"__all__": {"image", "other_images"}}},
+                    indent=2
+                )
             )
         )
 
@@ -225,8 +226,7 @@ class FrameSet(BaseModel):
             # Use PIL's implementation
             for frame in self.frames:
                 if image_src == "":
-                    # frame.image.show()
-                    display(frame.image)
+                    frame.image.show()
                 else:
                     frame.other_images[image_src].show()
 
