@@ -1,13 +1,14 @@
 ## Introduction
 
-This example is a streamlit app that supports running OCR inference.
+This example is a Streamlit app that supports running OCR inference.
 
-In particular this app allows a user to run inference with uploaded image or image from your camera.
+In particular, this app allows you to run inference with uploaded images or images from your camera.
 
 ### Target Audience
+We recommend that users have:
 
-1. Basic Python programming skill.
-2. Basic understanding of the streamlit library. See [here](https://docs.streamlit.io/library/get-started/main-concepts) for more information.
+- Basic Python programming skills.
+- A basic understanding of the Streamlit library. For more information, go [here](https://docs.streamlit.io/library/get-started/main-concepts).
 
 ### Installation
 

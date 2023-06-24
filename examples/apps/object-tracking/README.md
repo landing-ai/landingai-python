@@ -1,5 +1,7 @@
-This is an example streamlit app that runs a LandingLens object detection model on a live steam to 
-monitor northbound and southbound traffic (as well as parked cars). To run, first install the requirements:
+This is an example Streamlit app that runs a LandingLens object detection model on a live steam to 
+monitor northbound traffic, southbound traffic, and parked cars on a road. 
+
+To run this app, first install the requirements:
 
 ```
 pip install -r requirements.txt
