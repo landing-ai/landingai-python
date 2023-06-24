@@ -42,16 +42,16 @@ This library needs to communicate with the LandingLens platform to perform certa
 ### Run Inference
 Run inference using the endpoint you created in LandingLens:
 
-- Install the Python library.
-- Create a `Predictor` class with your Endpoint ID, API Key, and API Secret.
-- Load your image into a NumPy array (below the image is "image.png")
-- Call the `predict()` function with an image (using the NumPy array format).
+1. Install the Python library.
+2. Create a `Predictor` class with your Endpoint ID, API Key, and API Secret.
+3. Load your image into a NumPy array (below the image is "image.png")
+4. Call the `predict()` function with an image (using the NumPy array format).
 
 ```python
-imoprt numpy as np
+import numpy as np
 from PIL import Image
 from landingai.predict import Predictor
-# Find your API key and secrets
+# Enter your API Key and Secret
 endpoint_id = "FILL_YOUR_INFERENCE_ENDPOINT_ID"
 api_key = "FILL_YOUR_API_KEY"
 api_secret = "FILL_YOUR_API_SECRET"
@@ -62,7 +62,7 @@ predictor = Predictor(endpoint_id, api_key, api_secret)
 predictions = predictor.predict(image)
 ```
 
-See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/integration/landingai/test_predict_e2e.py).
+See a **working example** [here](https://github.com/landing-ai/landingai-python/blob/main/tests/integration/landingai/test_predict_e2e.py).
 
 ### Visualize and Save Predictions
 Visualize your inference results by overlaying the predictions on the input image and saving the updated image:
@@ -74,11 +74,11 @@ predictions = predictor.predict(image)
 image_with_preds = overlay_predictions(predictions, image)
 image_with_preds.save("image.jpg")
 ```
-### Putting together a vision pipeline
+### Create a Vision Pipeline
 
 All the modules shown above and others can be chained together using the `landingai.vision_pipeline` abstraction. At its core, a pipeline is a sequence of chained calls that operate on a `landingai.vision_pipeline.FrameSet`.
 
-The following example shows how the previous sections come together on a pipeline. For more details check the [*Vision Pipelines user guide*](#vision-pipelines) 
+The following example shows how the previous sections come together on a pipeline. For more details, go to the [*Vision Pipelines User Guide*](https://landing-ai.github.io/landingai-python/landingai.html#vision-pipelines) 
 ```python
 cloud_sky_model = Predictor("FILL_YOUR_INFERENCE_ENDPOINT_ID"
                             , "FILL_YOUR_API_KEY"
@@ -102,7 +102,7 @@ All the examples in this repo can be run locally.
 To give you some guidance, here's how you can run the `rtsp-capture` example locally in a shell environment:
 
 1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python.git`
-2. Install the library: `poetry install --with examples` (Note: See [Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide) for how to install `poetry`)
+2. Install the library: `poetry install --with examples` (See the [Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide) for how to install `poetry`)
 3. Activate the virtual environment: `poetry shell`
 4. Run: `python landingai-python/examples/capture-service/run.py`
 
