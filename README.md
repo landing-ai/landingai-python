@@ -1,3 +1,11 @@
+![ci_status](https://github.com/landing-ai/landingai-python/actions/workflows/ci_cd.yml/badge.svg)
+[![PyPI version](https://badge.fury.io/py/landingai.svg?)](https://badge.fury.io/py/landingai)
+![version](https://img.shields.io/pypi/pyversions/landingai)
+![license](https://img.shields.io/github/license/landing-ai/landingai-python)
+[![downloads](https://static.pepy.tech/badge/landingai/month)](https://pepy.tech/project/landingai)
+
+<br>
+
 <p align="center">
   <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
 </p>
@@ -35,23 +43,26 @@ This library needs to communicate with the LandingLens platform to perform certa
 Run inference using the endpoint you created in LandingLens:
 
 - Install the Python library.
-- Create a `Predictor` fucntion with your Endpoint ID, API Key, and API Secret.
+- Create a `Predictor` class with your Endpoint ID, API Key, and API Secret.
+- Load your image into a NumPy array (below the image is "image.png")
 - Call the `predict()` function with an image (using the NumPy array format).
 
 ```python
+imoprt numpy as np
+from PIL import Image
 from landingai.predict import Predictor
 # Find your API key and secrets
 endpoint_id = "FILL_YOUR_INFERENCE_ENDPOINT_ID"
 api_key = "FILL_YOUR_API_KEY"
 api_secret = "FILL_YOUR_API_SECRET"
 # Load your image
-image = ...
+image = np.asarray(Image.open("image.png"))
 # Run inference
 predictor = Predictor(endpoint_id, api_key, api_secret)
 predictions = predictor.predict(image)
 ```
 
-See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/landingai/test_predict.py).
+See a **working example** in [here](https://github.com/landing-ai/landingai-python/blob/main/tests/integration/landingai/test_predict_e2e.py).
 
 ### Visualize and Save Predictions
 Visualize your inference results by overlaying the predictions on the input image and saving the updated image:
@@ -62,6 +73,26 @@ from landingai.visualize import overlay_predictions
 predictions = predictor.predict(image)
 image_with_preds = overlay_predictions(predictions, image)
 image_with_preds.save("image.jpg")
+```
+### Putting together a vision pipeline
+
+All the modules shown above and others can be chained together using the `landingai.vision_pipeline` abstraction. At its core, a pipeline is a sequence of chained calls that operate on a `landingai.vision_pipeline.FrameSet`.
+
+The following example shows how the previous sections come together on a pipeline. For more details check the [*Vision Pipelines user guide*](#vision-pipelines) 
+```python
+cloud_sky_model = Predictor("FILL_YOUR_INFERENCE_ENDPOINT_ID"
+                            , "FILL_YOUR_API_KEY"
+                            , "FILL_YOUR_API_SECRET") 
+
+Camera = NetworkedCamera(stream_url)
+for frame in Camera:
+    (
+        frame.downsize(width=1024)
+        .run_predict(predictor=cloud_sky_model)
+        .overlay_predictions()
+        .show_image()
+        .save_image(filename_prefix="./capture")
+    )
 ```
 
 ## Run Examples Locally

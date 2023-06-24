@@ -16,9 +16,9 @@ class SnowflakeCredential(BaseSettings):
     It supports loading from environment variables or .env files.
 
     The supported name of the environment variables are (case-insensitive):
-    1. SNOWFLAKE_USER
-    2. SNOWFLAKE_PASSWORD
-    3. SNOWFLAKE_ACCOUNT
+    - SNOWFLAKE_USER
+    - SNOWFLAKE_PASSWORD
+    - SNOWFLAKE_ACCOUNT
 
     Environment variables will always take priority over values loaded from a dotenv file.
     """
@@ -38,9 +38,9 @@ class SnowflakeDBConfig(BaseSettings):
     It supports loading from environment variables or .env files.
 
     The supported name of the environment variables are (case-insensitive):
-    1. SNOWFLAKE_WAREHOUSE
-    2. SNOWFLAKE_DATABASE
-    3. SNOWFLAKE_SCHEMA
+    - SNOWFLAKE_WAREHOUSE
+    - SNOWFLAKE_DATABASE
+    - SNOWFLAKE_SCHEMA
 
     Environment variables will always take priority over values loaded from a dotenv file.
     """
@@ -60,7 +60,7 @@ def save_remote_file_to_local(
     remote_filename: str,
     stage_name: str,
     *,
-    local_output: Path | None = None,
+    local_output: Optional[Path] = None,
     credential: Optional[SnowflakeCredential] = None,
     connection_config: Optional[SnowflakeDBConfig] = None,
 ) -> Path:
@@ -92,8 +92,8 @@ def get_snowflake_presigned_url(
     credential: Optional[SnowflakeCredential] = None,
     connection_config: Optional[SnowflakeDBConfig] = None,
 ) -> str:
-    """Get a presigned url for a file stored in Snowflake.
-    NOTE: Snowflake returns a valid url even if the file doesn't exists.
+    """Get a presigned URL for a file stored in Snowflake.
+    NOTE: Snowflake returns a valid URL even if the file doesn't exist.
           So the downstream needs to check if the file exists first.
     """
     if credential is None:

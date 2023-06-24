@@ -1,5 +1,7 @@
 import logging
+import tempfile
 from pathlib import Path
+from typing import Callable, List, Tuple, Union
 
 import cv2
 import requests
@@ -9,8 +11,8 @@ _LOGGER = logging.getLogger(__name__)
 
 # TODO: support output type stream
 def read_file(url: str) -> bytes:
-    """Read bytes from a url.
-    Typically, the url is a presigned url (e.g. from s3, snowflake) that points to a video, image file.
+    """Read bytes from a URL.
+    Typically, the URL is a presigned URL (for example, from Amazon S3 or Snowflake) that points to a video or image file.
     """
     response = requests.get(url)
     try:
@@ -38,20 +40,21 @@ def read_file(url: str) -> bytes:
     return response.content
 
 
-def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, float]:
+def probe_video(video_file: str, samples_per_second: float) -> Tuple[int, int, float]:
     """Probe a video file to get some metadata before sampling images.
 
     Parameters
     ----------
-    video_file: the local path to the video file
-    samples_per_second: number of images to sample per second
+    video_file: The local path to the video file
+    samples_per_second: Number of images to sample per second
 
     Returns
     -------
     A tuple of three values
-        1. the total number of frames,
-        2. the number of frames to sample,
-        3. the video length in seconds.
+
+        - The total number of frames,
+        - The number of frames to sample,
+        - The video length in seconds.
     """
     if not Path(video_file).exists():
         raise FileNotFoundError(f"Video file {video_file} does not exist.")
@@ -66,14 +69,14 @@ def probe_video(video_file: str, samples_per_second: float) -> tuple[int, int, f
 
 def sample_images_from_video(
     video_file: str, output_dir: Path, samples_per_second: float = 1
-) -> list[str]:
+) -> List[str]:
     """Sample images from a video file.
 
     Parameters
     ----------
-    video_file: the local path to the video file
-    output_dir: the local directory path that stores the sampled images
-    samples_per_second: number of images to sample per second
+    video_file: The local path to the video file
+    output_dir: The local directory path that stores the sampled images
+    samples_per_second: The number of images to sample per second
 
     Returns
     -------
@@ -99,3 +102,84 @@ def sample_images_from_video(
         frame_count += 1
     cap.release()
     return output
+
+
+def read_from_notebook_webcam(webcam_source: Union[str, int] = 0) -> Callable[[], str]:
+    # Define function to acquire images either directly from the local webcam (i.e. jupyter notebook)or from the web browser (i.e. collab)
+    local_cache_dir = Path(tempfile.mkdtemp())
+    filename = str(local_cache_dir / "photo.jpg")
+    # Detect if we are running on Google's colab
+    try:
+        from base64 import b64decode
+
+        from google.colab.output import eval_js  # type: ignore
+        from IPython.display import Javascript, display
+
+        def take_photo() -> str:
+            quality = 0.8
+            js = Javascript(
+                """
+            async function takePhoto(quality) {
+                const div = document.createElement('div');
+                const capture = document.createElement('button');
+                capture.textContent = 'Capture';
+                div.appendChild(capture);
+
+                const video = document.createElement('video');
+                video.style.display = 'block';
+                const stream = await navigator.mediaDevices.getUserMedia({video: true});
+
+                document.body.appendChild(div);
+                div.appendChild(video);
+                video.srcObject = stream;
+                await video.play();
+
+                // Resize the output to fit the video element.
+                google.colab.output.setIframeHeight(document.documentElement.scrollHeight, true);
+
+                // Wait for Capture to be clicked.
+                await new Promise((resolve) => capture.onclick = resolve);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                stream.getVideoTracks()[0].stop();
+                div.remove();
+                return canvas.toDataURL('image/jpeg', quality);
+            }
+            """
+            )
+            display(js)
+            data = eval_js("takePhoto({})".format(quality))
+            binary = b64decode(data.split(",")[1])
+            with open(filename, "wb") as f:
+                f.write(binary)
+                return filename
+
+    except ModuleNotFoundError:
+        # Capture image from local webcam using OpenCV
+        import cv2
+
+        def take_photo() -> str:
+            cam = cv2.VideoCapture(webcam_source)
+            cv2.namedWindow("Press space to take photo")
+            cv2.startWindowThread()
+            while True:
+                ret, frame = cam.read()
+                if not ret:
+                    print("failed to grab frame")
+                    exit()
+                cv2.imshow("Press space to take photo", frame)
+                k = cv2.waitKey(1)
+                if k % 256 == 32:
+                    # SPACE pressed
+                    cv2.imwrite(filename, frame)
+                    break
+            cam.release()
+            cv2.waitKey(1)
+            cv2.destroyAllWindows()
+            cv2.waitKey(1)
+            return filename
+
+    return take_photo

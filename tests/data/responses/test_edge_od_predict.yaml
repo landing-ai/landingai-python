@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"type":"ObjectDetectionPrediction","predictions":{"f82d7158-cb75-4ef6-94f0-0eb8d27161c3":{"score":0.993014,"labelIndex":1,"defectId":42255,"labelName":"Screw","coordinates":{"xmin":945,"xmax":1118,"ymin":1603,"ymax":1795}},"7cef99d4-91bd-4363-92e1-17ef8c928409":{"score":0.9921601,"labelIndex":1,"defectId":42255,"labelName":"Screw","coordinates":{"xmin":436,"xmax":640,"ymin":1037,"ymax":1203}},"05f7db0c-cbe3-4f15-b81b-4fc430f210fd":{"score":0.9547385,"labelIndex":1,"defectId":42255,"labelName":"Screw","coordinates":{"xmin":1515,"xmax":1977,"ymin":1419,"ymax":1787}}},"metadata":{"image_id":"","inspection_station_id":"","location_id":"","capture_timestamp":"2023-06-13T16:58:01.1159388-07:00"}}'
+    content_type: text/plain
+    method: POST
+    status: 200
+    url: http://localhost:8123/images
