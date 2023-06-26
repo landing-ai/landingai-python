@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
+import pytest
 from PIL import Image, ImageChops
 
 from landingai.predict import OcrPredictor, Predictor
@@ -131,7 +132,6 @@ def test_class_predict():
 
 
 # TODO: re-enable below test after OCR endpoint is deployed to prod
-import pytest
 @pytest.mark.skip(reason="OCR endpoint is not deployed to prod yet")
 def test_ocr_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
