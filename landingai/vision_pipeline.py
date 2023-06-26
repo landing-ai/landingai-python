@@ -5,16 +5,18 @@ import logging
 import threading
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 import cv2
 import numpy as np
 from PIL import Image
 from pydantic import BaseModel, PrivateAttr
 
-from landingai.common import Prediction
+from landingai.common import Prediction, ClassificationPrediction, in_notebook
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
+from landingai.postprocess import class_counts
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class Frame(BaseModel):
     other_images: Dict[str, Image.Image] = {}
     """Other derivative images associated with this the main image. For example: `FrameSet.overlay_predictions` will store the resulting image on `Frame.other_images["overlay"]"""
 
-    predictions: List[Prediction] = []
+    predictions: List[ClassificationPrediction] = []
     """List of predictions for the main image"""
 
     metadata: Dict[str, Any] = {}
@@ -40,7 +42,7 @@ class Frame(BaseModel):
         ----------
         predictor: the model to be invoked.
         """
-        self.predictions = predictor.predict(np.asarray(self.image))
+        self.predictions = predictor.predict(np.asarray(self.image))  # type: ignore
         return self
 
     def to_numpy_array(self) -> np.ndarray:
@@ -131,7 +133,7 @@ class FrameSet(BaseModel):
         """
 
         for frame in self.frames:
-            frame.predictions = predictor.predict(np.asarray(frame.image))
+            frame.predictions = predictor.predict(np.asarray(frame.image))  # type: ignore
         return self
 
     def overlay_predictions(
@@ -139,7 +141,7 @@ class FrameSet(BaseModel):
     ) -> "FrameSet":  # TODO: Optional where to store
         for frame in self.frames:
             frame.other_images["overlay"] = overlay_predictions(
-                frame.predictions, np.asarray(frame.image), options
+                cast(List[Prediction], frame.predictions), frame.image, options
             )
         return self
 
@@ -212,7 +214,7 @@ class FrameSet(BaseModel):
         """
         # TODO: Should show be a end leaf?
         # Check if we are on a notebook context
-        try:
+        if in_notebook():
             from IPython import display
 
             for frame in self.frames:
@@ -222,8 +224,9 @@ class FrameSet(BaseModel):
                     display.display(frame.image)
                 else:
                     display.display(frame.other_images[image_src])
-        except ModuleNotFoundError:
+        else:
             # Use PIL's implementation
+            print("using PIL")
             for frame in self.frames:
                 if image_src == "":
                     frame.image.show()
@@ -251,6 +254,36 @@ class FrameSet(BaseModel):
         #     cv2.waitKey(1)
 
         return self
+
+    def extend(self, frs: "FrameSet") -> "FrameSet":
+        """Add a all the Frames from `frs` into this FrameSet
+
+        Parameters
+        ----------
+        frs : FrameSet
+            Framerset to be added at the end of the current one
+
+        Returns
+        -------
+        FrameSet
+        """
+        self.frames.extend(frs.frames)
+        return self
+
+    def get_class_counts(self, add_id_to_classname: bool = False) -> Dict[str, int]:
+        counts = {}
+        for i in range(len(self.frames)):
+            # Here is a sample return from class_counts: {1: (3, 'Heart'), 3: (3, 'Club'), 4: (3, 'Spade'), 2: (3, 'Diamond')}
+            for k, v in class_counts(self.frames[i].predictions).items():
+                if add_id_to_classname:  # This is useful if class names are not unique
+                    class_name = f"{v[1]}_{k}"
+                else:
+                    class_name = v[1]
+                if class_name not in counts:
+                    counts[class_name] = v[0]
+                else:
+                    counts[class_name] += v[0]
+        return counts
 
     def apply(self, function: Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
         """Apply a function to all frames

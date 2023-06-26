@@ -119,7 +119,11 @@ def overlay_bboxes(
     import bbox_visualizer as bbv
 
     if isinstance(image, Image.Image):
-        image = np.asarray(image)
+        if image.mode == "RGBA":
+            image = np.asarray(image)[:, :, :3]  # Get rid of the alpha channel
+        else:
+            image = np.asarray(image)
+
     if options is None:
         options = {}
     bbox_style = options.get("bbox_style", "default").lower()
