@@ -226,7 +226,6 @@ class FrameSet(BaseModel):
                     display.display(frame.other_images[image_src])
         else:
             # Use PIL's implementation
-            print("using PIL")
             for frame in self.frames:
                 if image_src == "":
                     frame.image.show()
