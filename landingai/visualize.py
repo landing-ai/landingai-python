@@ -29,7 +29,10 @@ def overlay_predictions(
     """Overlay the prediction results on the input image and return the image with the overlay."""
     if len(predictions) == 0:
         _LOGGER.warning("No predictions to overlay, returning original image")
-        return Image.fromarray(image)
+        if isinstance(image, Image.Image):
+            return image
+        else:
+            return Image.fromarray(image)
     types = {type(pred) for pred in predictions}
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     pred_type = types.pop()
