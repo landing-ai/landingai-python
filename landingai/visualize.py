@@ -29,7 +29,10 @@ def overlay_predictions(
     """Overlay the prediction results on the input image and return the image with the overlay."""
     if len(predictions) == 0:
         _LOGGER.warning("No predictions to overlay, returning original image")
-        return Image.fromarray(image)
+        if isinstance(image, Image.Image):
+            return image
+        else:
+            return Image.fromarray(image)
     types = {type(pred) for pred in predictions}
     assert len(types) == 1, f"Expecting only one type of prediction, got {types}"
     pred_type = types.pop()
@@ -119,7 +122,11 @@ def overlay_bboxes(
     import bbox_visualizer as bbv
 
     if isinstance(image, Image.Image):
-        image = np.asarray(image)
+        if image.mode == "RGBA":
+            image = np.asarray(image)[:, :, :3]  # Get rid of the alpha channel
+        else:
+            image = np.asarray(image)
+
     if options is None:
         options = {}
     bbox_style = options.get("bbox_style", "default").lower()

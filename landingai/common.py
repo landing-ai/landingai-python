@@ -168,3 +168,22 @@ def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
         map_number = encoding_map[map_letter]
         flat_mask.extend([int(map_number)] * int(num))
     return flat_mask
+
+
+def in_notebook() -> bool:
+    """Determine if we are running inside a notebook
+
+    Returns
+    -------
+    bool
+    """
+    try:
+        from IPython import get_ipython
+
+        if "IPKernelApp" not in get_ipython().config:  # pragma: no cover
+            return False
+    except ImportError:
+        return False
+    except AttributeError:
+        return False
+    return True
