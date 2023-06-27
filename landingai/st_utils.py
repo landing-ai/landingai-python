@@ -27,7 +27,9 @@ If you are running one of the example Apps of this repo, please follow the insta
 
 
 def setup_page(page_title: str) -> None:
-    """Common setup code for streamlit pages."""
+    """Common setup code for streamlit pages.
+    This function should be called only once at the beginning of the page.
+    """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(filename)s %(funcName)s %(message)s",

@@ -83,4 +83,5 @@ module = [
     "cv2.*",
     "segmentation_mask_overlay.*",
     "bbox_visualizer.*",
+    "streamlit.*",
 ]
