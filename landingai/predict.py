@@ -191,15 +191,7 @@ class OcrPredictor(Predictor):
         data = {}
         rois: List[List[Tuple[int, int]]] = kwargs.get("regions_of_interest", [])
         if rois:
-            rois_payload = []
-            for roi in rois:
-                rois_payload.append(
-                    {
-                        "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
-                        "mode": mode,
-                    }
-                )
-            data["rois"] = json.dumps([rois_payload])
+            data["rois"] = serialize_rois(rois, mode)
 
         payload: Dict[str, Any] = {"device_type": "pylib"}
         preds = _do_inference(
@@ -211,6 +203,19 @@ class OcrPredictor(Predictor):
             data=data,
         )
         return [pred for pred in preds if pred.score >= self._threshold]
+
+
+def serialize_rois(rois: List[List[Tuple[int, int]]], mode: str) -> str:
+    """Serialize the regions of interest into a JSON string."""
+    rois_payload = []
+    for roi in rois:
+        rois_payload.append(
+            {
+                "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
+                "mode": mode,
+            }
+        )
+    return json.dumps([rois_payload])
 
 
 class EdgePredictor(Predictor):

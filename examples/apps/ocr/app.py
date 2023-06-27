@@ -1,23 +1,26 @@
 import logging
 import time
 from enum import Enum
+from pathlib import Path
+from typing import List, Optional
 
 import extra_streamlit_components as stx
 import numpy as np
 import streamlit as st
-import streamlit_pydantic as sp
 from PIL import Image
+from roi import draw_region_of_interests, process_and_display_roi
 
-from examples.apps.ocr.roi import draw_region_of_interests, process_and_display_roi
-from landingai.common import APICredential
-from landingai.predict import OcrPredictor
+from landingai.predict import OcrPredictor, serialize_rois
+from landingai.st_utils import (
+    get_api_credential_or_use_default,
+    get_default_api_key,
+    render_api_config_form,
+    render_svg,
+    setup_page,
+)
 from landingai.visualize import overlay_predictions
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(filename)s %(funcName)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+setup_page(page_title="LandingLens OCR")
 
 
 class DetModel(str, Enum):
@@ -25,25 +28,12 @@ class DetModel(str, Enum):
     MANUAL_ROI = "single-text"
 
 
-class OcrAPICredential(APICredential):
-    api_key: str = "land_sk_6uttU3npa5V0MUgPWb6j33ZuszsGBqVGs4wnoSR91LBwpbjZpG"
-    api_secret: str = ""
-
-
 # Streamlit app code
 def main():
-    st.title("OCR App")
+    render_svg(Path("./examples/apps/ocr/static/LandingLens_OCR_logo.svg").read_text())
     st.sidebar.title("Configuration")
     with st.sidebar:
-        credential = sp.pydantic_form(
-            key="api_credential",
-            model=OcrAPICredential,
-            submit_label="Save",
-            ignore_empty_values=True,
-        )
-        if credential:
-            st.session_state["credential"] = credential
-            st.info("Saved API credential")
+        render_api_config_form()
 
     chosen_id = stx.tab_bar(
         data=[
@@ -53,9 +43,7 @@ def main():
         default=1,
     )
     if chosen_id == "1":
-        image_file = st.file_uploader(
-            "File Uploader", type=["jpg", "jpeg", "png", "bmp"]
-        )
+        image_file = st.file_uploader("File Uploader")
     elif chosen_id == "2":
         image_file = st.camera_input("Camera View")
     else:
@@ -108,19 +96,16 @@ def main():
             0.5,
             key="th_slider",
         )
+        mode = DetModel[detection_mode].value
+        key, secret = get_api_credential_or_use_default()
         # Run ocr on the whole image
         if input_images is not None and st.button("Run"):
-            if "credential" not in st.session_state:
-                st.error("Please enter and save your API credential first")
-                return
-            api_credential = st.session_state["credential"]
             predictor = OcrPredictor(
                 threshold=float(threshold),
-                api_key=api_credential.api_key,
-                api_secret=api_credential.api_secret,
+                api_key=key,
+                api_secret=secret,
             )
             begin = time.perf_counter()
-            mode = DetModel[detection_mode].value
             logging.info(
                 f"Running OCR prediction in {mode} mode with threshold {threshold} and rois: {boxes}"
             )
@@ -132,7 +117,44 @@ def main():
                 channels="RGB",
                 caption=[f"Inference Time = {tak_time:.3f} sec"],
             )
-            st.json([pred.json() for pred in preds])
+            st.divider()
+            st.subheader("Prediction Result (in JSON):")
+            json_result = [pred.dict() for pred in preds]
+            for pred in json_result:
+                pred["location"] = [
+                    {"x": loc[0], "y": loc[1]} for loc in pred["location"]
+                ]
+            st.json(json_result)
+
+        _render_curl_command(mode, boxes, key, secret)
+
+
+def _render_curl_command(
+    mode: str,
+    rois: Optional[List[List[int]]] = None,
+    api_key: Optional[str] = None,
+    api_secret: Optional[str] = None,
+) -> str:
+    # Build curl command str
+    curl_command_str = f"""
+    curl --location --request POST '{OcrPredictor._url}' \\
+     --header 'Content-Type: multipart/form-data' \\
+     --header 'apikey: YOUR_API_KEY' \\"""
+    if api_key and api_key != get_default_api_key():
+        curl_command_str = curl_command_str.replace("YOUR_API_KEY", api_key)
+    if api_secret:
+        curl_command_str += f"\n     --header 'apisecret: {api_secret}' \\"
+    if rois:
+        curl_command_str += f"\n     --form 'rois={serialize_rois(rois, mode)}' \\"
+    curl_command_str += "\n     --form 'images=@\"YOUR_FILE_PATH\"'"
+    # Display curl command
+    st.subheader("curl command")
+    st.caption(
+        """Instructions for composing a valid curl command:
+ 1. enter your api key in the sidebar.
+ 2. replace 'YOUR_FILE_PATH' with the path to your local image file."""
+    )
+    st.code(curl_command_str)
 
 
 # Run the app
