@@ -64,7 +64,7 @@ class FrameSet(BaseModel):
 
     @classmethod
     def from_image(
-        cls, file: str, metadata: Optional[Dict[str, Any]] = None
+        cls, file: str, metadata: Optional[Dict[str, Any]] = {}
     ) -> "FrameSet":
         """Creates a FrameSet from an image file
 
@@ -270,6 +270,25 @@ class FrameSet(BaseModel):
         return self
 
     def get_class_counts(self, add_id_to_classname: bool = False) -> Dict[str, int]:
+        """This method returns the number of occurrences of each detected class in the FrameSet.
+
+        Parameters
+        ----------
+        add_id_to_classname : bool, optional
+            By default, detections with the same class names and different defect id will be counted as the same. Set to True if you want to count them separately
+
+        Returns
+        -------
+        Dict[str, int]
+            A dictionary with the counts
+            ```
+            Example:
+                {
+                    "cat": 10,
+                    "dog": 3
+                }
+            ```
+        """
         counts = {}
         for i in range(len(self.frames)):
             # Here is a sample return from class_counts: {1: (3, 'Heart'), 3: (3, 'Club'), 4: (3, 'Spade'), 2: (3, 'Diamond')}
