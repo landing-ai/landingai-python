@@ -45,9 +45,15 @@ class Frame(BaseModel):
         self.predictions = predictor.predict(np.asarray(self.image))  # type: ignore
         return self
 
-    def to_numpy_array(self) -> np.ndarray:
-        """Return a numpy array using GRB color encoding (used by OpenCV)"""
-        return np.asarray(self.image)
+    def to_numpy_array(self, image_src: str = "") -> np.ndarray:
+        """Return a numpy array using GRB color encoding (used by OpenCV)
+
+        Parameters
+        ----------
+        image_src : if empty the source image will be converted. Otherwise the image will be selected from `other_images`
+        """
+        img = self.image if image_src == "" else self.other_images[image_src]
+        return np.asarray(img)
 
     class Config:
         arbitrary_types_allowed = True
@@ -192,7 +198,7 @@ class FrameSet(BaseModel):
         Parameters
         ----------
         filename_prefix : path and name prefix for the image file
-        image_src : if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        image_src : if empty the source image will be saved. Otherwise the image will be selected from `other_images`
         """
         timestamp = datetime.now().strftime(
             "%Y%m%d-%H%M%S"
@@ -202,6 +208,49 @@ class FrameSet(BaseModel):
             img = frame.image if image_src == "" else frame.other_images[image_src]
             img.save(f"{filename_prefix}_{timestamp}_{image_src}_{c}.png", format="PNG")
             c += 1
+        return self
+
+    def save_video(
+        self,
+        video_file_path: str,
+        video_fps: Union[int, None] = None,
+        video_length_sec: Union[int, None] = None,
+        image_src: str = "",
+    ) -> "FrameSet":
+        """Save the FrameSet as an mp4 video file
+
+        Parameters
+        ----------
+        video_file_path : str
+            Path and filename with extension of the video file
+        video_fps : Union[int, None], optional
+            Either the frames per second or the video length should be provided to assemble the video
+        video_length_sec : Union[int, None], optional
+            Either the frames per second or the video length should be provided to assemble the video
+        image_src : str, optional
+            if empty the source image will be used. Otherwise the image will be selected from `other_images`
+        """
+        if not video_file_path.lower().endswith(".mp4"):
+            raise NotImplementedError("Only .mp4 is supported")
+        total_frames = len(self.frames)
+        if total_frames == 0:
+            return self
+        # Try to tune FPS based on parameters or pick a reasonable number
+        if video_length_sec is not None and video_length_sec <= total_frames:
+            video_fps = int(total_frames / video_length_sec)
+        elif video_fps is None:
+            video_fps = min(2, total_frames)
+        # All images should have the same shape as it's from the same video file
+        img_shape = self.frames[0].image.size
+        # TODO: cap the frame_rate to a reasonable value
+        # H264 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
+        video = cv2.VideoWriter(
+            video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
+        )
+        for fr in self.frames:
+            video.write(cv2.cvtColor(fr.to_numpy_array(image_src), cv2.COLOR_RGB2BGR))
+        video.release()
+        # print(f"Video is saved to {video_file_path} with resolution {img_shape} (no. frames {total_frames})")
         return self
 
     def show_image(
