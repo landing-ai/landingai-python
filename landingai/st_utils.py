@@ -99,7 +99,7 @@ def get_api_key_or_use_default() -> Optional[str]:
     If the API key is not set in the session state, it will look for the default API key from environment variables.
     """
     st = _import_st()
-    key = st.session_state["api_key"]
+    key: str = st.session_state["api_key"]
     if not key:
         return get_default_api_key()
     return key
