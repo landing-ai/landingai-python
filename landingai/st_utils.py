@@ -30,7 +30,7 @@ def setup_page(page_title: str) -> None:
     """Common setup code for streamlit pages.
     This function should be called only once at the beginning of the page.
     """
-    level = os.environ.get('LOGLEVEL', 'INFO').upper()
+    level = os.environ.get("LOGLEVEL", "INFO").upper()
     logging.basicConfig(
         level=level,
         format="%(asctime)s %(filename)s %(funcName)s %(message)s",
