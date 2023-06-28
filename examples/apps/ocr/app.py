@@ -135,6 +135,7 @@ def _render_curl_command(
     api_key: Optional[str] = None,
     api_secret: Optional[str] = None,
 ) -> str:
+    st.divider()
     # Build curl command str
     curl_command_str = f"""
     curl --location --request POST '{OcrPredictor._url}' \\

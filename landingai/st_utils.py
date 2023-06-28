@@ -30,8 +30,9 @@ def setup_page(page_title: str) -> None:
     """Common setup code for streamlit pages.
     This function should be called only once at the beginning of the page.
     """
+    level = os.environ.get('LOGLEVEL', 'INFO').upper()
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%(asctime)s %(filename)s %(funcName)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -99,10 +100,11 @@ def check_endpoint_id_set() -> None:
 def get_api_credential_or_use_default() -> Tuple[Optional[str], Optional[str]]:
     """Get API credential (api key and api secret) from the session state.
     If the API credential is not set in the session state, use the default API credential from environment variables.
+    The output could be either a v1 API key and secret, or a v2 API key depends on what is set in the session state.
     """
     st = _import_st()
     key, secret = (st.session_state["api_key"], st.session_state["api_secret"])
-    if key is None:
+    if not key:
         return get_default_api_key(), secret
     return key, secret
 

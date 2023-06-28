@@ -62,7 +62,7 @@ class Predictor:
             {
                 "apikey": self._api_credential.api_key,
                 "apisecret": self._api_credential.api_secret,
-                "contentType": "application/json",
+                "contentType": "multipart/form-data",
             },
         )
 
@@ -148,7 +148,7 @@ class OcrPredictor(Predictor):
             {
                 "apikey": self._api_credential.api_key,
                 "apisecret": self._api_credential.api_secret,
-                "contentType": "application/json",
+                "contentType": "multipart/form-data",
             },
         )
 
@@ -226,7 +226,7 @@ class EdgePredictor(Predictor):
     ) -> None:
         self._url = f"http://{host}:{port}/images"
         self._session = _create_session(
-            self._url, self._num_retry, {"contentType": "application/json"}
+            self._url, self._num_retry, {"contentType": "multipart/form-data"}
         )
 
     def predict(
