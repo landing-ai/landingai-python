@@ -134,9 +134,7 @@ def render_api_config_form(
     if "endpoint_id" not in st.session_state:
         st.session_state["endpoint_id"] = default_endpoint_id
 
-    def _update_credential(
-        api_key: str, endpoint_id: Optional[str]
-    ) -> None:
+    def _update_credential(api_key: str, endpoint_id: Optional[str]) -> None:
         st.session_state["api_key"] = api_key
         if endpoint_id:
             st.session_state["endpoint_id"] = endpoint_id
