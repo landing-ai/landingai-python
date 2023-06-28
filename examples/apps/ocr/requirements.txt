@@ -1,4 +1,5 @@
 streamlit
-streamlit-drawable-canvas
+# Need a custom fork version for two bug fixes: 1) can't render canvas on a subpath url 2) canvas doesn't support mobile 
+streamlit-drawable-canvas @ git+https://github.com/AsiaCao/streamlit-drawable-canvas.git
 extra-streamlit-components
 landingai
