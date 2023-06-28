@@ -21,13 +21,15 @@ from landingai.postprocess import (
     segmentation_class_pixel_coverage,
 )
 from landingai.predict import Predictor
+from landingai.st_utils import (
+    check_api_credentials_set,
+    check_endpoint_id_set,
+    render_api_config_form,
+    setup_page,
+)
 from landingai.visualize import overlay_predictions
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(filename)s %(funcName)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+setup_page(page_title="LandingLens Image Folder App")
 
 _SUPPORTED_IMAGE_FORMATS = ["jpg", "jpeg", "png", "tiff"]
 
@@ -154,22 +156,23 @@ def reset_states():
     st.session_state["result"] = []
 
 
+st.sidebar.title("API Configuration")
+with st.sidebar:
+    render_api_config_form(render_endpoint_id=True)
+
 st.header("Inference on Image Folder")
 st.divider()
 st.subheader("Select image folder")
 local_image_folder = st.text_input(
     "Image Folder Path",
     key="image_folder_path",
-    value="examples/output/streamlit",
+    value="",
     on_change=reset_states,
 )
 
 if local_image_folder:
-    if not is_landing_credentials_set():
-        st.error(
-            "Please go to the config page and enter your CloudInference endpoint ID first."
-        )
-        st.stop()
+    check_api_credentials_set()
+    check_endpoint_id_set()
 
     folder_source = ImageFolder(source=local_image_folder)
     if len(folder_source) == 0:
