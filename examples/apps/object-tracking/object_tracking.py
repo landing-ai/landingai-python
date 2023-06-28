@@ -3,7 +3,7 @@ import time
 import numpy as np
 import numpy.typing as npt
 
-from typing import Optional
+from typing import Dict, List, Optional, Set, Tuple
 from tqdm import tqdm
 from landingai.predict import Predictor
 
@@ -34,12 +34,12 @@ def bbox_ious(a, b):
     return iou
 
 
-def crop(image: npt.NDArray, box: tuple[int, ...] = CROP_BOX) -> npt.NDArray:
+def crop(image: npt.NDArray, box: Tuple[int, ...] = CROP_BOX) -> npt.NDArray:
     return image[box[1] : box[3], box[0] : box[2]]
 
 
 def plot_boxes_on_image(
-    image: npt.NDArray, boxes: list[tuple[int, ...]]
+    image: npt.NDArray, boxes: List[Tuple[int, ...]]
 ) -> npt.NDArray:
     for box in boxes:
         image = cv2.rectangle(image, box[0:2], box[2:4], (0, 255, 0), 2)
@@ -48,9 +48,9 @@ def plot_boxes_on_image(
 
 def plot_boxes_on_image_with_ids(
     image: npt.NDArray,
-    boxes: list[tuple[int, ...]],
-    ids: dict[int, int],
-    crop_box: Optional[tuple[int, ...]] = None,
+    boxes: List[Tuple[int, ...]],
+    ids: Dict[int, int],
+    crop_box: Optional[Tuple[int, ...]] = None,
 ) -> npt.NDArray:
     for i, box in enumerate(boxes):
         if crop_box is not None:
@@ -75,21 +75,21 @@ def plot_boxes_on_image_with_ids(
 
 
 def get_preds(
-    frames: list[npt.NDArray], predictor: Predictor
-) -> list[list[tuple[int, ...]]]:
+    frames: List[npt.NDArray], predictor: Predictor
+) -> List[List[Tuple[int, ...]]]:
     bboxes = []
     for frame in tqdm(frames):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = crop(frame)
         pred = predictor.predict(frame)
-        bboxes.append([list(p.bboxes) + [p.score] for p in pred])
+        bboxes.append([List(p.bboxes) + [p.score] for p in pred])
     return bboxes
 
 
 def match_dets_with_prev(
-    prev_detections: list[tuple[int, ...]],
-    detections: list[tuple[int, ...]],
-) -> tuple[dict[int, int], set[int]]:
+    prev_detections: List[Tuple[int, ...]],
+    detections: List[Tuple[int, ...]],
+) -> Tuple[Dict[int, int], Set[int]]:
     iou = bbox_ious(np.array(prev_detections)[:, :4], np.array(detections)[:, :4])
     prev_det_to_det = iou.argmax(axis=1)
     matches = {}
@@ -102,10 +102,10 @@ def match_dets_with_prev(
 
 
 def track_iou(
-    bboxes: list[list[tuple[int, ...]]],
+    bboxes: List[List[Tuple[int, ...]]],
     display: bool = False,
-    frames: Optional[list[npt.NDArray]] = None,
-) -> tuple[dict[int, list[tuple[int, ...]]], list[dict[int, int]]]:
+    frames: Optional[List[npt.NDArray]] = None,
+) -> Tuple[Dict[int, List[Tuple[int, ...]]], List[Dict[int, int]]]:
     all_idx_to_track = []
     idx_to_track = {}
     tracks = {}
@@ -144,8 +144,8 @@ def track_iou(
 
 
 def filter_parked_cars(
-    tracks: dict[int, list[tuple[int, ...]]], total_frames: int
-) -> tuple[dict[int, list[tuple[int, ...]]], int]:
+    tracks: Dict[int, List[Tuple[int, ...]]], total_frames: int
+) -> Tuple[Dict[int, List[Tuple[int, ...]]], int]:
     tracks_ = tracks.copy()
     n = 0
     for track_id in tracks:
@@ -159,8 +159,8 @@ def filter_parked_cars(
 
 
 def filter_spurious_preds(
-    tracks: dict[int, list[tuple[int, ...]]],
-) -> tuple[dict[int, list[tuple[int, ...]]], int]:
+    tracks: Dict[int, List[Tuple[int, ...]]],
+) -> Tuple[Dict[int, List[Tuple[int, ...]]], int]:
     tracks_ = tracks.copy()
     n = 0
     for track_id in tracks:
@@ -171,8 +171,8 @@ def filter_spurious_preds(
 
 
 def get_northbound_southbound(
-    tracks: dict[int, list[tuple[int, ...]]]
-) -> tuple[list[int], list[int]]:
+    tracks: Dict[int, List[Tuple[int, ...]]]
+) -> Tuple[List[int], List[int]]:
     northbound = []
     southbound = []
     for track_id in tracks:
@@ -185,9 +185,9 @@ def get_northbound_southbound(
 
 
 def write_video(
-    frames: list[npt.NDArray],
-    bboxes: list[list[tuple[int, ...]]],
-    idx_to_track: list[dict[int, int]],
+    frames: List[npt.NDArray],
+    bboxes: List[List[Tuple[int, ...]]],
+    idx_to_track: List[Dict[int, int]],
     video_file: str,
 ) -> None:
     writer = cv2.VideoWriter(
