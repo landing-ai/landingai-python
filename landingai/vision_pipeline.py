@@ -217,16 +217,27 @@ class FrameSet(BaseModel):
         video_length_sec: Union[int, None] = None,
         image_src: str = "",
     ) -> "FrameSet":
-        """Save the FrameSet as an mp4 video file
+        """Save the FrameSet as an mp4 video file. The following example, shows to use save_video to save a clip from a live RTSP source.
+        ```python
+            video_len_sec=10
+            fps=4
+            img_src = NetworkedCamera(stream_url, fps=fps)
+            frs = FrameSet()
+            for i,frame in enumerate(img_src):
+                if i>=video_len_sec*fps: # Limit capture time
+                    break
+                frs.extend(frame)
+            frs.save_video("sample_images/test.mp4",video_fps=fps)
+        ```
 
         Parameters
         ----------
         video_file_path : str
             Path and filename with extension of the video file
         video_fps : Union[int, None], optional
-            Either the frames per second or the video length should be provided to assemble the video
+            Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         video_length_sec : Union[int, None], optional
-            Either the frames per second or the video length should be provided to assemble the video
+            Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         image_src : str, optional
             if empty the source image will be used. Otherwise the image will be selected from `other_images`
         """
@@ -242,7 +253,6 @@ class FrameSet(BaseModel):
             video_fps = min(2, total_frames)
         # All images should have the same shape as it's from the same video file
         img_shape = self.frames[0].image.size
-        # TODO: cap the frame_rate to a reasonable value
         # H264 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
         video = cv2.VideoWriter(
             video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
@@ -250,7 +260,6 @@ class FrameSet(BaseModel):
         for fr in self.frames:
             video.write(cv2.cvtColor(fr.to_numpy_array(image_src), cv2.COLOR_RGB2BGR))
         video.release()
-        # print(f"Video is saved to {video_file_path} with resolution {img_shape} (no. frames {total_frames})")
         return self
 
     def show_image(
@@ -405,14 +414,26 @@ class NetworkedCamera(BaseModel):
         stream_url: str,
         motion_detection_threshold: int = 0,
         capture_interval: Union[float, None] = None,
+        fps: Union[int, None] = None,
     ) -> None:
         """
         Parameters
         ----------
         stream_url : url to video source
         motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
-        capture_interval : If set to None, the NetworkedCamera will acquire images as fast as the source permits. Otherwise will grab a new frame every capture_interval seconds
+        capture_interval : Number of seconds to wait in between frames. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
+        fps: Capture speed in frames per second. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
         """
+        if fps is not None and capture_interval is not None:
+            raise ValueError(
+                "The fps and capture_interval arguments cannot be set at the same time"
+            )
+        elif fps is not None:
+            capture_interval = 1 / fps
+        if capture_interval < 1 / 30:  # type: ignore
+            raise ValueError(
+                "The resulting fps cannot be more than 30 frames per second"
+            )
         cap = cv2.VideoCapture(stream_url)
         if not cap.isOpened():
             cap.release()
@@ -460,12 +481,12 @@ class NetworkedCamera(BaseModel):
             t = datetime.now()
             delta = (t - self._last_capture_time).total_seconds()
             if delta <= self.capture_interval:
-                time.sleep(delta)
-            self._last_capture_time = t
+                time.sleep(self.capture_interval - delta)
         with self._t_lock:
             ret, frame = self._cap.retrieve()  # non-blocking call
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
+        self._last_capture_time = datetime.now()
         if self.motion_detection_threshold > 0:
             if self._detect_motion(frame):
                 return FrameSet.from_array(frame)
