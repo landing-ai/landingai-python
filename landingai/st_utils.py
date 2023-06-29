@@ -3,7 +3,7 @@ It's only intended for the example streamlit Apps. When using the SDK in your ow
 """
 import logging
 import os
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 _DEFAULT_API_KEY_ENV_VAR = "LANDINGAI_API_KEY"
 
@@ -33,7 +33,7 @@ def setup_page(page_title: str) -> None:
     level = os.environ.get("LOGLEVEL", "INFO").upper()
     logging.basicConfig(
         level=level,
-        format="%(asctime)s %(filename)s %(funcName)s %(message)s",
+        format="%(asctime)s [%(levelname)s][%(filename)s] %(funcName)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     st = _import_st()
@@ -79,12 +79,9 @@ def check_api_credentials_set() -> None:
     st = _import_st()
     api_key = st.session_state.get("api_key")
     if api_key:
-        if api_key.startswith("land_sk_"):
-            return  # non-empty v2 api key
-        elif st.session_state.get("api_secret"):
-            return  # non-empty v1 api key and secret
+        return
 
-    st.error("Please open the sidebar and enter your API credential first.")
+    st.error("Please open the sidebar and enter your API key first.")
     st.stop()
 
 
@@ -97,16 +94,15 @@ def check_endpoint_id_set() -> None:
     st.stop()
 
 
-def get_api_credential_or_use_default() -> Tuple[Optional[str], Optional[str]]:
-    """Get API credential (api key and api secret) from the session state.
-    If the API credential is not set in the session state, use the default API credential from environment variables.
-    The output could be either a v1 API key and secret, or a v2 API key depends on what is set in the session state.
+def get_api_key_or_use_default() -> Optional[str]:
+    """Get API key (v2) from the session state.
+    If the API key is not set in the session state, it will look for the default API key from environment variables.
     """
     st = _import_st()
-    key, secret = (st.session_state["api_key"], st.session_state["api_secret"])
+    key: str = st.session_state["api_key"]
     if not key:
-        return get_default_api_key(), secret
-    return key, secret
+        return get_default_api_key()
+    return key
 
 
 def get_default_api_key() -> Optional[str]:
@@ -123,7 +119,6 @@ def get_default_api_key() -> Optional[str]:
 def render_api_config_form(
     render_endpoint_id: bool = False,
     default_key: str = "",
-    default_secret: str = "",
     default_endpoint_id: str = "",
 ) -> None:
     """Show API credential and endpoint ID (optionally) configuration form.
@@ -136,16 +131,11 @@ def render_api_config_form(
     # Set a default value in session state for the first time
     if "api_key" not in st.session_state:
         st.session_state["api_key"] = default_key
-    if "api_secret" not in st.session_state:
-        st.session_state["api_secret"] = default_secret
     if "endpoint_id" not in st.session_state:
         st.session_state["endpoint_id"] = default_endpoint_id
 
-    def _update_credential(
-        api_key: str, api_secret: str, endpoint_id: Optional[str]
-    ) -> None:
+    def _update_credential(api_key: str, endpoint_id: Optional[str]) -> None:
         st.session_state["api_key"] = api_key
-        st.session_state["api_secret"] = api_secret
         if endpoint_id:
             st.session_state["endpoint_id"] = endpoint_id
 
@@ -157,12 +147,6 @@ def render_api_config_form(
             help="If left empty, the free trial API key is used. The default key is a free trial key with a rate limit, i.e. X times per day.",
             type="password",
         )
-        api_secret = st.text_input(
-            "LandingLens API Secret",
-            key="lnd_api_secret",
-            value=st.session_state["api_secret"],
-            help="Leave it empty if you use a v2 API key. Only the legacy API key (i.e. v1) requires API secret. The v2 API key always starts with 'land_sk_'.",
-        )
         endpoint_id = None
         if render_endpoint_id:
             endpoint_id = st.text_input(
@@ -173,9 +157,9 @@ def render_api_config_form(
 
         submitted = st.form_submit_button("Save")
         if submitted:
-            _update_credential(api_key, api_secret, endpoint_id)
-            st.info("API configuration is saved successfully")
+            _update_credential(api_key, endpoint_id)
+            st.info("API key is saved successfully")
 
-    key, _ = get_api_credential_or_use_default()
+    key = get_api_key_or_use_default()
     if key == get_default_api_key():
         st.info("The default API key (free trial) is used")

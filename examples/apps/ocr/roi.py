@@ -16,7 +16,11 @@ def draw_region_of_interests(image: PIL.Image.Image) -> Dict[str, Any]:
     st.sidebar.write(
         "To draw 4 point polygon left click and draw 3 edges (must in **clockwise order**) and then right click for the 4th point to close the polygon"
     )
-    mode = "polygon" if st.sidebar.checkbox("4 point polygon", False) else "rect"
+    mode = (
+        "polygon"
+        if st.sidebar.checkbox("4 point polygon (ONLY in Desktop Browser)", False)
+        else "rect"
+    )
     img_width, img_height = image.size
     st.write(
         "Draw as many boxes as needed in the image below to read the text inside those boxes"

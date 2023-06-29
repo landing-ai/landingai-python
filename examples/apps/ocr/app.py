@@ -12,7 +12,7 @@ from roi import draw_region_of_interests, process_and_display_roi
 
 from landingai.predict import OcrPredictor, serialize_rois
 from landingai.st_utils import (
-    get_api_credential_or_use_default,
+    get_api_key_or_use_default,
     get_default_api_key,
     render_api_config_form,
     render_svg,
@@ -97,13 +97,13 @@ def main():
             key="th_slider",
         )
         mode = DetModel[detection_mode].value
-        key, secret = get_api_credential_or_use_default()
+        key = get_api_key_or_use_default()
         # Run ocr on the whole image
         if input_images is not None and st.button("Run"):
             predictor = OcrPredictor(
                 threshold=float(threshold),
                 api_key=key,
-                api_secret=secret,
+                api_secret="",
             )
             begin = time.perf_counter()
             logging.info(
@@ -126,14 +126,13 @@ def main():
                 ]
             st.json(json_result)
 
-        _render_curl_command(mode, boxes, key, secret)
+        _render_curl_command(mode, boxes, key)
 
 
 def _render_curl_command(
     mode: str,
     rois: Optional[List[List[int]]] = None,
     api_key: Optional[str] = None,
-    api_secret: Optional[str] = None,
 ) -> str:
     st.divider()
     # Build curl command str
@@ -143,17 +142,15 @@ def _render_curl_command(
      --header 'apikey: YOUR_API_KEY' \\"""
     if api_key and api_key != get_default_api_key():
         curl_command_str = curl_command_str.replace("YOUR_API_KEY", api_key)
-    if api_secret:
-        curl_command_str += f"\n     --header 'apisecret: {api_secret}' \\"
     if rois:
         curl_command_str += f"\n     --form 'rois={serialize_rois(rois, mode)}' \\"
     curl_command_str += "\n     --form 'images=@\"YOUR_FILE_PATH\"'"
     # Display curl command
-    st.subheader("curl command")
+    st.subheader("Run Inference with cURL command")
     st.caption(
         """Instructions for composing a valid curl command:
- 1. enter your api key in the sidebar.
- 2. replace 'YOUR_FILE_PATH' with the path to your local image file."""
+ 1. Enter your api key in the sidebar.
+ 2. Replace 'YOUR_FILE_PATH' with the path to your local image file."""
     )
     st.code(curl_command_str)
 
