@@ -10,7 +10,7 @@ pip install -r examples/apps/object-tracking/requirements.txt
 Then run:
 
 ```
-streamlit run main.py
+streamlit run examples/apps/object-tracking/main.py
 ```
 
 ![object-tracking](https://github.com/landing-ai/landingai-python/blob/main/examples/apps/object-tracking/assets/app.png)
