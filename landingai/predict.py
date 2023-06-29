@@ -62,7 +62,7 @@ class Predictor:
             {
                 "apikey": self._api_credential.api_key,
                 "apisecret": self._api_credential.api_secret,
-                "contentType": "application/json",
+                "contentType": "multipart/form-data",
             },
         )
 
@@ -120,7 +120,7 @@ class Predictor:
 class OcrPredictor(Predictor):
     """A class that calls your OCR inference endpoint on the LandingLens platform."""
 
-    _url: str = "https://app.dev.landing.ai/ocr/v1/detect-text"
+    _url: str = "https://app.staging.landing.ai/ocr/v1/detect-text"
 
     def __init__(
         self,
@@ -148,7 +148,7 @@ class OcrPredictor(Predictor):
             {
                 "apikey": self._api_credential.api_key,
                 "apisecret": self._api_credential.api_secret,
-                "contentType": "application/json",
+                "contentType": "multipart/form-data",
             },
         )
 
@@ -191,15 +191,7 @@ class OcrPredictor(Predictor):
         data = {}
         rois: List[List[Tuple[int, int]]] = kwargs.get("regions_of_interest", [])
         if rois:
-            rois_payload = []
-            for roi in rois:
-                rois_payload.append(
-                    {
-                        "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
-                        "mode": mode,
-                    }
-                )
-            data["rois"] = json.dumps([rois_payload])
+            data["rois"] = serialize_rois(rois, mode)
 
         payload: Dict[str, Any] = {"device_type": "pylib"}
         preds = _do_inference(
@@ -213,6 +205,19 @@ class OcrPredictor(Predictor):
         return [pred for pred in preds if pred.score >= self._threshold]
 
 
+def serialize_rois(rois: List[List[Tuple[int, int]]], mode: str) -> str:
+    """Serialize the regions of interest into a JSON string."""
+    rois_payload = []
+    for roi in rois:
+        rois_payload.append(
+            {
+                "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
+                "mode": mode,
+            }
+        )
+    return json.dumps([rois_payload])
+
+
 class EdgePredictor(Predictor):
     def __init__(
         self,
@@ -221,7 +226,7 @@ class EdgePredictor(Predictor):
     ) -> None:
         self._url = f"http://{host}:{port}/images"
         self._session = _create_session(
-            self._url, self._num_retry, {"contentType": "application/json"}
+            self._url, self._num_retry, {"contentType": "multipart/form-data"}
         )
 
     def predict(

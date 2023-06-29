@@ -1,5 +1,5 @@
 streamlit
-streamlit-drawable-canvas
+# Need a custom fork version for two bug fixes: 1) can't render canvas on a subpath url 2) canvas doesn't support mobile 
+landingai-streamlit-drawable-canvas
 extra-streamlit-components
-streamlit-pydantic
 landingai

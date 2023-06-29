@@ -1,12 +1,11 @@
-import requests
 import argparse
-import m3u8
-import cv2
-import numpy.typing as npt
-
-from typing import Callable
 from pathlib import Path
+from typing import Callable, List
 
+import cv2
+import m3u8
+import numpy.typing as npt
+import requests
 
 M3U8_URL = (
     "https://live.hdontap.com/hls/hosb1/sunset-static_swellmagenet.stream/playlist.m3u8"
@@ -35,7 +34,7 @@ def get_latest_ts_file(out_path: str) -> None:
         f.write(ts_file.content)
 
 
-def get_frames(video_file: str, skip_frame: int = 5) -> list[npt.NDArray]:
+def get_frames(video_file: str, skip_frame: int = 5) -> List[npt.NDArray]:
     cap = cv2.VideoCapture(video_file)
     frames = []
     i = 0
@@ -48,7 +47,7 @@ def get_frames(video_file: str, skip_frame: int = 5) -> list[npt.NDArray]:
     return frames
 
 
-def write_frames(video_file: str, out_dir: str) -> list[str]:
+def write_frames(video_file: str, out_dir: str) -> List[str]:
     out_dir_p = Path(out_dir)
     out_dir_p.mkdir(parents=True, exist_ok=True)
     frames = get_frames(video_file)
@@ -63,7 +62,7 @@ def write_frames(video_file: str, out_dir: str) -> list[str]:
 
 
 def crop_data(
-    input_files: list[str], crop: Callable[[npt.NDArray], npt.NDArray]
+    input_files: List[str], crop: Callable[[npt.NDArray], npt.NDArray]
 ) -> None:
     for f in input_files:
         img = cv2.imread(f)
