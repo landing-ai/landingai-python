@@ -82,7 +82,7 @@ def get_preds(
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = crop(frame)
         pred = predictor.predict(frame)
-        bboxes.append([List(p.bboxes) + [p.score] for p in pred])
+        bboxes.append([list(p.bboxes) + [p.score] for p in pred])
     return bboxes
 
 
