@@ -437,7 +437,7 @@ class NetworkedCamera(BaseModel):
         elif fps is not None:
             capture_interval = 1 / fps
 
-        if capture_interval is not None and capture_interval < 1 / 30:  # type: ignore
+        if capture_interval is not None and capture_interval < 1 / 30:
             raise ValueError(
                 "The resulting fps cannot be more than 30 frames per second"
             )
