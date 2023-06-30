@@ -213,8 +213,8 @@ class FrameSet(BaseModel):
     def save_video(
         self,
         video_file_path: str,
-        video_fps: Union[int, None] = None,
-        video_length_sec: Union[int, None] = None,
+        video_fps: Optional[int] = None,
+        video_length_sec: Optional[int] = None,
         image_src: str = "",
     ) -> "FrameSet":
         """Save the FrameSet as an mp4 video file. The following example, shows to use save_video to save a clip from a live RTSP source.
@@ -246,6 +246,12 @@ class FrameSet(BaseModel):
         total_frames = len(self.frames)
         if total_frames == 0:
             return self
+
+        if video_fps is not None and video_length_sec is not None:
+            raise ValueError(
+                "The fps and length arguments cannot be set at the same time"
+            )
+
         # Try to tune FPS based on parameters or pick a reasonable number
         if video_length_sec is not None and video_length_sec <= total_frames:
             video_fps = int(total_frames / video_length_sec)
@@ -413,8 +419,8 @@ class NetworkedCamera(BaseModel):
         self,
         stream_url: str,
         motion_detection_threshold: int = 0,
-        capture_interval: Union[float, None] = None,
-        fps: Union[int, None] = None,
+        capture_interval: Optional[float] = None,
+        fps: Optional[int] = None,
     ) -> None:
         """
         Parameters
@@ -430,7 +436,8 @@ class NetworkedCamera(BaseModel):
             )
         elif fps is not None:
             capture_interval = 1 / fps
-        if capture_interval < 1 / 30:  # type: ignore
+
+        if capture_interval is not None and capture_interval < 1 / 30:  # type: ignore
             raise ValueError(
                 "The resulting fps cannot be more than 30 frames per second"
             )
