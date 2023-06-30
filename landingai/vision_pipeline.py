@@ -46,7 +46,7 @@ class Frame(BaseModel):
         return self
 
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
-        """Return a numpy array using GRB color encoding (used by OpenCV)
+        """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class FrameSet(BaseModel):
         array : np.ndarray
             Image
         is_BGR : bool, optional
-            Assume OpenCV's BGR color space? Defaults to True
+            Assume OpenCV's BGR channel ordering? Defaults to True
 
         Returns
         -------
