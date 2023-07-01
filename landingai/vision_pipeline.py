@@ -249,7 +249,7 @@ class FrameSet(BaseModel):
 
         if video_fps is not None and video_length_sec is not None:
             raise ValueError(
-                "The fps and length arguments cannot be set at the same time"
+                "The 'video_fps' and 'video_length_sec' arguments cannot be set at the same time"
             )
 
         # Try to tune FPS based on parameters or pick a reasonable number
