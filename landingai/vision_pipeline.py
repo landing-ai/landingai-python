@@ -87,22 +87,22 @@ class FrameSet(BaseModel):
         return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
-    def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
+    def from_array(cls, array: np.ndarray, is_bgr: bool = True) -> "FrameSet":
         """Creates a FrameSet from a image encode as ndarray
 
         Parameters
         ----------
         array : np.ndarray
             Image
-        is_BGR : bool, optional
+        is_bgr : bool, optional
             Assume OpenCV's BGR channel ordering? Defaults to True
 
         Returns
         -------
         FrameSet
         """
-        # img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
-        if is_BGR:
+        # TODO: Make is_bgr and enum and support grayscale, rgba (what can PIL autodetect?)
+        if is_bgr:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(array)
         return cls(frames=[Frame(image=im)])
@@ -214,7 +214,7 @@ class FrameSet(BaseModel):
         self,
         video_file_path: str,
         video_fps: Optional[int] = None,
-        video_length_sec: Optional[int] = None,
+        video_length_sec: Optional[float] = None,
         image_src: str = "",
     ) -> "FrameSet":
         """Save the FrameSet as an mp4 video file. The following example, shows to use save_video to save a clip from a live RTSP source.
@@ -234,9 +234,9 @@ class FrameSet(BaseModel):
         ----------
         video_file_path : str
             Path and filename with extension of the video file
-        video_fps : Union[int, None], optional
+        video_fps : Optional[int]
             Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
-        video_length_sec : Union[int, None], optional
+        video_length_sec : Optional[float]
             Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         image_src : str, optional
             if empty the source image will be used. Otherwise the image will be selected from `other_images`
