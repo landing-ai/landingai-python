@@ -254,7 +254,7 @@ class FrameSet(BaseModel):
                 "The 'video_fps' and 'video_length_sec' arguments cannot be set at the same time"
             )
 
-        # Try to tune FPS based on parameters or pick a reasonable number
+        # Try to tune FPS based on parameters or pick a reasonable number. The goal is to produce a video that last a a couple of seconds even when there are few frames. OpenCV will silently fail and not create a file if the resulting fps is less than 1
         if video_length_sec is not None and video_length_sec <= total_frames:
             video_fps = int(total_frames / video_length_sec)
         elif video_fps is None:
@@ -263,7 +263,8 @@ class FrameSet(BaseModel):
         img_shape = self.frames[0].image.size
         # H264 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
         video = cv2.VideoWriter(
-            video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
+            video_file_path, cv2.VideoWriter_fourcc(*"H264"), video_fps, img_shape
+            # video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
         )
         for fr in self.frames:
             video.write(cv2.cvtColor(fr.to_numpy_array(image_src), cv2.COLOR_RGB2BGR))
