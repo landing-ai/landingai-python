@@ -238,7 +238,8 @@ class FrameSet(BaseModel):
             The number of frames per second for the output video file.
             Either the `video_fps` or `video_length_sec` should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         video_length_sec : Union[int, None], optional
-            Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
+            The total number of seconds for the output video file.
+            Either the `video_fps` or `video_length_sec` should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         image_src : str, optional
             if empty the source image will be used. Otherwise the image will be selected from `other_images`
         """
