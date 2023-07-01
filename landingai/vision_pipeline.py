@@ -235,9 +235,11 @@ class FrameSet(BaseModel):
         video_file_path : str
             Path and filename with extension of the video file
         video_fps : Optional[int]
-            Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
+            The number of frames per second for the output video file.
+            Either the `video_fps` or `video_length_sec` should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         video_length_sec : Optional[float]
-            Either the frames per second or the video length should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
+            The total number of seconds for the output video file.
+            Either the `video_fps` or `video_length_sec` should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
         image_src : str, optional
             if empty the source image will be used. Otherwise the image will be selected from `other_images`
         """
@@ -249,7 +251,7 @@ class FrameSet(BaseModel):
 
         if video_fps is not None and video_length_sec is not None:
             raise ValueError(
-                "The fps and length arguments cannot be set at the same time"
+                "The 'video_fps' and 'video_length_sec' arguments cannot be set at the same time"
             )
 
         # Try to tune FPS based on parameters or pick a reasonable number
