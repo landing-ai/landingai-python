@@ -261,10 +261,9 @@ class FrameSet(BaseModel):
             video_fps = min(2, total_frames)
         # All images should have the same shape as it's from the same video file
         img_shape = self.frames[0].image.size
-        # H264 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
-        # video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
+        # H264/avc1 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
         video = cv2.VideoWriter(
-            video_file_path, cv2.VideoWriter_fourcc(*"H264"), video_fps, img_shape
+            video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
         )
         for fr in self.frames:
             video.write(cv2.cvtColor(fr.to_numpy_array(image_src), cv2.COLOR_RGB2BGR))

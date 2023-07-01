@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+from importlib.metadata import version
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 import numpy as np
@@ -99,7 +100,15 @@ class Predictor:
         """
         buffer_bytes = self._serialize_image(image)
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
-        payload = {"endpoint_id": self._endpoint_id, "device_type": "pylib"}
+        payload = {
+            "endpoint_id": self._endpoint_id,
+            "device_type": "pylib",
+        }
+        # Add library version if available
+        # try:
+        #     payload["device_version"] = version("landingai")
+        # except Exception:
+        #     pass
         return _do_inference(
             self._session, Predictor._url, files, payload, _CloudExtractor
         )
