@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Union, cast
 import cv2
 import numpy as np
 from PIL import Image
+from wurlitzer import pipes  # type: ignore
 from pydantic import BaseModel, PrivateAttr
 
 from landingai.common import Prediction, ClassificationPrediction, in_notebook
@@ -261,10 +262,28 @@ class FrameSet(BaseModel):
             video_fps = min(2, total_frames)
         # All images should have the same shape as it's from the same video file
         img_shape = self.frames[0].image.size
-        # H264/avc1 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
-        video = cv2.VideoWriter(
-            video_file_path, cv2.VideoWriter_fourcc(*"avc1"), video_fps, img_shape
-        )
+        # Find a suitable coded that it is installed on the system. H264/avc1 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
+
+        codecs = [
+            cv2.VideoWriter_fourcc(*"avc1"),  # type: ignore
+            cv2.VideoWriter_fourcc(*"hev1"),  # type: ignore
+            cv2.VideoWriter_fourcc(*"mp4v"),  # type: ignore
+            cv2.VideoWriter_fourcc(*"xvid"),  # type: ignore
+            -1,  # This forces OpenCV to dump the list of codecs
+        ]
+        for fourcc in codecs:
+            with pipes() as (out, err):
+                video = cv2.VideoWriter(video_file_path, fourcc, video_fps, img_shape)
+            stderr = err.read()
+            # Print OpenCV output to help customer's understand what is going on
+            print(out.read())
+            print(stderr)
+            if "is not" not in stderr:  # Found a working codec
+                break
+        if fourcc == -1 or not video.isOpened():
+            raise Exception(
+                f"Could not find a suitable codec to save {video_file_path}"
+            )
         for fr in self.frames:
             video.write(cv2.cvtColor(fr.to_numpy_array(image_src), cv2.COLOR_RGB2BGR))
         video.release()

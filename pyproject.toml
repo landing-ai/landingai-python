@@ -21,11 +21,12 @@ python = ">=3.8"
 opencv-python = ">=4.5"
 numpy = ">=1.21.0"
 pillow = ">=9.1.1"
-pydantic = { version = "*", extras = ["dotenv"] }
+pydantic = { version = "^1", extras = ["dotenv"] }
 requests = "*"
 snowflake-connector-python = "3.0.*"
 bbox-visualizer = "^0.1.0"
 segmentation-mask-overlay = "^0.3.4"
+wurlitzer = ">=3.0.3"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "*"
