@@ -26,7 +26,8 @@ requests = "*"
 snowflake-connector-python = "3.0.*"
 bbox-visualizer = "^0.1.0"
 segmentation-mask-overlay = "^0.3.4"
-wurlitzer = ">=3.0.3"
+imageio = "*"
+imageio-ffmpeg = "*"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "*"
