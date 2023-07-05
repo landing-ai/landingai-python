@@ -18,7 +18,7 @@ For example, you can use metadata to group certain type of medias together (e.g.
 
 ### Code Example of Metadata Management
 
-**Prerequisite**: if this is the first you update a metadata, you need to register the metadata key on LandingLens first (if you haven't done it already).
+**Prerequisite**: if this is the first time you update a metadata, you need to register the metadata key on LandingLens first through the web UI.
 
 Below screenshot shows you how to access the Metadata Management UI.
 

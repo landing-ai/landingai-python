@@ -200,10 +200,8 @@ class LandingLens:
         route = ROUTES[route_name]
         headers = {
             "apikey": self.api_key,
-            "apisecret": "ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq3u1cgq",
             "Content-Type": "application/json",
             "User-Agent": "landingai-python-" + version("landingai"),
-            # "Origin": get_root_url(creds, "LANDING_API"),
         }
         root_url_type = cast(str, route["root_url"])
 
