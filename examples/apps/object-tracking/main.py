@@ -16,7 +16,8 @@ api_secret = st.text_input(
     value=st.session_state.get("api_secret", ""),
 )
 endpoint_id = st.text_input(
-    "CloudInference Endpoint ID", value=st.session_state.get("endpoint_id", ""),
+    "CloudInference Endpoint ID",
+    value=st.session_state.get("endpoint_id", ""),
 )
 
 

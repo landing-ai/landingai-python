@@ -51,7 +51,8 @@ def draw_region_of_interests(image: PIL.Image.Image) -> Dict[str, Any]:
 
 
 def process_and_display_roi(
-    image: PIL.Image.Image, region_of_intrests: Dict[str, Any],
+    image: PIL.Image.Image,
+    region_of_intrests: Dict[str, Any],
 ) -> Tuple[List[np.ndarray], List[Tuple[int, int]]]:
     """Crop the region of interest from the image, rotate the image if it's vertical, and display the cropped image"""
     assert region_of_intrests, "Canvas result is empty"
