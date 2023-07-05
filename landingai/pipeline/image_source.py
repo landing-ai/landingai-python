@@ -3,10 +3,13 @@
 import glob
 from collections.abc import Iterator
 from pathlib import Path
+import tempfile
+import shutil
 from typing import Iterator as IteratorType
 from typing import List, Union
 
 from landingai.vision_pipeline import FrameSet
+from landingai.io import sample_images_from_video
 
 
 class ImageSourceBase(Iterator):
@@ -21,14 +24,14 @@ class ImageFolder(ImageSourceBase):
     The `ImageFolder` class is an image source that reads images from a folder path.
 
     Example 1:
-    ```
+    ```python
     folder = ImageFolder("/home/user/images")
     for image_batch in folder:
         print(image_batch[0].image.size)
     ```
 
     Example 2:
-    ```
+    ```python
     # Read all jpg files in the folder (including nested files)
     folder = ImageFolder(glob_pattern="/home/user/images/**/*.jpg")
     for image_batch in folder:
@@ -98,3 +101,46 @@ class ImageFolder(ImageSourceBase):
     def image_paths(self) -> List[str]:
         """Returns a list of image paths."""
         return self._image_paths
+
+
+class VideoFile(ImageSourceBase):
+    """
+    The `VideoFile` class is an image source that samples frames from a video file.
+
+    Example:
+    ```python
+        img_src = VideoFile("sample_images/surfers.mp4", samples_per_second=1)
+        frs = FrameSet()
+        for i,frame in enumerate(img_src):
+            if i>=3: # Fetch only 3 frames
+                break
+            frs.extend(
+                frame.run_predict(predictor=surfer_model)
+                .overlay_predictions()
+            )
+        print(frs.get_class_counts())
+    ```
+    """
+
+    def __init__(self, filename: str, samples_per_second: float = 1) -> None:
+        """Constructor for VideoFile.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the video file
+        samples_per_second : float, optional
+            The number of images to sample per second (by default 1)
+        """
+        self._video_file = filename
+        self._local_cache_dir = Path(tempfile.mkdtemp())
+        self._samples_per_second = samples_per_second
+
+    def __iter__(self) -> IteratorType[FrameSet]:
+        for img_path in sample_images_from_video(
+            self._video_file, self._local_cache_dir, self._samples_per_second
+        ):
+            yield FrameSet.from_image(img_path)
+
+    def __del__(self) -> None:
+        shutil.rmtree(self._local_cache_dir)

@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Union, cast
 import cv2
 import numpy as np
 from PIL import Image
+import imageio
 from pydantic import BaseModel, PrivateAttr
 
 from landingai.common import Prediction, ClassificationPrediction, in_notebook
@@ -45,9 +46,15 @@ class Frame(BaseModel):
         self.predictions = predictor.predict(np.asarray(self.image))  # type: ignore
         return self
 
-    def to_numpy_array(self) -> np.ndarray:
-        """Return a numpy array using GRB color encoding (used by OpenCV)"""
-        return np.asarray(self.image)
+    def to_numpy_array(self, image_src: str = "") -> np.ndarray:
+        """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
+
+        Parameters
+        ----------
+        image_src : if empty the source image will be converted. Otherwise the image will be selected from `other_images`
+        """
+        img = self.image if image_src == "" else self.other_images[image_src]
+        return np.asarray(img)
 
     class Config:
         arbitrary_types_allowed = True
@@ -81,22 +88,22 @@ class FrameSet(BaseModel):
         return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
-    def from_array(cls, array: np.ndarray, is_BGR: bool = True) -> "FrameSet":
+    def from_array(cls, array: np.ndarray, is_bgr: bool = True) -> "FrameSet":
         """Creates a FrameSet from a image encode as ndarray
 
         Parameters
         ----------
         array : np.ndarray
             Image
-        is_BGR : bool, optional
-            Assume OpenCV's BGR color space? Defaults to True
+        is_bgr : bool, optional
+            Assume OpenCV's BGR channel ordering? Defaults to True
 
         Returns
         -------
         FrameSet
         """
-        # img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
-        if is_BGR:
+        # TODO: Make is_bgr and enum and support grayscale, rgba (what can PIL autodetect?)
+        if is_bgr:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(array)
         return cls(frames=[Frame(image=im)])
@@ -192,7 +199,7 @@ class FrameSet(BaseModel):
         Parameters
         ----------
         filename_prefix : path and name prefix for the image file
-        image_src : if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        image_src : if empty the source image will be saved. Otherwise the image will be selected from `other_images`
         """
         timestamp = datetime.now().strftime(
             "%Y%m%d-%H%M%S"
@@ -202,6 +209,91 @@ class FrameSet(BaseModel):
             img = frame.image if image_src == "" else frame.other_images[image_src]
             img.save(f"{filename_prefix}_{timestamp}_{image_src}_{c}.png", format="PNG")
             c += 1
+        return self
+
+    def save_video(
+        self,
+        video_file_path: str,
+        video_fps: Optional[int] = None,
+        video_length_sec: Optional[float] = None,
+        image_src: str = "",
+    ) -> "FrameSet":
+        """Save the FrameSet as an mp4 video file. The following example, shows to use save_video to save a clip from a live RTSP source.
+        ```python
+            video_len_sec=10
+            fps=4
+            img_src = NetworkedCamera(stream_url, fps=fps)
+            frs = FrameSet()
+            for i,frame in enumerate(img_src):
+                if i>=video_len_sec*fps: # Limit capture time
+                    break
+                frs.extend(frame)
+            frs.save_video("sample_images/test.mp4",video_fps=fps)
+        ```
+
+        Parameters
+        ----------
+        video_file_path : str
+            Path and filename with extension of the video file
+        video_fps : Optional[int]
+            The number of frames per second for the output video file.
+            Either the `video_fps` or `video_length_sec` should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
+        video_length_sec : Optional[float]
+            The total number of seconds for the output video file.
+            Either the `video_fps` or `video_length_sec` should be provided to assemble the video. if none of the two are provided, the method will try to set a "reasonable" value.
+        image_src : str, optional
+            if empty the source image will be used. Otherwise the image will be selected from `other_images`
+        """
+        if not video_file_path.lower().endswith(".mp4"):
+            raise NotImplementedError("Only .mp4 is supported")
+        total_frames = len(self.frames)
+        if total_frames == 0:
+            return self
+
+        if video_fps is not None and video_length_sec is not None:
+            raise ValueError(
+                "The 'video_fps' and 'video_length_sec' arguments cannot be set at the same time"
+            )
+
+        # Try to tune FPS based on parameters or pick a reasonable number. The goal is to produce a video that last a a couple of seconds even when there are few frames. OpenCV will silently fail and not create a file if the resulting fps is less than 1
+        if video_length_sec is not None and video_length_sec <= total_frames:
+            video_fps = int(total_frames / video_length_sec)
+        elif video_fps is None:
+            video_fps = min(2, total_frames)
+
+        writer = imageio.get_writer(video_file_path, fps=video_fps)
+        for fr in self.frames:
+            writer.append_data(fr.to_numpy_array(image_src))
+        writer.close()
+
+        # Previous implementation with OpenCV that required code guessing and did not work on windows because of wurlitzer
+        # # All images should have the same shape as it's from the same video file
+        # img_shape = self.frames[0].image.size
+        # # Find a suitable coded that it is installed on the system. H264/avc1 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
+
+        # codecs = [
+        #     cv2.VideoWriter_fourcc(*"avc1"),  # type: ignore
+        #     cv2.VideoWriter_fourcc(*"hev1"),  # type: ignore
+        #     cv2.VideoWriter_fourcc(*"mp4v"),  # type: ignore
+        #     cv2.VideoWriter_fourcc(*"xvid"),  # type: ignore
+        #     -1,  # This forces OpenCV to dump the list of codecs
+        # ]
+        # for fourcc in codecs:
+        #     with pipes() as (out, err):
+        #         video = cv2.VideoWriter(video_file_path, fourcc, video_fps, img_shape)
+        #     stderr = err.read()
+        #     # Print OpenCV output to help customer's understand what is going on
+        #     print(out.read())
+        #     print(stderr)
+        #     if "is not" not in stderr:  # Found a working codec
+        #         break
+        # if fourcc == -1 or not video.isOpened():
+        #     raise Exception(
+        #         f"Could not find a suitable codec to save {video_file_path}"
+        #     )
+        # for fr in self.frames:
+        #     video.write(cv2.cvtColor(fr.to_numpy_array(image_src), cv2.COLOR_RGB2BGR))
+        # video.release()
         return self
 
     def show_image(
@@ -355,15 +447,28 @@ class NetworkedCamera(BaseModel):
         self,
         stream_url: str,
         motion_detection_threshold: int = 0,
-        capture_interval: Union[float, None] = None,
+        capture_interval: Optional[float] = None,
+        fps: Optional[int] = None,
     ) -> None:
         """
         Parameters
         ----------
         stream_url : url to video source
         motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
-        capture_interval : If set to None, the NetworkedCamera will acquire images as fast as the source permits. Otherwise will grab a new frame every capture_interval seconds
+        capture_interval : Number of seconds to wait in between frames. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
+        fps: Capture speed in frames per second. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
         """
+        if fps is not None and capture_interval is not None:
+            raise ValueError(
+                "The fps and capture_interval arguments cannot be set at the same time"
+            )
+        elif fps is not None:
+            capture_interval = 1 / fps
+
+        if capture_interval is not None and capture_interval < 1 / 30:
+            raise ValueError(
+                "The resulting fps cannot be more than 30 frames per second"
+            )
         cap = cv2.VideoCapture(stream_url)
         if not cap.isOpened():
             cap.release()
@@ -411,12 +516,12 @@ class NetworkedCamera(BaseModel):
             t = datetime.now()
             delta = (t - self._last_capture_time).total_seconds()
             if delta <= self.capture_interval:
-                time.sleep(delta)
-            self._last_capture_time = t
+                time.sleep(self.capture_interval - delta)
         with self._t_lock:
             ret, frame = self._cap.retrieve()  # non-blocking call
             if not ret:
                 raise Exception(f"Connection to camera broken ({self.stream_url})")
+        self._last_capture_time = datetime.now()
         if self.motion_detection_threshold > 0:
             if self._detect_motion(frame):
                 return FrameSet.from_array(frame)
