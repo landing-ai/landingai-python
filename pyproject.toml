@@ -27,6 +27,9 @@ snowflake-connector-python = "3.0.*"
 bbox-visualizer = "^0.1.0"
 segmentation-mask-overlay = "^0.3.4"
 imageio = { version = "2.*", extras = ["ffmpeg"] }
+aiohttp = { version = ">=3.7.3,<4.0.0", extras = ["speedups"] }
+aiofiles = ">=0.7.0,<1.0.0"
+tqdm = ">=4.64.0,<5.0.0"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "1.*"
@@ -41,6 +44,9 @@ types-requests = "^2.31.0.0"
 types-pillow = "^9.5.0.4"
 data-science-types = "^0.2.23"
 testbook = "^0.4.2"
+types-aiofiles = "^23.1.0.4"
+types-tqdm = "^4.65.0.1"
+aioresponses = "^0.7.4"
 
 
 [tool.poetry.group.examples.dependencies]

@@ -87,6 +87,17 @@ class ClientError(Exception):
         return self.message
 
 
+class HttpError(Exception):
+    """Exception raised when there's something wrong with the HTTP request. This is a generic exception that is raised when no other more specific exception is appropriate. Status code: 3xx, 4xx or 5xx."""
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+
 class UnexpectedRedirectError(Exception):
     """Exception raised when the client encounters an unexpected redirect. Status code: 3xx."""
 
