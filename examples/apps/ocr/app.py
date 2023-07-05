@@ -52,10 +52,7 @@ def main():
     # Add radio button for image selection
     detection_mode = st.radio(
         label="OCR Mode",
-        options=[
-            DetModel.AUTO_DETECT.name,
-            DetModel.MANUAL_ROI.name,
-        ],
+        options=[DetModel.AUTO_DETECT.name, DetModel.MANUAL_ROI.name,],
         help="Auto Detect - Ideal for reading text in multiple lines or single line where each line is a collection of words. "
         "Examples are reading text in a document, print, label or image where location of text is dynamic."
         "Manual ROI - For more complex use cases draw a ROI for every word to be read. The text location has to be the same for every image ",
@@ -89,21 +86,13 @@ def main():
             input_images = image_np
             boxes = None
         # Slider for choosing a confidence threshold
-        threshold = st.slider(
-            "Recognition Threshold",
-            0.0,
-            1.0,
-            0.5,
-            key="th_slider",
-        )
+        threshold = st.slider("Recognition Threshold", 0.0, 1.0, 0.5, key="th_slider",)
         mode = DetModel[detection_mode].value
         key = get_api_key_or_use_default()
         # Run ocr on the whole image
         if input_images is not None and st.button("Run"):
             predictor = OcrPredictor(
-                threshold=float(threshold),
-                api_key=key,
-                api_secret="",
+                threshold=float(threshold), api_key=key, api_secret="",
             )
             begin = time.perf_counter()
             logging.info(
@@ -130,9 +119,7 @@ def main():
 
 
 def _render_curl_command(
-    mode: str,
-    rois: Optional[List[List[int]]] = None,
-    api_key: Optional[str] = None,
+    mode: str, rois: Optional[List[List[int]]] = None, api_key: Optional[str] = None,
 ) -> str:
     st.divider()
     # Build curl command str

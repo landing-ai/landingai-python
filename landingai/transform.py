@@ -8,9 +8,7 @@ import PIL.Image
 
 
 def crop_rotated_rectangle(
-    image: PIL.Image.Image,
-    rect: List[Tuple[int, int]],
-    angle: float,
+    image: PIL.Image.Image, rect: List[Tuple[int, int]], angle: float,
 ) -> Tuple[np.ndarray, List[Tuple[int, int]]]:
     """Crop the input image based on the rotated rectangle.
     The rectangle is calculated based on the rotated rectangle's corners.

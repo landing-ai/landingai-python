@@ -205,12 +205,7 @@ class OcrPredictor(Predictor):
 
         payload: Dict[str, Any] = {"device_type": "pylib"}
         preds = _do_inference(
-            self._session,
-            OcrPredictor._url,
-            files,
-            payload,
-            _OcrExtractor,
-            data=data,
+            self._session, OcrPredictor._url, files, payload, _OcrExtractor, data=data,
         )
         return [pred for pred in preds if pred.score >= self._threshold]
 
@@ -229,11 +224,7 @@ def serialize_rois(rois: List[List[Tuple[int, int]]], mode: str) -> str:
 
 
 class EdgePredictor(Predictor):
-    def __init__(
-        self,
-        host: str,
-        port: int,
-    ) -> None:
+    def __init__(self, host: str, port: int,) -> None:
         self._url = f"http://{host}:{port}/images"
         self._session = _create_session(
             self._url, self._num_retry, {"contentType": "multipart/form-data"}

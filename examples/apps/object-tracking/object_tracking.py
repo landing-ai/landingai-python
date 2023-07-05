@@ -87,8 +87,7 @@ def get_preds(
 
 
 def match_dets_with_prev(
-    prev_detections: List[Tuple[int, ...]],
-    detections: List[Tuple[int, ...]],
+    prev_detections: List[Tuple[int, ...]], detections: List[Tuple[int, ...]],
 ) -> Tuple[Dict[int, int], Set[int]]:
     iou = bbox_ious(np.array(prev_detections)[:, :4], np.array(detections)[:, :4])
     prev_det_to_det = iou.argmax(axis=1)

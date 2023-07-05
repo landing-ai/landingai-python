@@ -164,10 +164,7 @@ st.header("Inference on Image Folder")
 st.divider()
 st.subheader("Select image folder")
 local_image_folder = st.text_input(
-    "Image Folder Path",
-    key="image_folder_path",
-    value="",
-    on_change=reset_states,
+    "Image Folder Path", key="image_folder_path", value="", on_change=reset_states,
 )
 
 if local_image_folder:

@@ -40,8 +40,7 @@ def class_counts(
 
 
 def class_pixel_coverage(
-    predictions: Sequence[ClassificationPrediction],
-    coverage_type: str = "relative",
+    predictions: Sequence[ClassificationPrediction], coverage_type: str = "relative",
 ) -> Dict[int, Tuple[float, str]]:
     """Compute the pixel coverage of each class.
 
@@ -84,15 +83,13 @@ def class_pixel_coverage(
 
 
 def od_class_pixel_coverage(
-    predictions: Sequence[ObjectDetectionPrediction],
-    coverage_type: str = "relative",
+    predictions: Sequence[ObjectDetectionPrediction], coverage_type: str = "relative",
 ) -> Dict[int, Tuple[float, str]]:
     raise NotImplementedError()
 
 
 def segmentation_class_pixel_coverage(
-    predictions: Sequence[SegmentationPrediction],
-    coverage_type: str = "relative",
+    predictions: Sequence[SegmentationPrediction], coverage_type: str = "relative",
 ) -> Dict[int, Tuple[float, str]]:
     """Compute the pixel coverage of each class.
     The coverage is defined as the percentage of pixels that are predicted as the class

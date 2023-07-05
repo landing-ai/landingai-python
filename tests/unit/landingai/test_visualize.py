@@ -34,13 +34,7 @@ def test_overlay_bboxes():
     img = visualize.overlay_predictions(
         [preds[0]], img, {"bbox_style": "default", "draw_label": False}
     )
-    img = visualize.overlay_predictions(
-        [preds[1]],
-        img,
-        {
-            "bbox_style": "FLAG",
-        },
-    )
+    img = visualize.overlay_predictions([preds[1]], img, {"bbox_style": "FLAG",},)
     result_img = visualize.overlay_predictions(
         [preds[2]], img, {"bbox_style": "t-label"}
     )
