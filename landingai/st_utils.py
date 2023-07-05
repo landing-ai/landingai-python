@@ -29,6 +29,10 @@ If you are running one of the example Apps of this repo, please follow the insta
 def setup_page(page_title: str) -> None:
     """Common setup code for streamlit pages.
     This function should be called only once at the beginning of the page.
+    Commoon setup includes:
+    1. Set page title and favicon
+    2. Set up logging configuration
+    3. Hide the default streamlit menu button and footer
     """
     level = os.environ.get("LOGLEVEL", "INFO").upper()
     logging.basicConfig(
