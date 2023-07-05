@@ -20,8 +20,8 @@ python = ">=3.8"
 
 opencv-python = ">=4.5"
 numpy = ">=1.21.0"
-pillow = ">=9.1.1"
-pydantic = { version = "^1", extras = ["dotenv"] }
+pillow = "^9" # Version 10.0.0 had a issue on FreeTypeFont that will be fixed on the next release 
+pydantic = { version = "^1", extras = ["dotenv"] } # Version 2 has breaking changes (in particular to seetings)
 requests = "*"
 snowflake-connector-python = "3.0.*"
 bbox-visualizer = "^0.1.0"
