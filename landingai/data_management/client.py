@@ -52,7 +52,7 @@ ROUTES = {
 }
 
 _URL_ROOTS = {
-    "LANDING_API": "https://platform.landingai.io",
+    "LANDING_API": "https://app.landing.ai",
 }
 _API_VERSION = "v1"
 _LOGGER = logging.getLogger(__name__)

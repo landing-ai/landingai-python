@@ -16,15 +16,15 @@ For example, when you upload an image to LandingLens, you can add metadata like 
 Metadata is useful when you need to manage hundreds or thousands of medias on LandingLens or you need to collaborate with other team members to label this dataset.
 For example, you can use metadata to group certain type of medias together (e.g. images taken last week), then change their the split key, or create a [labeling task](https://support.landing.ai/landinglens/docs/agreement-based-labeling#send-labeling-tasks) out of those medias.
 
-You can use the `landingai.data_management.Metadata` API to manage metadata.
-
-### Code Example of Metadata Management
+You can use the `landingai.data_management.metadata.Metadata` API to manage metadata.
 
 **Prerequisite**: if this is the first time you update a metadata, you need to register the metadata key on LandingLens first through the web UI.
 
 Below screenshot shows you how to access the Metadata Management UI.
 
-![the Metadata Management UI](https://drive.google.com/uc?export=view&id=1DCWtfaUApXlqmvIAl6MSjlM4httlxoQV)
+![the Metadata Management UI](assets/Metadata_Management_UI.png)
+
+### Code Example of Metadata Management
 
 ```python
 from landingai.data_management import Metadata
@@ -45,7 +45,7 @@ metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", label
 
 ### Upload medias to LandingLens
 
-You can use the `landingai.data_management.Media` API to upload medias to a specific project or list what medias are available in that project on LandingLens.
+You can use the `landingai.data_management.media.Media` API to upload medias to a specific project or list what medias are available in that project on LandingLens.
 
 In addition to upload medias, the upload API supports a few nice features:
 1. Assign a split ('train'/'dev'/'test'/'') to the media(s). '' represents Unassigned and is the default.
