@@ -10,6 +10,7 @@ import requests
 
 from landingai.data_management.utils import to_camel_case
 from landingai.exceptions import HttpError
+from landingai.utils import load_api_credential
 
 METADATA_ITEMS = "metadata_items"
 METADATA_UPDATE = "metadata_update"
@@ -72,22 +73,20 @@ class LandingLens:
     Example
     -------
     # Create a client by specifying API Key and project id
-    >>> client = LandingLens(api_key, project)
+    >>> client = LandingLens(project, api_key)
 
     Parameters
     ----------
-    api-key : str
-        LandingLens API Key.
     project-id: str
         LandingLens project id.  Can override this default in individual commands.
+    api-key: Optional[str]
+        LandingLens API Key. If it's not provided, it will be read from the environment variable LANDING_LENS_API_KEY, or from .env file on your project root directory.
     """
 
-    def __init__(
-        self,
-        api_key: str,
-        project_id: int,
-    ):
+    def __init__(self, project_id: int, api_key: Optional[str] = None):
         self.project_id = project_id
+        if not api_key:
+            api_key = load_api_credential().api_key
         self.api_key = api_key
 
     @property

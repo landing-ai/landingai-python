@@ -23,7 +23,7 @@ def test_single_file_upload(mocked_aioresponse, tmp_path):
         file_path="tests/data/responses/v1_media_upload_single_file.yaml"
     )
     _setup_aio_mocks(["image_1688427395107.jpeg"], mocked_aioresponse)
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     file_name, img_path = _write_random_test_image(
         tmp_path, file_name="image_1688427395107.jpeg"
     )
@@ -59,7 +59,7 @@ def test_folder_upload_with_subdirectories_skip_txt(mocked_aioresponse, tmp_path
         ],
         mocked_aioresponse,
     )
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     _write_random_test_image_folder(tmp_path, num_images=1)
     _write_random_test_image_folder(tmp_path / "subdir", num_images=2)
     upload_resp = media.upload(tmp_path)
@@ -138,7 +138,7 @@ def test_ls_filter_by_split():
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_list_filter_by_split.yaml"
     )
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     resp = media.ls(split="dev")
     medias = resp["medias"]
     assert len(medias) == 2
@@ -149,7 +149,7 @@ def test_ls_media_statuses_filter_by_one_status():
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_list_by_one_status.yaml"
     )
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     output = media.ls(media_status="raw")
     assert len(output["medias"]) >= 10
 
@@ -159,13 +159,13 @@ def test_ls_media_statuses_mixed_ordering():
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_list_by_three_status.yaml"
     )
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     output = media.ls(media_status=["raw", "approved", "in_task"])
     assert len(output["medias"]) >= 10
 
 
 def test_ls_pagination_step_exceeds_max():
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     media._media_max_page_size = 2
     media._metadata_max_page_size = 1
     with pytest.raises(ValueError) as e:
@@ -174,7 +174,7 @@ def test_ls_pagination_step_exceeds_max():
 
 
 def test_ls_not_allowed_media_status():
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     with pytest.raises(ValueError) as e:
         media.ls(media_status="sth_wrong")
     assert (
@@ -184,7 +184,7 @@ def test_ls_not_allowed_media_status():
 
 
 def test_ls_not_allowed_media_status_list_with_one_wrong():
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     with pytest.raises(ValueError) as e:
         media.ls(media_status=["raw", "pending_sth_wrong"])
     assert (
@@ -194,7 +194,7 @@ def test_ls_not_allowed_media_status_list_with_one_wrong():
 
 
 def test_ls_not_allowed_media_status_empty_list():
-    media = Media(_API_KEY, _PROJECT_ID)
+    media = Media(_PROJECT_ID, _API_KEY)
     with pytest.raises(ValueError) as e:
         media.ls(media_status=[])
     assert (

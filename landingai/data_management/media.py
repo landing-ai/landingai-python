@@ -49,10 +49,22 @@ class Media:
     """Media management API client.
     This class provides a set of APIs to manage the medias (images) uploaded to LandingLens.
     For example, you can use this class to upload medias (images) to LandingLens or list the medias are already uploaded to the LandingLens.
+
+    Example
+    -------
+    # Create a Media client by specifying API Key and project id
+    >>> client = Media(project_id, api_key)
+
+    Parameters
+    ----------
+    project-id: str
+        LandingLens project id.  Can override this default in individual commands.
+    api-key: Optional[str]
+        LandingLens API Key. If it's not provided, it will be read from the environment variable LANDING_LENS_API_KEY, or from .env file on your project root directory.
     """
 
-    def __init__(self, api_key: str, project_id: int):
-        self._client = LandingLens(api_key=api_key, project_id=project_id)
+    def __init__(self, project_id: int, api_key: Optional[str] = None):
+        self._client = LandingLens(project_id=project_id, api_key=api_key)
         self._media_max_page_size = 1000
         self._metadata_max_page_size = 500
 
