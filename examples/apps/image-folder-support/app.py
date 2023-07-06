@@ -143,10 +143,7 @@ def convert_df(df):
 
 
 def is_landing_credentials_set():
-    return (
-        st.session_state.get("endpoint_id")
-        and st.session_state.get("api_key")
-    )
+    return st.session_state.get("endpoint_id") and st.session_state.get("api_key")
 
 
 def reset_states():
