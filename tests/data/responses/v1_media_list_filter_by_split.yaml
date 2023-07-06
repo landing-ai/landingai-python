@@ -6,18 +6,18 @@ responses:
     content_type: text/plain
     method: GET
     status: 200
-    url: https://platform.landingai.io/api/v1/project/with_users?projectId=30863867234314
+    url: https://app.landing.ai/api/v1/project/with_users?projectId=30863867234314
 - response:
     auto_calculate_content_length: false
     body: '{"code":0,"message":"","data":{"22023":{"id":22023,"projectId":30863867234314,"name":"split","type":"text","predefinedChoices":null,"allowMultiple":false,"valueFlexible":true,"orgId":376},"22024":{"id":22024,"projectId":30863867234314,"name":"creator","type":"text","predefinedChoices":null,"allowMultiple":false,"valueFlexible":true,"orgId":376}}}'
     content_type: text/plain
     method: GET
     status: 200
-    url: https://platform.landingai.io/api/v1/metadata/get_metadata_by_projectId?projectId=30863867234314
+    url: https://app.landing.ai/api/v1/metadata/get_metadata_by_projectId?projectId=30863867234314
 - response:
     auto_calculate_content_length: false
     body: '{"code":0,"message":"","data":[{"id":10300466,"mediaType":"image","srcType":"user","srcName":"cli/sdk","properties":{"width":20,"height":20,"imgType":"jpeg"},"name":"image_1688325604365.jpeg","uploadTime":"2023-07-02T19:20:05.898Z","mediaStatus":"approved"},{"id":10300465,"mediaType":"image","srcType":"user","srcName":"cli/sdk","properties":{"width":20,"height":20,"imgType":"jpeg"},"name":"image_1688325604364.jpeg","uploadTime":"2023-07-02T19:20:05.832Z","mediaStatus":"approved"}]}'
     content_type: text/plain
     method: GET
     status: 200
-    url: https://platform.landingai.io/api/v1/dataset/medias?projectId=30863867234314&datasetId=38648&sortOptions=%7B%22offset%22%3A+0%2C+%22limit%22%3A+1000%7D&columnFilterMap=%7B%7D&metadataFilterMap=%7B%2222023%22%3A+%7B%22%3D%22%3A+%22dev%22%7D%7D&columnsToReturn=id&columnsToReturn=mediaType&columnsToReturn=srcType&columnsToReturn=srcName&columnsToReturn=properties&columnsToReturn=name&columnsToReturn=uploadTime&columnsToReturn=mediaStatus
+    url: https://app.landing.ai/api/v1/dataset/medias?projectId=30863867234314&datasetId=38648&sortOptions=%7B%22offset%22%3A+0%2C+%22limit%22%3A+1000%7D&columnFilterMap=%7B%7D&metadataFilterMap=%7B%2222023%22%3A+%7B%22%3D%22%3A+%22dev%22%7D%7D&columnsToReturn=id&columnsToReturn=mediaType&columnsToReturn=srcType&columnsToReturn=srcName&columnsToReturn=properties&columnsToReturn=name&columnsToReturn=uploadTime&columnsToReturn=mediaStatus

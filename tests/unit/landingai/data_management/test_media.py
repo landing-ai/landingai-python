@@ -71,7 +71,7 @@ def test_folder_upload_with_subdirectories_skip_txt(mocked_aioresponse, tmp_path
 def _setup_aio_mocks(image_file_names, mocked_aioresponse):
     for file_name in image_file_names:
         mocked_aioresponse.post(
-            "https://platform.landingai.io/api/v1/medias/sign",
+            "https://app.landing.ai/api/v1/medias/sign",
             status=200,
             payload={
                 "code": 0,
@@ -87,7 +87,7 @@ def _setup_aio_mocks(image_file_names, mocked_aioresponse):
             status=200,
         )
         mocked_aioresponse.post(
-            "https://platform.landingai.io/api/v1/medias/new",
+            "https://app.landing.ai/api/v1/medias/new",
             status=200,
             payload={
                 "code": 0,

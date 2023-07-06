@@ -6,18 +6,18 @@ responses:
     content_type: text/plain
     method: GET
     status: 200
-    url: https://platform.landingai.io/api/v1/project/with_users?projectId=30863867234314
+    url: https://app.landing.ai/api/v1/project/with_users?projectId=30863867234314
 - response:
     auto_calculate_content_length: false
     body: '{"code":0,"message":"","data":{"22023":{"id":22023,"projectId":30863867234314,"name":"split","type":"text","predefinedChoices":null,"allowMultiple":false,"valueFlexible":true,"orgId":376},"22024":{"id":22024,"projectId":30863867234314,"name":"creator","type":"text","predefinedChoices":null,"allowMultiple":false,"valueFlexible":true,"orgId":376}}}'
     content_type: text/plain
     method: GET
     status: 200
-    url: https://platform.landingai.io/api/v1/metadata/get_metadata_by_projectId?projectId=30863867234314
+    url: https://app.landing.ai/api/v1/metadata/get_metadata_by_projectId?projectId=30863867234314
 - response:
     auto_calculate_content_length: false
     body: '{"code":0,"message":"","data":[{"orgId":376,"objectId":10300467,"objectType":"media","metadata":{"22024":"tom"}},{"orgId":376,"objectId":10300466,"objectType":"media","metadata":{"22024":"tom"}},{"orgId":376,"objectId":10300465,"objectType":"media","metadata":{"22024":"tom"}}]}'
     content_type: text/plain
     method: POST
     status: 200
-    url: https://platform.landingai.io/api/v1/object/medias_metadata
+    url: https://app.landing.ai/api/v1/object/medias_metadata

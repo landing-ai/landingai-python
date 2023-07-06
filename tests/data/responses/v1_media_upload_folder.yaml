@@ -6,4 +6,4 @@ responses:
     content_type: text/plain
     method: GET
     status: 200
-    url: https://platform.landingai.io/api/v1/project/with_users?projectId=30863867234314
+    url: https://app.landing.ai/api/v1/project/with_users?projectId=30863867234314
