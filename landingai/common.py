@@ -58,7 +58,7 @@ class APIKey(BaseSettings):
         """Check if the API key is a v2 key."""
         if not key.startswith("land_sk_"):
             raise InvalidApiKeyError(
-                f"API key (v2) must start with 'land_sk_' prefix, but it's {key}."
+                f"API key (v2) must start with 'land_sk_' prefix, but it's {key}. See https://support.landing.ai/docs/api-key for more information."
             )
         return key
 

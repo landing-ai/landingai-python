@@ -35,7 +35,6 @@ def test_load_api_credential_from_env_file(tmp_path):
     env_file.write_text(
         """
                         LANDINGAI_API_KEY="land_sk_12345"
-                        LANDINGAI_API_SECRET="abcd"
                         """
     )
     # Overwrite the default env_prefix to avoid conflict with the real .env
