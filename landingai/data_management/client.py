@@ -77,9 +77,9 @@ class LandingLens:
 
     Parameters
     ----------
-    project-id: str
+    project_id: int
         LandingLens project id.  Can override this default in individual commands.
-    api-key: Optional[str]
+    api_key: Optional[str]
         LandingLens API Key. If it's not provided, it will be read from the environment variable LANDINGAI_API_KEY, or from .env file on your project root directory.
     """
 
