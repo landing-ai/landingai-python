@@ -22,6 +22,29 @@ class Metadata:
         media_ids: Union[int, List[int]],
         **input_metadata: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
+        """Update or insert a dictionary of metadata for a set of medias.
+
+        Parameters
+        ----------
+        media_ids
+            Media ids to update.
+        input_metadata
+            A dictionary of metadata to be updated or inserted.
+            The key of the metadata needs to be created/registered (for the first time) before media uploading.
+
+        Returns
+        ----------
+        Dict[str, Any]
+            The result from the update().
+            ```
+            # Example output
+            {
+                "project_id": 12345,
+                "metadata": [...],
+                "media_ids": [123, 124]],
+            }
+            ```
+        """
         project_id = self._client._project_id
         if (
             not media_ids

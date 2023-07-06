@@ -3,9 +3,9 @@
 The `landingai` library provides a set of APIs to manage dataset medias (e.g. images) and their metadata.
 This section explains how to use the associated Python APIs to:
 
--   Upload new (single) Media with metadata
--   Upload ALL medias from Folder with metadata
--   Set Metadata for existing Medias
+-   Upload new (single) media with metadata
+-   Upload all medias from folder with metadata
+-   Set metadata for existing medias
 
 
 ### Introduction to Metadata
