@@ -103,7 +103,6 @@ def main():
             predictor = OcrPredictor(
                 threshold=float(threshold),
                 api_key=key,
-                api_secret="",
             )
             begin = time.perf_counter()
             logging.info(

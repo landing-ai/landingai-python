@@ -25,7 +25,7 @@ The program captures frames from the video feed every few seconds, and then runs
 1. Set up a camera that exposes an RTSP URL to your network (your local intranet). If you're not sure if the RTSP URL is working, learn how to test it in this [article](https://support.ipconfigure.com/hc/en-us/articles/115005588503-Using-VLC-to-test-camera-stream).
 2. Train a model in LandingLens, and deploy it to an endpoint via [Cloud Deployment](https://support.landing.ai/landinglens/docs/cloud-deployment).
 3. Get the `endpoint id`, `api key` and `api secret` from LandingLens.
-4. Open the file `examples/capture-service/run.py`, and update the following with your information: `api_key`, `api_secret`, `endpoint_id` and `stream_url`. 
+4. Open the file `examples/capture-service/run.py`, and update the following with your information: `api_key`, `endpoint_id` and `stream_url`.
 
 
 ## Collect Images to Train Your Model

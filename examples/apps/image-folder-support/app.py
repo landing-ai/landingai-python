@@ -109,8 +109,7 @@ class ImageFolderResult:
 def bulk_inference(image_paths: list[str], image_folder_path: str) -> ImageFolderResult:
     endpoint_id = st.session_state["endpoint_id"]
     api_key = st.session_state["api_key"]
-    api_secret = st.session_state["api_secret"]
-    predictor = Predictor(endpoint_id, api_key=api_key, api_secret=api_secret)
+    predictor = Predictor(endpoint_id, api_key=api_key)
     images = [np.asarray(PIL.Image.open(p)) for p in image_paths]
     local_cache_dir = Path(tempfile.mkdtemp())
     pbar = st.progress(0, text="Running inferences...")
@@ -147,7 +146,6 @@ def is_landing_credentials_set():
     return (
         st.session_state.get("endpoint_id")
         and st.session_state.get("api_key")
-        and st.session_state.get("api_secret")
     )
 
 
