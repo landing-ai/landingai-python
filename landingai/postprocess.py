@@ -3,11 +3,45 @@ from collections import defaultdict
 from itertools import groupby
 from typing import Dict, List, Sequence, Tuple, Union, cast
 
+import numpy as np
+import PIL.Image
+from PIL.Image import Image
+
 from landingai.common import (
     ClassificationPrediction,
     ObjectDetectionPrediction,
+    Prediction,
     SegmentationPrediction,
 )
+
+
+def crop(
+    predictions: Sequence[Prediction], image: Union[np.ndarray, Image]
+) -> Sequence[Image]:
+    """Crop the image based on the bounding boxes in the predictions.
+
+    Parameters
+    ----------
+    predictions: a list of ObjectDetectionPrediction, each of which will be used to crop the image.
+    image: the input image to be cropped from.
+
+    Returns
+    -------
+    A list of cropped images.
+    """
+    if len(predictions) == 0:
+        return []
+    if isinstance(image, np.ndarray):
+        image = PIL.Image.fromarray(image)
+    output = []
+    for pred in predictions:
+        if not isinstance(pred, ObjectDetectionPrediction):
+            raise ValueError(
+                f"Only ObjectDetectionPrediction is supported but {type(pred)} is found."
+            )
+        xmin, ymin, xmax, ymax = pred.bboxes
+        output.append(image.crop((ymin, xmin, ymax, xmax)))
+    return output
 
 
 def class_map(predictions: Sequence[ClassificationPrediction]) -> Dict[int, str]:
