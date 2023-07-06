@@ -24,6 +24,17 @@ We've provided some examples in Jupyter Notebooks to focus on ease of use, and s
 | [Streaming Video](https://github.com/landing-ai/landingai-python/tree/main/examples/capture-service) | This application shows how to continuously run inference on images extracted from a streaming RTSP video camera feed. | Python application |
 | [Satellite Images and Post-Processing](https://github.com/landing-ai/landingai-python/tree/main/examples/post-processings/farmland-coverage/farmland-coverage.ipynb) | This notebook shows how to use a Visual Prompting model from LandingLens to identify different objects in satellite images. The notebook includes post-processing scripts that calculate the percentage of ground cover that each object takes up. | Jupyter Notebook |
 
+
+## Documentation
+
+-  [Landing AI Python Library User Guide](https://landing-ai.github.io/landingai-python/landingai.html#user-guide)
+-  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
+-  [Landing AI Python Library Release Notes](https://landing-ai.github.io/landingai-python/landingai.html#changelog)
+-  [Landing AI Python Library Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide)
+-  [Landing AI Support Center](https://support.landing.ai/)
+-  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
+
+
 ## Install the Library
 
 ```bash
@@ -104,11 +115,3 @@ To give you some guidance, here's how you can run the `rtsp-capture` example loc
 2. Install the library: `poetry install --with examples` (See the [Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide) for how to install `poetry`)
 3. Activate the virtual environment: `poetry shell`
 4. Run: `python landingai-python/examples/capture-service/run.py`
-
-## Documentation
-
--  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
--  [Landing AI Python Library User Guide](https://landing-ai.github.io/landingai-python/landingai.html#user-guide)
--  [Landing AI Python Library Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide)
--  [Landing AI Support Center](https://support.landing.ai/)
--  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)

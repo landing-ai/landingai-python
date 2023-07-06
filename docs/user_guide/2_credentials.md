@@ -14,8 +14,9 @@ Once you have generated the API key, here are three ways to configure your API K
 
 ### Legacy API key and secret
 
-In the past, LandingLens supports generating a key and secret pair, which is known as API key v1. This approach is not recommended anymore.
-But if you have a v1 key and secret pair, you can still use the Python SDK via either setting environment variables or an `.env` file, i.e. the #2 and #3 methods above.
+In the past, LandingLens supports generating a key and secret pair, which is known as API key v1. This key is no longer supported in `landingai` Python package in version `0.1.0` and above.
+
+See [here](https://support.landing.ai/docs/api-key) for how to generate API v2 key.
 
 ### FAQ
 

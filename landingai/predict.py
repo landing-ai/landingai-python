@@ -14,7 +14,6 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from landingai.common import (
-    APICredential,
     APIKey,
     ClassificationPrediction,
     ObjectDetectionPrediction,
@@ -59,16 +58,12 @@ class Predictor:
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
-    def _build_default_headers(
-        self, api_key: Union[APIKey, APICredential]
-    ) -> Dict[str, str]:
+    def _build_default_headers(self, api_key: APIKey) -> Dict[str, str]:
         """Build the HTTP headers for the request to the Cloud inference endpoint(s)."""
         headers = {
             "contentType": "application/json",
             "apikey": api_key.api_key,
         }
-        if isinstance(api_key, APICredential):
-            headers["apisecret"] = api_key.api_secret
         return headers
 
     def predict(
