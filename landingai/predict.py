@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 import numpy as np
 import PIL.Image
 import requests
-from pydantic import ValidationError
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -23,8 +22,8 @@ from landingai.common import (
     Prediction,
     SegmentationPrediction,
 )
-from landingai.exceptions import HttpResponse, InvalidApiKeyError
-from landingai.utils import serialize_image
+from landingai.exceptions import HttpResponse
+from landingai.utils import load_api_credential, serialize_image
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +55,7 @@ class Predictor:
             LANDINGAI_API_KEY or from the .env file.
         """
         self._endpoint_id = endpoint_id
-        self._api_credential = self._load_api_credential(api_key)
+        self._api_credential = load_api_credential(api_key)
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
@@ -71,28 +70,6 @@ class Predictor:
         if isinstance(api_key, APICredential):
             headers["apisecret"] = api_key.api_secret
         return headers
-
-    def _load_api_credential(
-        self, api_key: Optional[str] = None
-    ) -> Union[APIKey, APICredential]:
-        """Load API credential from different sources.
-        The API credential can be provided as arguments or loaded from the environment variables or .env file.
-        The priority is: arguments > environment variables > .env file.
-        The output is an APIKey (v2 key) or APICredential (v1 key) object.
-        """
-        if api_key is not None:
-            return APIKey(api_key=api_key)
-        else:
-            # Load from environment variables or .env file
-            try:
-                return APIKey()
-            except (InvalidApiKeyError, ValidationError) as e:
-                try:
-                    return APICredential()
-                except Exception:
-                    raise InvalidApiKeyError(
-                        "API key is not provided or it's invalid."
-                    ) from e
 
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
@@ -149,7 +126,7 @@ class OcrPredictor(Predictor):
             LANDINGAI_API_KEY or from the .env file.
         """
         self._threshold = threshold
-        self._api_crendential = self._load_api_credential(api_key)
+        self._api_crendential = load_api_credential(api_key)
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
