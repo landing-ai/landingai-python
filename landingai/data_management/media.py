@@ -60,7 +60,7 @@ class Media:
     project-id: str
         LandingLens project id.  Can override this default in individual commands.
     api-key: Optional[str]
-        LandingLens API Key. If it's not provided, it will be read from the environment variable LANDING_LENS_API_KEY, or from .env file on your project root directory.
+        LandingLens API Key. If it's not provided, it will be read from the environment variable LANDINGAI_API_KEY, or from .env file on your project root directory.
     """
 
     def __init__(self, project_id: int, api_key: Optional[str] = None):
