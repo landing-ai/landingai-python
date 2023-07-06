@@ -51,9 +51,6 @@ ROUTES = {
     },
 }
 
-ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "bmp"]
-HIDDEN_FILES_TO_IGNORE = ["thumbs.db", "desktop.ini", ".ds_store"]
-
 _URL_ROOTS = {
     "LANDING_API": "https://platform.landingai.io",
 }

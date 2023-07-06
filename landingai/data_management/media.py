@@ -3,6 +3,7 @@ import base64
 import hashlib
 import logging
 import os
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
@@ -11,11 +12,11 @@ import aiofiles
 import aiohttp
 import cv2
 import numpy as np
+import PIL.Image
+from PIL.Image import Image
 from tqdm import tqdm
 
 from landingai.data_management.client import (
-    ALLOWED_EXTENSIONS,
-    HIDDEN_FILES_TO_IGNORE,
     MEDIA_LIST,
     MEDIA_REGISTER,
     MEDIA_SIGN,
@@ -28,12 +29,17 @@ from landingai.data_management.utils import (
     validate_metadata,
 )
 from landingai.exceptions import HttpError
+from landingai.utils import serialize_image
 
 MediaType = Enum("MediaType", ["image", "video"])
 SrcType = Enum("SrcType", ["user", "production_line", "prism"])
 ThumbnailSize = Enum(
     "ThumbnailSize", ["50x50", "250x250", "500x500", "750x750", "1000x1000"]
 )
+
+
+_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "bmp", "tiff"]
+_HIDDEN_FILES_TO_IGNORE = ["thumbs.db", "desktop.ini", ".ds_store"]
 
 _CONCURRENCY_LIMIT = 5
 _LOGGER = logging.getLogger(__name__)
@@ -52,7 +58,7 @@ class Media:
 
     def upload(
         self,
-        path: Union[str, Path],
+        source: Union[str, Path, Image],
         split: str = "",
         classification_name: Optional[str] = None,
         object_detection_xml: Optional[str] = None,
@@ -67,8 +73,9 @@ class Media:
 
         Parameters
         ----------
-        path: Union[str, Path]
-            Path to the local file.
+        source: Union[str, Path, Image]
+            The image source to upload. It can be a path to the local image file, an image folder or a PIL Image object.
+            For image files, the supported formats are jpg, jpeg, png, bmp and tiff.
         split: str
             Set this media to one split ('train'/'dev'/'test'), '' represents Unassigned and is the default
         classification_name: str
@@ -89,9 +96,12 @@ class Media:
              for unexpected extensions may not be correct - for example, most likely file
              will be uploaded to s3, but won't show in data browser.
         """
-        path = str(path)
-        if not os.path.exists(path):
-            raise ValueError(f"file/folder does not exist at the specified path {path}")
+        if isinstance(source, Path):
+            source = str(source)
+        if isinstance(source, str) and not os.path.exists(source):
+            raise ValueError(
+                f"file/folder does not exist at the specified path {source}"
+            )
 
         project_id = self._client._project_id
         project = self._client.get_project_property(project_id)
@@ -129,11 +139,13 @@ class Media:
         medias: List[Dict[str, Any]] = []
         skipped_count = 0
         medias_with_errors: Dict[str, Any] = {}
-        if os.path.isdir(path):
+
+        assert isinstance(source, str) or isinstance(source, Image)
+        if isinstance(source, str) and os.path.isdir(source):
             folder_tasks = _upload_folder(
                 self._client,
                 dataset_id,
-                path,
+                source,
                 project_id,
                 validate_extensions,
                 skipped_count,
@@ -146,28 +158,36 @@ class Media:
                 medias_with_errors,
             ) = loop.run_until_complete(folder_tasks)
         else:
-            filename = os.path.basename(path)
-            ext = os.path.splitext(filename)[-1][1:]
-            if ext.lower() in ALLOWED_EXTENSIONS or not validate_extensions:
-                file_tasks = _upload_media(
-                    self._client,
-                    dataset_id,
-                    filename,
-                    path,
-                    project_id,
-                    ext,
-                    split,
-                    initial_label,
-                    metadata,
-                )
-                loop = asyncio.get_event_loop()
-                resp = loop.run_until_complete(file_tasks)
+            # Resolve filename and extension for _upload_media()
+            if isinstance(source, Image):
+                ext = "png"
+                ts = int(datetime.now().timestamp() * 1000)
+                filename = f"image_{ts}.{ext}"
             else:
+                assert isinstance(source, str)
+                filename = os.path.basename(source)
+                ext = os.path.splitext(filename)[-1][1:]
+            # Validate extension
+            if validate_extensions and ext.lower() not in _ALLOWED_EXTENSIONS:
                 raise ValueError(
-                    f"""Unexpected extension {ext}. Allowed extensions are: {ALLOWED_EXTENSIONS}.
+                    f"""Unexpected extension {ext}. Allowed extensions are: {_ALLOWED_EXTENSIONS}.
                     If you want to attempt the upload anyway, set validate_extensions=False.
                     This may result in an unexpected behavior - e.g. file not showing up in data browser."""
                 )
+            # Create an async task
+            file_tasks = _upload_media(
+                self._client,
+                dataset_id,
+                filename,
+                source,
+                project_id,
+                ext,
+                split,
+                initial_label,
+                metadata,
+            )
+            loop = asyncio.get_event_loop()
+            resp = loop.run_until_complete(file_tasks)
             error_count = 0
             if isinstance(resp, BaseException):
                 error_count = 1
@@ -391,9 +411,9 @@ async def _upload_folder(
     for root, _, filenames in os.walk(path):
         for filename in filenames:
             ext = os.path.splitext(filename)[-1][1:]
-            if filename.lower() in HIDDEN_FILES_TO_IGNORE:
+            if filename.lower() in _HIDDEN_FILES_TO_IGNORE:
                 pass
-            elif ext.lower() in ALLOWED_EXTENSIONS or not validate_extensions:
+            elif ext.lower() in _ALLOWED_EXTENSIONS or not validate_extensions:
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(
                     _upload_media_with_semaphore(
@@ -444,56 +464,68 @@ async def _upload_media(
     client: LandingLens,
     dataset_id: int,
     filename: str,
-    path: str,
+    source: Union[str, Image],
     project_id: int,
     ext: str,
     split: str = "",
     initial_label: Optional[Dict[str, Any]] = None,
     metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
+    # The platform doesn't support tiff, so we convert it to png before uploading
+    if ext.lower() == "tiff":
+        ext = "png"
+        filename = filename.replace(".tiff", ".png")
+        assert isinstance(source, str)
+        source = PIL.Image.open(source)  # later it gets converted to png in bytes
+
     filetype = f"image/{ext}" if ext != "jpg" else "image/jpeg"
-    async with aiofiles.open(path, mode="rb") as file:
-        contents = await file.read()
-        md5 = hashlib.md5()
-        md5.update(contents)
-        media_md5 = md5.hexdigest()
-        resp_data = await client._api_async(
-            MEDIA_SIGN,
-            resp_with_content={
-                "filename": filename,
-                "filetype": filetype,
-                "uploadType": "dataset",
-                "projectId": project_id,
-                "md5": media_md5,
-                "uploadId": dataset_id,
-            },
+    if isinstance(source, Image):
+        contents = serialize_image(source)
+    else:
+        assert isinstance(source, str)
+        async with aiofiles.open(source, mode="rb") as file:
+            contents = await file.read()
+
+    md5 = hashlib.md5()
+    md5.update(contents)
+    media_md5 = md5.hexdigest()
+    resp_data = await client._api_async(
+        MEDIA_SIGN,
+        resp_with_content={
+            "filename": filename,
+            "filetype": filetype,
+            "uploadType": "dataset",
+            "projectId": project_id,
+            "md5": media_md5,
+            "uploadId": dataset_id,
+        },
+    )
+    if "data" not in resp_data:
+        raise HttpError(
+            f"Failed to upload media due to HTTP {resp_data['code']} error, reason: {resp_data['message']}"
         )
-        if "data" not in resp_data:
-            raise HttpError(
-                f"Failed to upload media due to HTTP {resp_data['code']} error, reason: {resp_data['message']}"
-            )
-        data = resp_data["data"]
-        url = data["url"]
-        s3url = data["s3url"]
+    data = resp_data["data"]
+    url = data["url"]
+    s3url = data["s3url"]
 
-        fields = data
-        del fields["url"]
-        del fields["s3url"]
+    fields = data
+    del fields["url"]
+    del fields["s3url"]
 
-        # Upload to S3
-        async with aiohttp.ClientSession() as session:
-            async with session.put(url, data=contents) as resp:
-                if not resp.ok:
-                    try:
-                        content = await resp.text()
-                        raise HttpError(
-                            f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
-                            f"and error message {content}"
-                        )
-                    except BaseException:
-                        raise HttpError(
-                            f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
-                        )
+    # Upload to S3
+    async with aiohttp.ClientSession() as session:
+        async with session.put(url, data=contents) as resp:
+            if not resp.ok:
+                try:
+                    content = await resp.text()
+                    raise HttpError(
+                        f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
+                        f"and error message {content}"
+                    )
+                except BaseException:
+                    raise HttpError(
+                        f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
+                    )
 
     img_nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(img_nparr, cv2.IMREAD_UNCHANGED)

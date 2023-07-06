@@ -1,4 +1,5 @@
-import io
+"""Module for making predictions on LandingLens models."""
+
 import json
 import logging
 
@@ -22,6 +23,7 @@ from landingai.common import (
     SegmentationPrediction,
 )
 from landingai.exceptions import HttpResponse
+from landingai.utils import serialize_image
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,7 +101,7 @@ class Predictor:
             Each dictionary is a prediction result.
             The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
-        buffer_bytes = self._serialize_image(image)
+        buffer_bytes = serialize_image(image)
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
         payload = {
             "endpoint_id": self._endpoint_id,
@@ -113,18 +115,6 @@ class Predictor:
         return _do_inference(
             self._session, Predictor._url, files, payload, _CloudExtractor
         )
-
-    def _serialize_image(self, image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
-        if image is None or (isinstance(image, np.ndarray) and len(image) == 0):
-            raise ValueError(f"Input image must be non-emtpy, but got: {image}")
-        if isinstance(image, np.ndarray):
-            image = PIL.Image.fromarray(image)
-
-        img_buffer = io.BytesIO()
-        image.save(img_buffer, format="PNG")
-        buffer_bytes = img_buffer.getvalue()
-        img_buffer.close()
-        return buffer_bytes
 
 
 class OcrPredictor(Predictor):
@@ -187,7 +177,7 @@ class OcrPredictor(Predictor):
             A list of OCR prediction result.
         """
 
-        buffer_bytes = self._serialize_image(image)
+        buffer_bytes = serialize_image(image)
         files = [("images", ("image.png", buffer_bytes, "image/png"))]
         mode: str = kwargs.get("mode", "multi-text")
         if mode not in ["multi-text", "single-text"]:
@@ -254,7 +244,7 @@ class EdgePredictor(Predictor):
         List[Prediction]
             A list of prediction result.
         """
-        buffer_bytes = self._serialize_image(image)
+        buffer_bytes = serialize_image(image)
         files = [("file", ("image.png", buffer_bytes, "image/png"))]
         return _do_inference(self._session, self._url, files, {}, _EdgeExtractor)
 
