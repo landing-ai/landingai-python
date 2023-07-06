@@ -8,6 +8,7 @@ Specifically, it provides Python APIs to allow you to:
 - Visualize your prediction results
 - Chain multiple model inference and post-processing operations together
 - Read image data from a variety of sources (RTSP streams, video file, Snowflake, etc.)
+- Upload images to LandingLens from various sources (RTSP streams, video file, Snowflake, etc.)
 - And more...
 
 ## High-Level Concepts
