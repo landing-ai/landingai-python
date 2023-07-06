@@ -6,7 +6,6 @@ import pytest
 from pydantic import ValidationError
 
 from landingai.common import (
-    APICredential,
     APIKey,
     ObjectDetectionPrediction,
     SegmentationPrediction,
@@ -52,38 +51,6 @@ def test_load_api_key_from_env_file(tmp_path):
         APIKey()
     # reset back to the default config
     APIKey.__config__.env_file = ".env"
-
-
-def test_load_credential():
-    os.environ["landingai_api_key"] = "1234"
-    os.environ["landingai_api_secret"] = "abcd"
-    credential = APICredential()
-    assert credential.api_key == "1234"
-    assert credential.api_secret == "abcd"
-    del os.environ["landingai_api_key"]
-    del os.environ["landingai_api_secret"]
-
-
-def test_load_credential_from_env_file(tmp_path):
-    env_file: Path = tmp_path / ".env"
-    env_file.write_text(
-        """
-                        TEST_LANDINGAI_API_KEY="1234"
-                        TEST_LANDINGAI_API_SECRET="abcd"
-                        """
-    )
-    # Overwrite the default env_prefix to avoid conflict with the real .env
-    APICredential.__config__.env_prefix = "TEST_LANDINGAI_"
-    APICredential.__config__.env_file = str(env_file)
-    for field in APICredential.__fields__.values():
-        APICredential.__config__.prepare_field(field)
-    # Start testing
-    credential = APICredential(_env_file=str(env_file))
-    assert credential.api_key == "1234"
-    assert credential.api_secret == "abcd"
-    env_file.unlink()
-    with pytest.raises(ValidationError):
-        APICredential()
 
 
 def test_decode_bitmap_rle():

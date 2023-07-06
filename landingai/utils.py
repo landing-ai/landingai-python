@@ -4,10 +4,8 @@ from typing import Optional, Union
 
 import numpy as np
 import PIL.Image
-from pydantic import ValidationError
 
-from landingai.common import APICredential, APIKey
-from landingai.exceptions import InvalidApiKeyError
+from landingai.common import APIKey
 
 
 def serialize_image(image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
@@ -24,22 +22,23 @@ def serialize_image(image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
     return buffer_bytes
 
 
-def load_api_credential(api_key: Optional[str] = None) -> Union[APIKey, APICredential]:
+def load_api_credential(api_key: Optional[str] = None) -> APIKey:
     """Load API credential from different sources.
-    The API credential can be provided as arguments or loaded from the environment variables or .env file.
-    The priority is: arguments > environment variables > .env file.
-    The output is an APIKey (v2 key) or APICredential (v1 key) object.
+
+    Parameters
+    ----------
+    api_key:
+        The API key argument to be passed in, by default None.
+        The API key can be provided as arguments or loaded from the environment variables or .env file.
+        The api key loading priority is: arguments > environment variables > .env file.
+
+    Returns
+    -------
+    APIKey
+        An APIKey (v2 key) instance.
     """
     if api_key is not None:
         return APIKey(api_key=api_key)
     else:
         # Load from environment variables or .env file
-        try:
-            return APIKey()
-        except (InvalidApiKeyError, ValidationError) as e:
-            try:
-                return APICredential()
-            except Exception:
-                raise InvalidApiKeyError(
-                    "API key is not provided or it's invalid."
-                ) from e
+        return APIKey()

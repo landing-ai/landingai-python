@@ -2,39 +2,12 @@ import math
 import re
 from functools import cached_property
 from typing import Dict, List, Tuple
-from typing_extensions import deprecated
 
 import cv2
 import numpy as np
 from pydantic import BaseModel, BaseSettings, validator
 
 from landingai.exceptions import InvalidApiKeyError
-
-
-@deprecated(
-    "Use `APIKey` instead, this class is kept for users who have legacy API key.",
-    category=None,
-)
-class APICredential(BaseSettings):
-    """The API credentials of an user in a particular organization in LandingLens.
-    NOTE: This is a legacy way to authenticate with the LandingLens API. Consider using the `APIKey` class instead.
-
-    It supports loading from environment variables or .env files.
-
-    The supported name of the environment variables are (case-insensitive):
-    - LANDINGAI_API_KEY
-    - LANDINGAI_API_SECRET
-
-    Environment variables will always take priority over values loaded from a dotenv file.
-    """
-
-    api_key: str
-    api_secret: str
-
-    class Config:
-        env_file = ".env"
-        env_prefix = "landingai_"
-        case_sensitive = False
 
 
 class APIKey(BaseSettings):
