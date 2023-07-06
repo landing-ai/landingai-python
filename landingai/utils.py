@@ -4,8 +4,10 @@ from typing import Optional, Union
 
 import numpy as np
 import PIL.Image
+from pydantic import ValidationError
 
 from landingai.common import APIKey
+from landingai.exceptions import InvalidApiKeyError
 
 
 def serialize_image(image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
@@ -41,4 +43,9 @@ def load_api_credential(api_key: Optional[str] = None) -> APIKey:
         return APIKey(api_key=api_key)
     else:
         # Load from environment variables or .env file
-        return APIKey()
+        try:
+            return APIKey()
+        except ValidationError as e:
+            raise InvalidApiKeyError(
+                "API key is either not provided or invalid."
+            ) from e
