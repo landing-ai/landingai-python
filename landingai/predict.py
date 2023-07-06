@@ -135,7 +135,6 @@ class OcrPredictor(Predictor):
         self,
         threshold: float = 0.5,
         *,
-        *,
         api_key: Optional[str] = None,
     ) -> None:
         """OCR Predictor constructor
