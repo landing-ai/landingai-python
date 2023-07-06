@@ -7,10 +7,51 @@ from pydantic import ValidationError
 
 from landingai.common import (
     APICredential,
+    APIKey,
     ObjectDetectionPrediction,
     SegmentationPrediction,
     decode_bitmap_rle,
 )
+from landingai.exceptions import InvalidApiKeyError
+
+
+def test_load_api_key_from_constructor():
+    key = APIKey(api_key="land_sk_1234")
+    assert key.api_key == "land_sk_1234"
+    with pytest.raises(InvalidApiKeyError):
+        APIKey(api_key="1234")
+
+
+def test_load_api_key_from_env_var():
+    os.environ["landingai_api_key"] = "1234"
+    with pytest.raises(InvalidApiKeyError):
+        APIKey()
+    os.environ["landingai_api_key"] = "land_sk_1234"
+    key = APIKey()
+    assert key.api_key == "land_sk_1234"
+    del os.environ["landingai_api_key"]
+
+
+def test_load_api_key_from_env_file(tmp_path):
+    env_file: Path = tmp_path / ".env"
+    env_file.write_text(
+        """
+                        LANDINGAI_API_KEY="land_sk_2222"
+                        LANDINGAI_API_SECRET="abcd"
+                        """
+    )
+    # Overwrite the default env_prefix to avoid conflict with the real .env
+    APIKey.__config__.env_file = str(env_file)
+    for field in APIKey.__fields__.values():
+        APIKey.__config__.prepare_field(field)
+    # Start testing
+    credential = APIKey(_env_file=str(env_file))
+    assert credential.api_key == "land_sk_2222"
+    env_file.unlink()
+    with pytest.raises(ValidationError):
+        APIKey()
+    # reset back to the default config
+    APIKey.__config__.env_file = ".env"
 
 
 def test_load_credential():
@@ -19,6 +60,8 @@ def test_load_credential():
     credential = APICredential()
     assert credential.api_key == "1234"
     assert credential.api_secret == "abcd"
+    del os.environ["landingai_api_key"]
+    del os.environ["landingai_api_secret"]
 
 
 def test_load_credential_from_env_file(tmp_path):

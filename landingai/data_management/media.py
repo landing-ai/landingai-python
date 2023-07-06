@@ -89,12 +89,28 @@ class Media:
         nothing_to_label: bool
             Set the media's label as OK, valid for object detection and segmetation project
         metadata_dict: dict
-            Pass in the metadata, need to be created before media uploading
+            A dictionary of metadata to be updated or inserted.
+            The key of the metadata needs to be created/registered (for the first time) before media uploading.
         validate_extensions: bool
             Defaults to True. Files other than jpg/jpeg/png/bmp will be skipped.
             If set to False, will try to upload all files. Behavior of platform
              for unexpected extensions may not be correct - for example, most likely file
              will be uploaded to s3, but won't show in data browser.
+
+        Returns
+        -------
+        Dict[str, Any]
+            The result from the upload().
+            ```
+            # Example output
+            {
+                "num_uploaded": 10,
+                "skipped_count": 0,
+                "error_count": 0,
+                "medias": [...],
+                "files_with_errors": {},
+            }
+            ```
         """
         if isinstance(source, Path):
             source = str(source)

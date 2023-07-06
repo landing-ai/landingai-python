@@ -10,6 +10,18 @@ from requests.structures import CaseInsensitiveDict
 _LOGGER = logging.getLogger(__name__)
 
 
+class InvalidApiKeyError(Exception):
+    """Exception raised when the an invalid API key is provided. This error could be raised from any SDK code, not limited to a HTTP client."""
+
+    def __init__(self, message: str):
+        self.message = f"""{message}
+For more information, see https://landing-ai.github.io/landingai-python/landingai.html#manage-api-credentials"""
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+
 class UnauthorizedError(Exception):
     """Exception raised when the user is not authorized to access the resource. Status code: 401."""
 

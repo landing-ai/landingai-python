@@ -8,8 +8,8 @@ from PIL import Image, ImageChops
 from landingai.predict import OcrPredictor, Predictor
 from landingai.visualize import overlay_predictions
 
-_API_KEY = "v7b0hdyfj6271xy2o9lmiwkkcbdpvt1"
-_API_SECRET = "ao6yjcju7q1e6u0udgwrgknhrx6m4n1o48z81jy6huc059gne047l4fq3u1cgq"
+_API_KEY = "land_sk_aMemWbpd41yXnQ0tXvZMh59ISgRuKNRKjJEIUHnkiH32NBJAwf"
+
 _EXPECTED_VP_PREDS = [
     {
         "label_name": "Green Field",
@@ -51,7 +51,7 @@ def test_od_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Endpoint: https://app.landing.ai/app/376/pr/11165/deployment?device=tiger-team-integration-tests
     endpoint_id = "db90b68d-cbfd-4a9c-8dc2-ebc4c3f6e5a4"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    predictor = Predictor(endpoint_id, api_key=_API_KEY)
     img = np.asarray(Image.open("tests/data/images/cereal1.jpeg"))
     assert img is not None
     # Call LandingLens inference endpoint with Predictor.predict()
@@ -77,7 +77,7 @@ def test_seg_predict(expected_seg_prediction, seg_mask_validator):
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Project: https://app.landing.ai/app/376/pr/26113016987660/deployment?device=tiger-team-integration-tests
     endpoint_id = "72fdc6c2-20f1-4f5e-8df4-62387acec6e4"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    predictor = Predictor(endpoint_id, api_key=_API_KEY)
     img = Image.open("tests/data/images/cereal1.jpeg")
     assert img is not None
     preds = predictor.predict(img)
@@ -92,7 +92,7 @@ def test_vp_predict(seg_mask_validator):
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Project: https://app.landing.ai/app/376/pr/26098103179275/deployment?device=tiger-example
     endpoint_id = "63035608-9d24-4342-8042-e4b08e084fde"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    predictor = Predictor(endpoint_id, api_key=_API_KEY)
     img = np.asarray(Image.open("tests/data/images/farm-coverage.jpg"))
     assert img is not None
     preds = predictor.predict(img)
@@ -118,7 +118,7 @@ def test_class_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Project: https://app.landing.ai/app/376/pr/26119078438913/deployment?device=tiger-team-integration-tests
     endpoint_id = "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43"
-    predictor = Predictor(endpoint_id, _API_KEY, _API_SECRET)
+    predictor = Predictor(endpoint_id, api_key=_API_KEY)
     img = Image.open("tests/data/images/wildfire1.jpeg")
     assert img is not None
     preds = predictor.predict(img)
@@ -138,7 +138,6 @@ def test_ocr_predict():
     predictor = OcrPredictor(
         # TODO: replace with a prod key after the OCR endpoint is deployed to prod
         api_key="land_sk_6uttU3npa5V0MUgPWb6j33ZuszsGBqVGs4wnoSR91LBwpbjZpG",
-        api_secret="1234",
     )
     img = Image.open("tests/data/images/ocr_test.png")
     assert img is not None

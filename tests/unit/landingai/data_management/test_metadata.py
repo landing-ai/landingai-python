@@ -2,7 +2,7 @@ import responses
 
 from landingai.data_management.metadata import Metadata
 
-_API_KEY = "v7b0hdyfj6271xy2o9lmiwkkcbdpvt1"
+_API_KEY = "land_sk_12345"
 _PROJECT_ID = 30863867234314
 
 

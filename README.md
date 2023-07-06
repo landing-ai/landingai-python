@@ -37,7 +37,7 @@ pip install landingai
 This library needs to communicate with the LandingLens platform to perform certain functions. (For example, the `Predictor` API calls the HTTP endpoint of your deployed model). To enable communication with LandingLens, you will need the following information:
 
 1. The **Endpoint ID** of your deployed model in LandingLens. You can find this on the Deploy page in LandingLens.
-2. The **API Key** and **API Secret** for the LandingLens organization that has the model you want to deploy. To learn how to generate these credentials, go [here](https://support.landing.ai/docs/api-key-and-api-secret).
+2. The **API Key** for the LandingLens organization that has the model you want to deploy. To learn how to generate these credentials, go [here](https://support.landing.ai/docs/api-key-and-api-secret).
 
 ### Run Inference
 Run inference using the endpoint you created in LandingLens:
@@ -54,11 +54,10 @@ from landingai.predict import Predictor
 # Enter your API Key and Secret
 endpoint_id = "FILL_YOUR_INFERENCE_ENDPOINT_ID"
 api_key = "FILL_YOUR_API_KEY"
-api_secret = "FILL_YOUR_API_SECRET"
 # Load your image
 image = np.asarray(Image.open("image.png"))
 # Run inference
-predictor = Predictor(endpoint_id, api_key, api_secret)
+predictor = Predictor(endpoint_id, api_key=api_key)
 predictions = predictor.predict(image)
 ```
 

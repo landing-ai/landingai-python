@@ -17,8 +17,7 @@ _CAPTURE_INTERVAL = (
 )
 
 # Public Cloud & Sky detection segmentation model
-api_key = "bu8y8czyonaip6ceov75nfnlpnr9blh"
-api_secret = "mdebq6hxq19fg86k3p53rwcxh16h2qudcfonl6sjrde334y2vxz4qj4wnefh05"
+api_key = "land_sk_aMemWbpd41yXnQ0tXvZMh59ISgRuKNRKjJEIUHnkiH32NBJAwf"
 endpoint_id = "432d58f6-6cd4-4108-a01c-2f023503d838"
 
 #
@@ -39,7 +38,7 @@ stream_url = (
 
 if __name__ == "__main__":
     # stream(capture_frame=False, inference_mode=True, detect_change=True)
-    cloud_sky_model = Predictor(endpoint_id, api_key, api_secret)
+    cloud_sky_model = Predictor(endpoint_id, api_key=api_key)
     Camera = NetworkedCamera(
         stream_url, motion_detection_threshold=1, capture_interval=_CAPTURE_INTERVAL
     )

@@ -9,13 +9,13 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 import numpy as np
 import PIL.Image
 import requests
-from pydantic import ValidationError
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from landingai.common import (
     APICredential,
+    APIKey,
     ClassificationPrediction,
     ObjectDetectionPrediction,
     OcrPrediction,
@@ -23,7 +23,7 @@ from landingai.common import (
     SegmentationPrediction,
 )
 from landingai.exceptions import HttpResponse
-from landingai.utils import serialize_image
+from landingai.utils import load_api_credential, serialize_image
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,8 +37,8 @@ class Predictor:
     def __init__(
         self,
         endpoint_id: str,
+        *,
         api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
     ) -> None:
         """Predictor constructor
 
@@ -53,37 +53,23 @@ class Predictor:
             The API Key of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_KEY or from the .env file.
-        api_secret
-            The API Secret of your LandingLens organization.
-            If not provided, it will try to load from the environment variable
-            LANDINGAI_API_SECRET or from the .env file.
         """
         self._endpoint_id = endpoint_id
-        self._api_credential = self._load_api_credential(api_key, api_secret)
-        self._session = _create_session(
-            Predictor._url,
-            self._num_retry,
-            {
-                "apikey": self._api_credential.api_key,
-                "apisecret": self._api_credential.api_secret,
-                "contentType": "multipart/form-data",
-            },
-        )
+        self._api_credential = load_api_credential(api_key)
+        headers = self._build_default_headers(self._api_credential)
+        self._session = _create_session(Predictor._url, self._num_retry, headers)
 
-    def _load_api_credential(
-        self, api_key: Optional[str] = None, api_secret: Optional[str] = None
-    ) -> APICredential:
-        """Create an APICredential object from the provided api_key and api_secret if they are not none.
-        Otherwise, it will try to load from the environment variables or .env file.
-        """
-        if api_key is None or api_secret is None:
-            try:
-                api_credential = APICredential()
-            except ValidationError:
-                raise ValueError("API credential is not provided")
-        else:
-            api_credential = APICredential(api_key=api_key, api_secret=api_secret)
-        return api_credential
+    def _build_default_headers(
+        self, api_key: Union[APIKey, APICredential]
+    ) -> Dict[str, str]:
+        """Build the HTTP headers for the request to the Cloud inference endpoint(s)."""
+        headers = {
+            "contentType": "application/json",
+            "apikey": api_key.api_key,
+        }
+        if isinstance(api_key, APICredential):
+            headers["apisecret"] = api_key.api_secret
+        return headers
 
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
@@ -127,7 +113,6 @@ class OcrPredictor(Predictor):
         threshold: float = 0.5,
         *,
         api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
     ) -> None:
         """OCR Predictor constructor
 
@@ -141,16 +126,9 @@ class OcrPredictor(Predictor):
             LANDINGAI_API_KEY or from the .env file.
         """
         self._threshold = threshold
-        self._api_credential = self._load_api_credential(api_key, api_secret)
-        self._session = _create_session(
-            OcrPredictor._url,
-            self._num_retry,
-            {
-                "apikey": self._api_credential.api_key,
-                "apisecret": self._api_credential.api_secret,
-                "contentType": "multipart/form-data",
-            },
-        )
+        self._api_crendential = load_api_credential(api_key)
+        headers = self._build_default_headers(self._api_credential)
+        self._session = _create_session(Predictor._url, self._num_retry, headers)
 
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any

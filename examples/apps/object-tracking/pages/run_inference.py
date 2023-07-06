@@ -22,8 +22,7 @@ def get_latest_traffic():
     frames = get_frames("vid.ts")
     predictor = Predictor(
         st.session_state["endpoint_id"],
-        st.session_state["api_key"],
-        st.session_state["api_secret"],
+        api_key=st.session_state["api_key"],
     )
     bboxes = get_preds(frames, predictor)
     tracks, all_idx_to_track = track_iou(bboxes)
