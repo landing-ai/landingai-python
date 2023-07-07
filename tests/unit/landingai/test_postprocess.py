@@ -1,4 +1,5 @@
 import numpy as np
+import PIL.Image
 import pytest
 import responses
 from PIL import Image
@@ -28,9 +29,9 @@ def test_segmentation_class_pixel_coverage():
 
 
 def test_crop():
-    img = np.zeros((100, 50, 3), dtype=np.uint8)
-    img[40:60, 20:30, :] = 255
-    img[90:95, 40:45, :] = 254
+    img = np.zeros((50, 100, 3), dtype=np.uint8)
+    img[20:31, 40:61, :] = 255
+    img[40:51, 90:96, :] = 254
     preds = [
         ObjectDetectionPrediction(
             score=0.9, label_name="A", label_index=1, id="1", bboxes=(40, 20, 60, 30)
@@ -40,10 +41,10 @@ def test_crop():
         ),
     ]
     output = crop(preds, img)
-    assert output[0].size == (10, 20)
+    assert output[0].size == (20, 10)
     assert np.count_nonzero(np.asarray(output[0])) == 20 * 10 * 3
-    assert output[1].size == (10, 5)
-    assert np.count_nonzero(np.asarray(output[1])) == 5 * 5 * 3
+    assert output[1].size == (5, 10)
+    assert np.count_nonzero(np.asarray(output[1])) == 5 * 10 * 3
     # Empty preds should return empty list
     assert crop([], img) == []
 

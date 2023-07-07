@@ -39,8 +39,7 @@ def crop(
             raise ValueError(
                 f"Only ObjectDetectionPrediction is supported but {type(pred)} is found."
             )
-        xmin, ymin, xmax, ymax = pred.bboxes
-        output.append(image.crop((ymin, xmin, ymax, xmax)))
+        output.append(image.crop(pred.bboxes))
     return output
 
 
