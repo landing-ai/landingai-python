@@ -52,8 +52,10 @@ class Media:
 
     Example
     -------
-    # Create a Media client by specifying API Key and project id
     >>> client = Media(project_id, api_key)
+    >>> client.upload("path/to/image.jpg")
+    >>> client.upload("path/to/image_folder")
+    >>> print(client.ls())
 
     Parameters
     ----------
@@ -102,7 +104,7 @@ class Media:
             Set the media's label as OK, valid for object detection and segmetation project
         metadata_dict: dict
             A dictionary of metadata to be updated or inserted.
-            The key of the metadata needs to be created/registered (for the first time) before media uploading.
+            The key of the metadata needs to be created/registered (for the first time) on LandingLens before media uploading.
         validate_extensions: bool
             Defaults to True. Files other than jpg/jpeg/png/bmp will be skipped.
             If set to False, will try to upload all files. Behavior of platform
