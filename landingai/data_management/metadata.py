@@ -15,8 +15,8 @@ class Metadata:
 
     Example
     -------
-    # Create a Metadata client by specifying API Key and project id
     >>> client = Metadata(project_id, api_key)
+    >>> client.update([101, 102, 103], creator="tom")
 
     Parameters
     ----------
@@ -42,7 +42,7 @@ class Metadata:
             Media ids to update.
         input_metadata
             A dictionary of metadata to be updated or inserted.
-            The key of the metadata needs to be created/registered (for the first time) before media uploading.
+            The key of the metadata needs to be created/registered (for the first time) on LandingLens before calling update().
 
         Returns
         ----------
