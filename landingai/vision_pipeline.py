@@ -266,7 +266,8 @@ class FrameSet(BaseModel):
             writer.append_data(fr.to_numpy_array(image_src))
         writer.close()
 
-        # Previous implementation with OpenCV that required code guessing and did not work on windows because of wurlitzer
+        # TODO: Future delete if we get out of OpenCV
+        # Previous implementation with OpenCV that required code guessing and did not work on windows because of wurlitzer (an alternative will be https://github.com/greg-hellings/stream-redirect)
         # # All images should have the same shape as it's from the same video file
         # img_shape = self.frames[0].image.size
         # # Find a suitable coded that it is installed on the system. H264/avc1 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
