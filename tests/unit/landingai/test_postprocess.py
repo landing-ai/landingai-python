@@ -1,5 +1,4 @@
 import numpy as np
-import PIL.Image
 import pytest
 import responses
 from PIL import Image
