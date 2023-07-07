@@ -20,6 +20,8 @@ def crop(
 ) -> Sequence[Image]:
     """Crop the image based on the bounding boxes in the predictions.
 
+    NOTE: Currently, only ObjectDetectionPrediction is supported. If other types of predictions are passed in, a ValueError will be raised.
+
     Parameters
     ----------
     predictions: a list of ObjectDetectionPrediction, each of which will be used to crop the image.
