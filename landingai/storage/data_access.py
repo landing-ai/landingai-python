@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def download_public_file(
     url: str,
-    filename: Optional[Path] = None,
+    output_path: Optional[Path] = None,
 ) -> Path:
     """Download a file from a public url. This function will follow redirects
 
