@@ -22,8 +22,8 @@ def download_public_file(
     ----------
     url : str
         Source url
-    filename : Optional[Path], optional
-        The file name can include a local path. If no filename is provided a temporary one will be created and when possible the extension of the downloaded file will be used
+    output_path : Optional[Path], optional
+        The local output file path for the downloaded file. If no path is provided, the file will be saved into a temporary directory provided by the OS (which could get deleted after reboot), and when possible the extension of the downloaded file will be included in the output file path.
 
     Returns
     -------
