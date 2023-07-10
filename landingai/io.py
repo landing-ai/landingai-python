@@ -2,7 +2,7 @@ import logging
 import tempfile
 import re
 from pathlib import Path
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple, Union, Dict, Any
 
 import cv2
 import requests
@@ -11,9 +11,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 # TODO: support output type stream
-def read_file(url: str) -> (bytes, str):
+def read_file(url: str) -> Dict[str, Any]:
     """Read bytes from a URL.
     Typically, the URL is a presigned URL (for example, from Amazon S3 or Snowflake) that points to a video or image file.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Returns the content under "content". Optionally may return "filename" in case the server provided it.
     """
     response = requests.get(url, allow_redirects=True)  # True is the default behavior
     try:
@@ -35,16 +40,17 @@ def read_file(url: str) -> (bytes, str):
         raise ValueError(
             f"Failed to read from url ({url}) due to {response.text} (status code: {response.status_code})"
         )
-
+    ret = {"content": response.content}
     # Check if server returned the file name
-    filename = ""
     m = re.findall("filename=[\"']*([^;\"']+)", response.headers["content-disposition"])
     if len(m):  # if there is a match select the first one
-        filename = m[0]
+        ret["filename"] = m[0]
     _LOGGER.info(
-        f"Received content with length {len(response.content)}, type {response.headers.get('Content-Type')} and filename {filename}"
+        f"Received content with length {len(response.content)}, type {response.headers.get('Content-Type')} and filename "
+        + str(ret["filename"])
     )
-    return (response.content, filename)
+
+    return ret
 
 
 def probe_video(video_file: str, samples_per_second: float) -> Tuple[int, int, float]:

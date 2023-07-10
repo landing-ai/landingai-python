@@ -17,6 +17,7 @@ from landingai.common import Prediction, ClassificationPrediction, in_notebook
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
 from landingai.postprocess import class_counts
+from landingai.storage.data_access import fetch_from_uri
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,20 +72,20 @@ class FrameSet(BaseModel):
 
     @classmethod
     def from_image(
-        cls, file: str, metadata: Optional[Dict[str, Any]] = {}
+        cls, uri: str, metadata: Optional[Dict[str, Any]] = {}
     ) -> "FrameSet":
         """Creates a FrameSet from an image file
 
         Parameters
         ----------
-        file : Path to file
+        uri : URI to file (local or remote)
 
         Returns
         -------
         FrameSet : New FrameSet containing a single image
         """
 
-        im = Image.open(file)
+        im = Image.open(str(fetch_from_uri(uri)))
         return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod

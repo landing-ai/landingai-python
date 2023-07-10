@@ -10,7 +10,7 @@ from typing import List, Union
 
 from landingai.vision_pipeline import FrameSet
 from landingai.io import sample_images_from_video
-from landingai.storage.data_access import get_local_uri
+from landingai.storage.data_access import fetch_from_uri
 
 
 class ImageSourceBase(Iterator):
@@ -133,7 +133,7 @@ class VideoFile(ImageSourceBase):
         samples_per_second : float, optional
             The number of images to sample per second (by default 1)
         """
-        self._video_file = str(get_local_uri(uri))
+        self._video_file = str(fetch_from_uri(uri))
         self._local_cache_dir = Path(tempfile.mkdtemp())
         self._samples_per_second = samples_per_second
 
