@@ -129,7 +129,7 @@ class VideoFile(ImageSourceBase):
         Parameters
         ----------
         uri : str
-            URI to the video file. This could be a local file or a URLS
+            URI to the video file. This could be a local file or a URL that serves the video file in bytes.
         samples_per_second : float, optional
             The number of images to sample per second (by default 1)
         """
