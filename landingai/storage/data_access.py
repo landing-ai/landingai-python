@@ -1,10 +1,8 @@
 import logging
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 from urllib.parse import urlparse
-
-from typing import Optional
 
 
 from landingai.io import read_file
@@ -33,7 +31,7 @@ def download_file(
     # TODO: It would be nice for this function to not re-download if the src has not been updated
     ret = read_file(url)  # Fetch the file
     if file_output_path is not None:
-        with open(str(file_output_path), "wb") as f:
+        with open(str(file_output_path), "wb") as f:  # type: Any
             f.write(ret["content"])
 
     else:
@@ -41,7 +39,7 @@ def download_file(
             suffix="--" + str(ret["filename"]), delete=False
         ) as f:
             f.write(ret["content"])
-    return f.name
+    return f.name  # type: ignore
 
 
 def fetch_from_uri(uri: str, **kwargs) -> Path:  # type: ignore
