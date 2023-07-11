@@ -2,8 +2,6 @@
 
 import json
 import logging
-
-# from importlib.metadata import version
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 import numpy as np
@@ -22,6 +20,7 @@ from landingai.common import (
     SegmentationPrediction,
 )
 from landingai.exceptions import HttpResponse
+from landingai.telemetry import get_runtime_environment_info, is_running_in_pytest
 from landingai.utils import load_api_credential, serialize_image
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,11 +87,7 @@ class Predictor:
             "endpoint_id": self._endpoint_id,
             "device_type": "pylib",
         }
-        # Add library version if available
-        # try:
-        #     payload["device_version"] = version("landingai")
-        # except Exception:
-        #     pass
+        _add_defualt_query_params(payload)
         return _do_inference(
             self._session, Predictor._url, files, payload, _CloudExtractor
         )
@@ -121,7 +116,7 @@ class OcrPredictor(Predictor):
             LANDINGAI_API_KEY or from the .env file.
         """
         self._threshold = threshold
-        self._api_crendential = load_api_credential(api_key)
+        self._api_credential = load_api_credential(api_key)
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
@@ -167,6 +162,7 @@ class OcrPredictor(Predictor):
             data["rois"] = serialize_rois(rois, mode)
 
         payload: Dict[str, Any] = {"device_type": "pylib"}
+        _add_defualt_query_params(payload)
         preds = _do_inference(
             self._session,
             OcrPredictor._url,
@@ -706,3 +702,13 @@ def _do_inference(
     response.raise_for_status()
     json_dict = response.json()
     return extractor_class.extract_prediction(json_dict)
+
+
+def _add_defualt_query_params(payload: Dict[str, Any]) -> None:
+    """Add default query params to the payload for tracking and analystics purppose."""
+    if is_running_in_pytest():
+        # Don't add extra query params if pytest is running, otherwise it will fail some unit tests
+        return
+    env_info = get_runtime_environment_info()
+    payload["lib_version"] = env_info["lib_version"]
+    payload["runtime"] = env_info["runtime"]
