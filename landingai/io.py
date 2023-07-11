@@ -42,12 +42,15 @@ def read_file(url: str) -> Dict[str, Any]:
         )
     ret = {"content": response.content}
     # Check if server returned the file name
-    m = re.findall("filename=[\"']*([^;\"']+)", response.headers["content-disposition"])
-    if len(m):  # if there is a match select the first one
-        ret["filename"] = m[0]
+    if "content-disposition" in response.headers:
+        m = re.findall(
+            "filename=[\"']*([^;\"']+)", response.headers["content-disposition"]
+        )
+        if len(m):  # if there is a match select the first one
+            ret["filename"] = m[0]
     _LOGGER.info(
-        f"Received content with length {len(response.content)}, type {response.headers.get('Content-Type')} and filename "
-        + str(ret["filename"])
+        f"Received content with length {len(response.content)}, type {response.headers.get('Content-Type')}"
+        # and filename "+ str(ret["filename"])
     )
 
     return ret

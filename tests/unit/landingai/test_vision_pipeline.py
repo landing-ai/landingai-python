@@ -4,9 +4,11 @@ import os
 from pathlib import Path
 
 import pytest
+from landingai.pipeline.image_source import NetworkedCamera
 
-from landingai.vision_pipeline import NetworkedCamera, FrameSet
+from landingai.pipeline.frameset import FrameSet
 from landingai.common import ObjectDetectionPrediction
+from landingai.pipeline.postprocessing import get_class_counts
 
 
 def test_networked_camera():
@@ -64,7 +66,7 @@ def test_class_counts():
 
     frs = FrameSet.from_image("tests/data/images/cereal1.jpeg")
     frs[0].predictions = preds
-    counts = frs.get_class_counts()
+    counts = get_class_counts(frs)
     assert counts["screw"] == 3
 
 

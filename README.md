@@ -93,7 +93,7 @@ The following example shows how the previous sections come together on a pipelin
 cloud_sky_model = Predictor("FILL_YOUR_INFERENCE_ENDPOINT_ID"
                             , "FILL_YOUR_API_KEY"
                             , "FILL_YOUR_API_SECRET") 
-
+XXX add V2 key and rework camera
 Camera = NetworkedCamera(stream_url)
 for frame in Camera:
     (

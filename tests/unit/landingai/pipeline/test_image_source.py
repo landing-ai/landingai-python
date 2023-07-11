@@ -6,7 +6,7 @@ import PIL.Image
 import pytest
 
 from landingai.pipeline.image_source import ImageFolder
-from landingai.vision_pipeline import FrameSet
+from landingai.pipeline.frameset import FrameSet
 
 
 def test_image_folder_for_loop(input_image_folder):
