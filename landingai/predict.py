@@ -706,9 +706,9 @@ def _do_inference(
 
 def _add_defualt_query_params(payload: Dict[str, Any]) -> None:
     """Add default query params to the payload for tracking and analystics purppose."""
+    env_info = get_runtime_environment_info()
+    payload["runtime"] = env_info["runtime"]
     if is_running_in_pytest():
         # Don't add extra query params if pytest is running, otherwise it will fail some unit tests
         return
-    env_info = get_runtime_environment_info()
     payload["lib_version"] = env_info["lib_version"]
-    payload["runtime"] = env_info["runtime"]
