@@ -23,7 +23,7 @@ def get_runtime_environment_info() -> Dict[str, str]:
 
 
 @lru_cache(maxsize=None)
-def is_running_in_pytest():
+def is_running_in_pytest() -> bool:
     """Return True if the code is running in a pytest session."""
     # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
     return "pytest" in sys.modules
@@ -46,7 +46,7 @@ def _resolve_python_runtime() -> str:
 def _is_running_in_colab() -> bool:
     """Return True if the code is running in a Google Colab notebook."""
     try:
-        return get_ipython().__class__.__module__ == "google.colab._shell"
+        return get_ipython().__class__.__module__ == "google.colab._shell"  # type: ignore
     except NameError:
         return False  # Probably standard Python interpreter
 
@@ -55,7 +55,7 @@ def _is_running_in_notebook() -> bool:
     """Return True if the code is running in a Jupyter notebook."""
     try:
         # See: https://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
-        shell = get_ipython().__class__.__name__
+        shell = get_ipython().__class__.__name__    # type: ignore
         if shell == "ZMQInteractiveShell":
             return True  # Jupyter notebook or qtconsole
         elif shell == "TerminalInteractiveShell":
