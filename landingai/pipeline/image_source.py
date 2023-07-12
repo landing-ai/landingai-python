@@ -8,7 +8,7 @@ import tempfile
 import shutil
 import threading
 import time
-from typing import Any, Iterator as IteratorType, Optional
+from typing import Any, Callable, Iterator as IteratorType, Optional, Tuple
 from typing import List, Union
 
 import cv2
@@ -16,7 +16,6 @@ import numpy as np
 from pydantic import BaseModel, PrivateAttr
 
 from landingai.pipeline.frameset import Frame, FrameSet
-from landingai.io import sample_images_from_video
 from landingai.storage.data_access import fetch_from_uri
 
 
@@ -111,6 +110,65 @@ class ImageFolder(ImageSourceBase):
         return self._image_paths
 
 
+def probe_video(video_file: str, samples_per_second: float) -> Tuple[int, int, float]:
+    """Probe a video file to get some metadata before sampling images.
+    Parameters
+    ----------
+    video_file: The local path to the video file
+    samples_per_second: Number of images to sample per second
+    Returns
+    -------
+    A tuple of three values
+        - The total number of frames,
+        - The number of frames to sample,
+        - The video length in seconds.
+    """
+    if not Path(video_file).exists():
+        raise FileNotFoundError(f"Video file {video_file} does not exist.")
+    cap = cv2.VideoCapture(video_file)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    video_length_seconds = total_frames / fps
+    sample_size = int(video_length_seconds * samples_per_second)
+    cap.release()
+    return (total_frames, sample_size, video_length_seconds)
+
+
+def sample_images_from_video(
+    video_file: str, output_dir: Path, samples_per_second: float = 1
+) -> List[str]:
+    """Sample images from a video file.
+    Parameters
+    ----------
+    video_file: The local path to the video file
+    output_dir: The local directory path that stores the sampled images
+    samples_per_second: The number of images to sample per second
+    Returns
+    -------
+    a list of local file paths to the sampled images
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    total_frames, sample_size, _ = probe_video(video_file, samples_per_second)
+    # Calculate the frame interval based on the desired frame rate
+    sample_interval = int(total_frames / sample_size)
+    frame_count = 0
+    output = []
+    cap = cv2.VideoCapture(video_file)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        # Check if end of video file
+        if not ret:
+            break
+        # Check if the current frame should be saved
+        if frame_count % sample_interval == 0:
+            output_file_path = str(output_dir / f"{frame_count}.jpg")
+            cv2.imwrite(output_file_path, frame)
+            output.append(output_file_path)
+        frame_count += 1
+    cap.release()
+    return output
+
+
 class VideoFile(ImageSourceBase):
     """
     The `VideoFile` class is an image source that samples frames from a video file.
@@ -158,8 +216,6 @@ class VideoFile(ImageSourceBase):
 
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will start to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
-
-
 class NetworkedCamera(BaseModel):
     """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame"""
 
@@ -295,3 +351,84 @@ class NetworkedCamera(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+def read_from_notebook_webcam(webcam_source: Union[str, int] = 0) -> Callable[[], str]:
+    # Define function to acquire images either directly from the local webcam (i.e. jupyter notebook)or from the web browser (i.e. colab)
+    local_cache_dir = Path(tempfile.mkdtemp())
+    filename = str(local_cache_dir / "photo.jpg")
+    # Detect if we are running on Google's colab
+    try:
+        from base64 import b64decode
+
+        from google.colab.output import eval_js  # type: ignore
+        from IPython.display import Javascript, display
+
+        def take_photo() -> str:
+            quality = 0.8
+            js = Javascript(
+                """
+            async function takePhoto(quality) {
+                const div = document.createElement('div');
+                const capture = document.createElement('button');
+                capture.textContent = 'Capture';
+                div.appendChild(capture);
+
+                const video = document.createElement('video');
+                video.style.display = 'block';
+                const stream = await navigator.mediaDevices.getUserMedia({video: true});
+
+                document.body.appendChild(div);
+                div.appendChild(video);
+                video.srcObject = stream;
+                await video.play();
+
+                // Resize the output to fit the video element.
+                google.colab.output.setIframeHeight(document.documentElement.scrollHeight, true);
+
+                // Wait for Capture to be clicked.
+                await new Promise((resolve) => capture.onclick = resolve);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                stream.getVideoTracks()[0].stop();
+                div.remove();
+                return canvas.toDataURL('image/jpeg', quality);
+            }
+            """
+            )
+            display(js)
+            data = eval_js("takePhoto({})".format(quality))
+            binary = b64decode(data.split(",")[1])
+            with open(filename, "wb") as f:
+                f.write(binary)
+                return filename
+
+    except ModuleNotFoundError:
+        # Capture image from local webcam using OpenCV
+        import cv2
+
+        def take_photo() -> str:
+            cam = cv2.VideoCapture(webcam_source)
+            cv2.namedWindow("Press space to take photo")
+            cv2.startWindowThread()
+            while True:
+                ret, frame = cam.read()
+                if not ret:
+                    print("failed to grab frame")
+                    exit()
+                cv2.imshow("Press space to take photo", frame)
+                k = cv2.waitKey(1)
+                if k % 256 == 32:
+                    # SPACE pressed
+                    cv2.imwrite(filename, frame)
+                    break
+            cam.release()
+            cv2.waitKey(1)
+            cv2.destroyAllWindows()
+            cv2.waitKey(1)
+            return filename
+
+    return take_photo

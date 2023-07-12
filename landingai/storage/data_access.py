@@ -1,13 +1,58 @@
 import logging
+import re
 import tempfile
 from pathlib import Path
-from typing import Optional, Any
+from typing import Dict, Optional, Any
 from urllib.parse import urlparse
+import requests
 
-
-from landingai.io import read_file
 
 _LOGGER = logging.getLogger(__name__)
+
+
+# TODO: support output type stream
+def read_file(url: str) -> Dict[str, Any]:
+    """Read bytes from a URL.
+    Typically, the URL is a presigned URL (for example, from Amazon S3 or Snowflake) that points to a video or image file.
+    Returns
+    -------
+    Dict[str, Any]
+        Returns the content under "content". Optionally may return "filename" in case the server provided it.
+    """
+    response = requests.get(url, allow_redirects=True)  # True is the default behavior
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        reason = f"{e.response.text} (status code: {e.response.status_code})"
+        msg_prefix = f"Failed to read from url ({url}) due to {reason}"
+        if response.status_code == 403:
+            error_msg = f"{msg_prefix}. Please double check the url is not expired and it's well-formed."
+            raise ValueError(error_msg) from e
+        elif response.status_code == 404:
+            raise FileNotFoundError(
+                f"{msg_prefix}. Please double check the file exists and the url is well-formed."
+            ) from e
+        else:
+            error_msg = f"{msg_prefix}. Please try again later or reach out to us via our LandingAI platform."
+            raise ValueError(error_msg) from e
+    if response.status_code >= 300:
+        raise ValueError(
+            f"Failed to read from url ({url}) due to {response.text} (status code: {response.status_code})"
+        )
+    ret = {"content": response.content}
+    # Check if server returned the file name
+    if "content-disposition" in response.headers:
+        m = re.findall(
+            "filename=[\"']*([^;\"']+)", response.headers["content-disposition"]
+        )
+        if len(m):  # if there is a match select the first one
+            ret["filename"] = m[0]
+    _LOGGER.info(
+        f"Received content with length {len(response.content)}, type {response.headers.get('Content-Type')}"
+        # and filename "+ str(ret["filename"])
+    )
+
+    return ret
 
 
 def download_file(

@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 import responses
 
-from landingai.io import probe_video, read_file, sample_images_from_video
+from landingai.storage.data_access import read_file
+from landingai.pipeline.image_source import probe_video, sample_images_from_video
 
 # TODO: solve the problem of exit code 134 when running the following test in GitHub Actions
 # @patch("landingai.io.cv2.waitKey")
