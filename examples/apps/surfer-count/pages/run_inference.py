@@ -17,7 +17,9 @@ PLAYLIST_URL = (
 
 def get_latest_surfer_count():
     vid_src = NetworkedCamera(PLAYLIST_URL, fps=FPS)
-    surfer_model = Predictor(st.session_state["endpoint_id"], api_key=st.session_state["api_key"])
+    surfer_model = Predictor(
+        st.session_state["endpoint_id"], api_key=st.session_state["api_key"]
+    )
 
     frs = FrameSet()
     for i, frame in enumerate(vid_src):
@@ -28,6 +30,7 @@ def get_latest_surfer_count():
     surfers = frs.get_class_counts()["surfer"] / (VIDEO_LEN_SEC * FPS)
     st.video(open(VIDEO_CACHE_PATH, "rb").read())
     st.write(f"Surfer count: **{surfers}**")
+
 
 st.title("Surfer Counter")
 button = st.button("Get Topanga Beach Surfer Count", on_click=get_latest_surfer_count)
