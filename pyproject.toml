@@ -18,12 +18,12 @@ packages = [{include = "landingai"}]
 [tool.poetry.dependencies]  # main dependency group
 python = ">=3.8,<4.0"
 
-opencv-python = ">=4.5,<5.0"
+opencv-python = ">=4.5,<5.0"  # about 87MB (exclude transitive dependencies)
 numpy = ">=1.21.0,<2.0.0"
 pillow = "9.*" # Version 10.0.0 had a issue on FreeTypeFont that will be fixed on the next release 
 pydantic = { version = "1.*", extras = ["dotenv"] } # Version 2 has breaking changes (in particular to seetings)
 requests = "2.*"
-snowflake-connector-python = "3.0.*"
+snowflake-connector-python = "3.0.*"  # about 51MB (exclude transitive dependencies)
 bbox-visualizer = "^0.1.0"
 segmentation-mask-overlay = "^0.3.4"
 imageio = { version = "2.*", extras = ["ffmpeg"] }
@@ -47,6 +47,7 @@ testbook = "^0.4.2"
 types-aiofiles = "^23.1.0.4"
 types-tqdm = "^4.65.0.1"
 aioresponses = "^0.7.4"
+setuptools = "^68.0.0"
 
 
 [tool.poetry.group.examples.dependencies]

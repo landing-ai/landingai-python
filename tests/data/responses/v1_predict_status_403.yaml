@@ -6,4 +6,4 @@ responses:
     content_type: text/plain
     method: POST
     status: 403
-    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=dfa79692-75eb-4a48-b02e-b273751adbae&device_type=pylib
+    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=dfa79692-75eb-4a48-b02e-b273751adbae&device_type=pylib&runtime=pytest
