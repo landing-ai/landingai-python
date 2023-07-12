@@ -21,7 +21,7 @@ Before using this library for inference, you need train your model in LandingLen
 
 This library supports two deployment options:
 - [Cloud Deployment](https://support.landing.ai/landinglens/docs/cloud-deployment)
-- LandingEdge (support coming soon...)
+- [Edge Deployment] (support coming soon...)
 
 The easiest way to get started is using a Cloud Deployment.
 
@@ -33,6 +33,19 @@ The library calls the endpoint of your deployed model for inference results. The
 The actual computation of model inference does not happen on the library side, it happens on the model server side.
 
 This library abstracts out the complexity of server communication, error handling, and result parsing into a simple class called `landingai.predict.Predictor`. For more information, see `landingai.predict.Predictor` in the API doc.
+
+
+#### Cloud Inference Limitations
+
+The `Predictor` class uses Cloud Deployment by default.
+
+1. **Rate Limit**
+
+For non-enterprise users, you can make inference up to 40 inferences per minute per organization. If you exceed that limit, the cloud delpoyment server returns a 429 Too Many Requests response status code.
+
+Reference: https://community.landing.ai/c/ask-the-community/friday-facts-inference-limits
+
+If you need to make more frequent calls (i.e. more inference throughput), consider using the second deployment option (Edge Deployment), which is currently under alpha testing. Reach out to us at support@landing.ai for more information.
 
 ### Prediction Results
 
