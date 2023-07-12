@@ -63,7 +63,8 @@ def fetch_from_uri(uri: str, **kwargs) -> Path:  # type: ignore
     # TODO support other URIs
     # snowflake://stage/filename  (credentials will be passed on kwargs)
     r = urlparse(uri)
-    if r.scheme == "" or r.scheme == "file":
+    # Match local unix and windows paths (e.g. C:\)
+    if r.scheme == "" or r.scheme == "file" or len(r.scheme) == 1:
         # The file is already local
         return Path(uri)
     if r.scheme == "http" or r.scheme == "https":
