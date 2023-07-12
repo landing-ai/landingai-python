@@ -37,7 +37,7 @@ This library abstracts out the complexity of server communication, error handlin
 
 #### Cloud Inference Limitations
 
-The `Predictor` class uses Cloud Deployment by default.
+The `Predictor` class uses Cloud Deployment, which comes with below limitations.
 
 1. **Rate Limit**
 
