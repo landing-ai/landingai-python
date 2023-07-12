@@ -1,9 +1,10 @@
 import logging
 import re
+import os
 import tempfile
 from pathlib import Path
 from typing import Dict, Optional, Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 import requests
 
 
@@ -59,7 +60,7 @@ def download_file(
     url: str,
     file_output_path: Optional[Path] = None,
 ) -> str:
-    """Download a file from a public url. This function will follow redirects
+    """Download a file from a public url. This function will follow HTTP redirects
 
     Parameters
     ----------
@@ -80,9 +81,15 @@ def download_file(
             f.write(ret["content"])
 
     else:
-        with tempfile.NamedTemporaryFile(
-            suffix="--" + str(ret["filename"]), delete=False
-        ) as f:
+        suffix = ""
+        if "filename" in ret:
+            # use filename provided by server
+            suffix = "--" + str(ret["filename"])
+        else:
+            # try to get the name from the URL
+            r = urlparse(url)
+            suffix = "--" + os.path.basename(unquote(r.path))
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
             f.write(ret["content"])
     return f.name  # type: ignore
 

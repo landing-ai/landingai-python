@@ -1,44 +1,8 @@
-from pathlib import Path
-
+import os
 import pytest
 import responses
 
-from landingai.storage.data_access import read_file
-from landingai.pipeline.image_source import probe_video, sample_images_from_video
-
-# TODO: solve the problem of exit code 134 when running the following test in GitHub Actions
-# @patch("landingai.io.cv2.waitKey")
-# @patch("landingai.io.cv2.VideoCapture")
-# def test_read_from_notebook_webcam(mock_video_capture, mock_wait_key):
-#     mock_video_capture.return_value.read.return_value = (True, np.zeros((480, 640, 3)))
-#     mock_wait_key.return_value = 288
-#     take_photo_func = read_from_notebook_webcam()
-#     filepath = take_photo_func()
-#     image = PIL.Image.open(filepath)
-#     assert image.size == (640, 480)
-
-
-def test_sample_images_from_video(tmp_path: Path):
-    test_video_file_path = "tests/data/videos/test.mp4"
-    result = sample_images_from_video(test_video_file_path, tmp_path)
-    assert len(result) == 2
-    assert len(list(tmp_path.glob("*.jpg"))) == 2
-
-
-def test_probe():
-    test_video_file_path = "tests/data/videos/test.mp4"
-    total_frames, sample_size, video_length_seconds = probe_video(
-        test_video_file_path, 1.0
-    )
-    assert total_frames == 48
-    assert sample_size == 2
-    assert video_length_seconds == 2.0
-
-
-def test_probe_file_not_exist(tmp_path: Path):
-    with pytest.raises(FileNotFoundError):
-        non_exist_file = str(tmp_path / "non_exist.mp4")
-        probe_video(non_exist_file, 1.0)
+from landingai.storage.data_access import read_file, download_file, fetch_from_uri
 
 
 # from responses import _recorder
@@ -62,3 +26,17 @@ def test_read_file():
             "https://test.s3.us-west-2.amazonaws.com/img.png?X-Amz-Security-Token=12345"
         )
         read_file(url)  # 301, redirect
+
+
+def test_download_file():
+    url = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png"
+    file = download_file(url=url)
+    assert os.path.exists(file) == 1
+    assert os.path.getsize(file) > 5000
+
+
+def test_fetch_from_uri():
+    # Test the local access case
+    uri = "tests/data/images/cereal1.jpeg"
+    local_file = fetch_from_uri(uri=uri)
+    assert os.path.getsize(local_file) > 5000
