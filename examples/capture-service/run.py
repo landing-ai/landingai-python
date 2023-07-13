@@ -1,7 +1,7 @@
 import logging
 
 from landingai.predict import Predictor
-from landingai.vision_pipeline import NetworkedCamera
+from landingai.pipeline.image_source import NetworkedCamera
 
 logging.basicConfig(
     level=logging.DEBUG,

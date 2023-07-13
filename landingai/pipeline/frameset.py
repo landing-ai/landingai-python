@@ -2,8 +2,6 @@
 """
 
 import logging
-import threading
-import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union, cast
 
@@ -11,12 +9,12 @@ import cv2
 import numpy as np
 from PIL import Image
 import imageio
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 
 from landingai.common import Prediction, ClassificationPrediction, in_notebook
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
-from landingai.postprocess import class_counts
+from landingai.storage.data_access import fetch_from_uri
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,20 +69,20 @@ class FrameSet(BaseModel):
 
     @classmethod
     def from_image(
-        cls, file: str, metadata: Optional[Dict[str, Any]] = {}
+        cls, uri: str, metadata: Optional[Dict[str, Any]] = {}
     ) -> "FrameSet":
         """Creates a FrameSet from an image file
 
         Parameters
         ----------
-        file : Path to file
+        uri : URI to file (local or remote)
 
         Returns
         -------
         FrameSet : New FrameSet containing a single image
         """
 
-        im = Image.open(file)
+        im = Image.open(str(fetch_from_uri(uri)))
         return cls(frames=[Frame(image=im, metadata=metadata)])
 
     @classmethod
@@ -266,7 +264,8 @@ class FrameSet(BaseModel):
             writer.append_data(fr.to_numpy_array(image_src))
         writer.close()
 
-        # Previous implementation with OpenCV that required code guessing and did not work on windows because of wurlitzer
+        # TODO: Future delete if we get out of OpenCV
+        # Previous implementation with OpenCV that required code guessing and did not work on windows because of wurlitzer (an alternative will be https://github.com/greg-hellings/stream-redirect)
         # # All images should have the same shape as it's from the same video file
         # img_shape = self.frames[0].image.size
         # # Find a suitable coded that it is installed on the system. H264/avc1 is preferred, see https://discuss.streamlit.io/t/st-video-doesnt-show-opencv-generated-mp4/3193/4
@@ -361,40 +360,6 @@ class FrameSet(BaseModel):
         self.frames.extend(frs.frames)
         return self
 
-    def get_class_counts(self, add_id_to_classname: bool = False) -> Dict[str, int]:
-        """This method returns the number of occurrences of each detected class in the FrameSet.
-
-        Parameters
-        ----------
-        add_id_to_classname : bool, optional
-            By default, detections with the same class names and different defect id will be counted as the same. Set to True if you want to count them separately
-
-        Returns
-        -------
-        Dict[str, int]
-            A dictionary with the counts
-            ```
-            Example:
-                {
-                    "cat": 10,
-                    "dog": 3
-                }
-            ```
-        """
-        counts = {}
-        for i in range(len(self.frames)):
-            # Here is a sample return from class_counts: {1: (3, 'Heart'), 3: (3, 'Club'), 4: (3, 'Spade'), 2: (3, 'Diamond')}
-            for k, v in class_counts(self.frames[i].predictions).items():
-                if add_id_to_classname:  # This is useful if class names are not unique
-                    class_name = f"{v[1]}_{k}"
-                else:
-                    class_name = v[1]
-                if class_name not in counts:
-                    counts[class_name] = v[0]
-                else:
-                    counts[class_name] += v[0]
-        return counts
-
     def apply(self, function: Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
         """Apply a function to all frames
 
@@ -426,142 +391,3 @@ class FrameSet(BaseModel):
             np.ndarray: lambda a: f"<np.ndarray: {a.shape}>",
             Image.Image: lambda i: f"<Image.Image: {i.size}>",
         }
-
-
-# openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will tart to lag behind realtime.
-# This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
-class NetworkedCamera(BaseModel):
-    """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame"""
-
-    stream_url: str
-    motion_detection_threshold: int
-    capture_interval: Union[float, None] = None
-    previous_frame: Union[Frame, None] = None
-    _last_capture_time: datetime = PrivateAttr()
-    _cap: Any = PrivateAttr()  # cv2.VideoCapture
-    _t: Any = PrivateAttr()  # threading.Thread
-    _t_lock: Any = PrivateAttr()  # threading.Lock
-    _t_running: bool = PrivateAttr()
-
-    def __init__(
-        self,
-        stream_url: str,
-        motion_detection_threshold: int = 0,
-        capture_interval: Optional[float] = None,
-        fps: Optional[int] = None,
-    ) -> None:
-        """
-        Parameters
-        ----------
-        stream_url : url to video source
-        motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
-        capture_interval : Number of seconds to wait in between frames. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
-        fps: Capture speed in frames per second. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
-        """
-        if fps is not None and capture_interval is not None:
-            raise ValueError(
-                "The fps and capture_interval arguments cannot be set at the same time"
-            )
-        elif fps is not None:
-            capture_interval = 1 / fps
-
-        if capture_interval is not None and capture_interval < 1 / 30:
-            raise ValueError(
-                "The resulting fps cannot be more than 30 frames per second"
-            )
-        cap = cv2.VideoCapture(stream_url)
-        if not cap.isOpened():
-            cap.release()
-            raise Exception(f"Could not open stream ({stream_url})")
-        cap.set(
-            cv2.CAP_PROP_BUFFERSIZE, 2
-        )  # Limit buffering to 2 frames in order to avoid backlog (i.e. lag)
-
-        super().__init__(
-            stream_url=stream_url,
-            motion_detection_threshold=motion_detection_threshold,
-            capture_interval=capture_interval,
-        )
-        self._last_capture_time = datetime.now()
-        self._cap = cap
-        self._t_lock = threading.Lock()
-        self._t = threading.Thread(target=self._reader)
-        self._t.daemon = True
-        self._t_running = False
-        self._t.start()
-
-    def __del__(self) -> None:
-        self._t_running = False
-        self._t.join(timeout=10)
-        self._cap.release()
-
-    # grab frames as soon as they are available
-    def _reader(self) -> None:
-        self._t_running = True
-        # inter_frame_interval = 1 / self._cap.get(cv2.CAP_PROP_FPS)  # Get the source's framerate (FPS = 1/X)
-        inter_frame_interval = (
-            1 / 30
-        )  # Some sources miss report framerate so we use a conservative number
-        while self._t_running:
-            with self._t_lock:
-                ret = self._cap.grab()  # non-blocking call
-                if not ret:
-                    raise Exception(f"Connection to camera broken ({self.stream_url})")
-            time.sleep(inter_frame_interval)  # Limit acquisition speed
-
-    # retrieve latest frame
-    def get_latest_frame(self) -> "FrameSet":
-        """Return the most up to date frame by dropping all by the latest frame. This function is blocking"""
-        if self.capture_interval is not None:
-            t = datetime.now()
-            delta = (t - self._last_capture_time).total_seconds()
-            if delta <= self.capture_interval:
-                time.sleep(self.capture_interval - delta)
-        with self._t_lock:
-            ret, frame = self._cap.retrieve()  # non-blocking call
-            if not ret:
-                raise Exception(f"Connection to camera broken ({self.stream_url})")
-        self._last_capture_time = datetime.now()
-        if self.motion_detection_threshold > 0:
-            if self._detect_motion(frame):
-                return FrameSet.from_array(frame)
-            else:
-                return FrameSet()  # Empty frame
-
-        return FrameSet.from_array(frame)
-
-    def _detect_motion(self, frame: np.ndarray) -> bool:  # TODO Needs test cases
-        """ """
-        # Prepare image; grayscale and blur
-        prepared_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        prepared_frame = cv2.GaussianBlur(src=prepared_frame, ksize=(5, 5), sigmaX=0)
-
-        if self.previous_frame is None:
-            # Save the result for the next invocation
-            self.previous_frame = prepared_frame
-            return True  # First frame; there is no previous one yet
-
-        # calculate difference and update previous frame TODO: don't assume the processed image is cached
-        diff_frame = cv2.absdiff(src1=self.previous_frame, src2=prepared_frame)
-        # Only take different areas that are different enough (>20 / 255)
-        thresh_frame = cv2.threshold(
-            src=diff_frame, thresh=20, maxval=255, type=cv2.THRESH_BINARY
-        )[1]
-        change_percentage = (
-            100 * cv2.countNonZero(thresh_frame) / (frame.shape[0] * frame.shape[1])
-        )
-        # print(f"Image change {change_percentage:.2f}%")
-        if change_percentage > self.motion_detection_threshold:
-            self.previous_frame = prepared_frame
-            return True
-        return False
-
-    # Make the class iterable. TODO Needs test cases
-    def __iter__(self) -> Any:
-        return self
-
-    def __next__(self) -> "FrameSet":
-        return self.get_latest_frame()
-
-    class Config:
-        arbitrary_types_allowed = True

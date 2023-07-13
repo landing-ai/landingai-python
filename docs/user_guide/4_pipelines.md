@@ -1,8 +1,8 @@
 ## Vision Pipelines
 
-Pipelines can simplify complex vision tasks by breaking them into a sequence of operations that are applied to every image. Images are modeled as `landingai.vision_pipeline.Frame` and sequences of images are modeled as `landingai.vision_pipeline.FrameSet`. Most image sources will produce a `FrameSet` even when it contains a single image. 
+Pipelines can simplify complex vision tasks by breaking them into a sequence of operations that are applied to every image. Images are modeled as `landingai.pipeline.frameset.Frame` and sequences of images are modeled as `landingai.pipeline.frameset.FrameSet`. Most image sources will produce a `FrameSet` even when it contains a single image. 
 
-For example, a `landingai.vision_pipeline.NetworkedCamera` can connect to a live video source and expose it as `FrameSet` iterator. This is convenient as it allows subsequent stages of the pipeline to introduce new derived frames as part of the processing. 
+For example, a `landingai.pipeline.image_source.NetworkedCamera` can connect to a live video source and expose it as `FrameSet` iterator. This is convenient as it allows subsequent stages of the pipeline to introduce new derived frames as part of the processing. 
 
 As an other example, if we are detecting faces from a live stream, we may want to first use an object detection model to identify the regions of interest and then break the initial `Frame` into multiple frames (one per face). Subsequent stages of the pipeline may apply other models to individual faces.
 
@@ -17,4 +17,4 @@ frs.run_predict(predictor=...)
 
 ```
 
-For more details on the operations supported on pipelines, go to `landingai.vision_pipeline.FrameSet`.
+For more details on the operations supported on pipelines, go to `landingai.pipeline.frameset.FrameSet`.

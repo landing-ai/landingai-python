@@ -6,7 +6,7 @@ from typing import Optional
 import snowflake.connector
 from pydantic import BaseSettings, Field
 
-from landingai.io import read_file
+from landingai.storage.data_access import download_file
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,9 +78,7 @@ def save_remote_file_to_local(
         local_output = Path(tempfile.mkdtemp())
     file_path = local_output / remote_filename
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(str(file_path), "wb") as f:
-        data_bytes = read_file(url)
-        f.write(data_bytes)
+    download_file(url, file_output_path=file_path)
     _LOGGER.info(f"Saved file {remote_filename} to {file_path}")
     return file_path
 
