@@ -225,15 +225,14 @@ class Media:
             error_count = 0
             try:
                 resp = loop.run_until_complete(file_tasks)
-                if isinstance(resp, BaseException):
-                    error_count = 1
-                    medias_with_errors[filename] = resp
-                else:
-                    medias.append(resp)
+                medias.append(resp)
             except DuplicateUploadError:
                 if not tolerate_duplicate_upload:
                     raise
                 skipped_count = 1
+            except Exception:
+                error_count = 1
+                medias_with_errors[filename] = resp
 
         return {
             "num_uploaded": len(medias),
