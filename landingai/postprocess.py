@@ -15,6 +15,31 @@ from landingai.common import (
 )
 
 
+def rescale_bboxes_by_image_size(
+    predictions: Sequence[ObjectDetectionPrediction],
+    from_image: Image,
+    to_image: Image,
+) -> Sequence[ObjectDetectionPrediction]:
+    """Rescale the bounding boxes of each ObjectDetectionPrediction in a list based on the size of the reference images.
+    NOTE: this operation is NOT in-place. The input predictions will remain the same.
+
+    Parameters
+    ----------
+    predictions: a list of ObjectDetectionPrediction to be rescaled.
+    from_image: the image that serves the denominator of the scale factor. The input bboxes is at the same scale of this image.
+    to_image: the image that serves the numerator of the scale factor. The ouput bboxes will be at the same scale of this image.
+
+    Returns
+    -------
+    A list of ObjectDetectionPrediction where the bboxes has been rescaled.
+    """
+    scale_factor = (
+        to_image.size[1] / from_image.size[1],
+        to_image.size[0] / from_image.size[0],
+    )
+    return rescale_bboxes(predictions, scale_factor)
+
+
 def rescale_bboxes(
     predictions: Sequence[ObjectDetectionPrediction],
     scale_factor: Union[Tuple[float, float], float],
