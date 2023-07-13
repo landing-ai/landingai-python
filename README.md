@@ -1,13 +1,3 @@
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z0XHQRFQQ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-6Z0XHQRFQQ');
-</script>
-
 ![ci_status](https://github.com/landing-ai/landingai-python/actions/workflows/ci_cd.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/landingai.svg?)](https://badge.fury.io/py/landingai)
 ![version](https://img.shields.io/pypi/pyversions/landingai)
