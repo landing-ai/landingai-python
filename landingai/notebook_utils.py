@@ -1,8 +1,8 @@
 """This module contains common notebook utilities that are used across the example notebooks in this repo.
 It's only intended for examples provided by this repo. When using the SDK in your own project, you don't need to use this module.
 """
-from functools import lru_cache
 import tempfile
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Union
 

@@ -2,13 +2,13 @@
 
 import logging
 import math
-from pathlib import Path
 import random
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, cast
-import cv2
 
+import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 from landingai.common import (
     ClassificationPrediction,

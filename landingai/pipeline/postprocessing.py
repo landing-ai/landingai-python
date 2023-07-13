@@ -1,7 +1,7 @@
 from typing import Dict
 
-from landingai.postprocess import class_counts
 from landingai.pipeline.frameset import FrameSet
+from landingai.postprocess import class_counts
 
 
 def get_class_counts(
