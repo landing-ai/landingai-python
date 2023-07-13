@@ -15,6 +15,43 @@ from landingai.common import (
 )
 
 
+def rescale_bboxes(
+    predictions: Sequence[ObjectDetectionPrediction],
+    scale_factor: Union[Tuple[float, float], float],
+) -> Sequence[ObjectDetectionPrediction]:
+    """Rescale the bounding boxes of each ObjectDetectionPrediction in a list based on the scale factor.
+    NOTE: this operation is NOT in-place. The input predictions will remain the same.
+
+    Parameters
+    ----------
+    predictions: a list of ObjectDetectionPrediction to be rescaled.
+    scale_factor: the scale factor that will be applied to the predictions. The scale factors are (height, width) if it's a tuple.
+
+    Returns
+    -------
+    A list of ObjectDetectionPrediction where the bboxes has been rescaled.
+    """
+    if isinstance(scale_factor, float):
+        scale_factor = (scale_factor, scale_factor)
+    assert scale_factor[0] > 0 and scale_factor[1] > 0, "Scale factor must be > 0"
+    height_scale, width_scale = scale_factor
+    return [
+        ObjectDetectionPrediction(
+            id=pred.id,
+            score=pred.score,
+            label_index=pred.label_index,
+            label_name=pred.label_name,
+            bboxes=(
+                math.floor(pred.bboxes[0] * width_scale),  # xmin
+                math.floor(pred.bboxes[1] * height_scale),  # ymin
+                math.ceil(pred.bboxes[2] * width_scale),  # xmax
+                math.ceil(pred.bboxes[3] * height_scale),  # ymax
+            ),
+        )
+        for pred in predictions
+    ]
+
+
 def crop(
     predictions: Sequence[Prediction], image: Union[np.ndarray, Image]
 ) -> Sequence[Image]:
