@@ -5,4 +5,4 @@ responses:
     content_type: text/plain
     method: POST
     status: 429
-    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43&device_type=pylib
+    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43&device_type=pylib&runtime=pytest
