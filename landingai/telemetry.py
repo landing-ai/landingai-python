@@ -9,6 +9,12 @@ from importlib.metadata import version
 from pathlib import Path
 from typing import Dict
 
+from landingai.notebook_utils import (
+    is_running_in_colab_notebook,
+    is_running_in_jupyter_notebook,
+)
+from landingai.st_utils import is_running_in_streamlit
+
 
 @lru_cache(maxsize=None)
 def get_runtime_environment_info() -> Dict[str, str]:
@@ -30,48 +36,14 @@ def is_running_in_pytest() -> bool:
 
 
 def _resolve_python_runtime() -> str:
-    if _is_running_in_colab():
+    if is_running_in_colab_notebook():
         runtime = "colab"
-    elif _is_running_in_notebook():
+    elif is_running_in_jupyter_notebook():
         runtime = "notebook"
-    elif _is_running_in_streamlit():
+    elif is_running_in_streamlit():
         runtime = "streamlit"
     elif is_running_in_pytest():
         runtime = "pytest"
     else:
         runtime = Path(os.environ.get("_", "unknown")).name
     return runtime
-
-
-def _is_running_in_colab() -> bool:
-    """Return True if the code is running in a Google Colab notebook."""
-    try:
-        return get_ipython().__class__.__module__ == "google.colab._shell"  # type: ignore
-    except NameError:
-        return False  # Probably standard Python interpreter
-
-
-def _is_running_in_notebook() -> bool:
-    """Return True if the code is running in a Jupyter notebook."""
-    try:
-        # See: https://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
-        shell = get_ipython().__class__.__name__  # type: ignore
-        if shell == "ZMQInteractiveShell":
-            return True  # Jupyter notebook or qtconsole
-        elif shell == "TerminalInteractiveShell":
-            return False  # Terminal running IPython
-        else:
-            return False  # Other type (?)
-    except NameError:
-        return False  # Probably standard Python interpreter
-
-
-def _is_running_in_streamlit() -> bool:
-    """Return True if the code is running in a streamlit App."""
-    # See: https://discuss.streamlit.io/t/how-to-check-if-code-is-run-inside-streamlit-and-not-e-g-ipython/23439/2
-    try:
-        from streamlit.runtime.scriptrunner import get_script_run_ctx
-
-        return get_script_run_ctx() is not None
-    except ImportError:
-        return False

@@ -1,12 +1,12 @@
 import logging
-import re
 import os
+import re
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional, Any
-from urllib.parse import urlparse, unquote
-import requests
+from typing import Any, Dict, Optional
+from urllib.parse import unquote, urlparse
 
+import requests
 
 _LOGGER = logging.getLogger(__name__)
 

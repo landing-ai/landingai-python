@@ -10,6 +10,17 @@ _DEFAULT_API_KEY_ENV_VAR = "LANDINGAI_API_KEY"
 _LOGGER = logging.getLogger(__name__)
 
 
+def is_running_in_streamlit() -> bool:
+    """Return True if the code is running in a streamlit App."""
+    # See: https://discuss.streamlit.io/t/how-to-check-if-code-is-run-inside-streamlit-and-not-e-g-ipython/23439/2
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+
+        return get_script_run_ctx() is not None
+    except ImportError:
+        return False
+
+
 def _import_st() -> Any:
     """Import streamlit and raise an error if it fails."""
     try:

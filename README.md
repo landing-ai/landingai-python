@@ -59,14 +59,13 @@ Run inference using the endpoint you created in LandingLens:
 4. Call the `predict()` function with an image (using the NumPy array format).
 
 ```python
-import numpy as np
 from PIL import Image
 from landingai.predict import Predictor
 # Enter your API Key and Secret
 endpoint_id = "FILL_YOUR_INFERENCE_ENDPOINT_ID"
 api_key = "FILL_YOUR_API_KEY"
 # Load your image
-image = np.asarray(Image.open("image.png"))
+image = Image.open("image.png")
 # Run inference
 predictor = Predictor(endpoint_id, api_key=api_key)
 predictions = predictor.predict(image)
