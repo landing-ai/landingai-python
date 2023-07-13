@@ -556,7 +556,9 @@ async def _upload_media(
         _LOGGER.warning(
             f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
         )
-        raise DuplicateUploadError(f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}")
+        raise DuplicateUploadError(
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+        )
     elif "data" not in resp_data:
         raise HttpError(
             f"Failed to upload media due to HTTP {resp_data['code']} error, reason: {resp_data['message']}"
