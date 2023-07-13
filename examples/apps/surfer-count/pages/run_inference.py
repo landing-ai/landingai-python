@@ -2,8 +2,7 @@ import streamlit as st
 
 from pathlib import Path
 from landingai.predict import Predictor
-from landingai.vision_pipeline import NetworkedCamera, FrameSet
-
+from landingai.pipeline.image_source import NetworkedCamera, FrameSet
 
 VIDEO_CACHE_PATH = Path("cached_data")
 VIDEO_CACHE_PATH.mkdir(exist_ok=True, parents=True)
