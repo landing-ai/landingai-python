@@ -28,7 +28,7 @@ from landingai.data_management.utils import (
     obj_to_params,
     validate_metadata,
 )
-from landingai.exceptions import HttpError
+from landingai.exceptions import DuplicateUploadError, HttpError
 from landingai.utils import serialize_image
 
 MediaType = Enum("MediaType", ["image", "video"])
@@ -81,6 +81,7 @@ class Media:
         nothing_to_label: bool = False,
         metadata_dict: Optional[Dict[str, Any]] = None,
         validate_extensions: bool = True,
+        tolerate_duplicate_upload: bool = True,
     ) -> Dict[str, Any]:
         """
         Upload media to platform.
@@ -110,6 +111,9 @@ class Media:
             If set to False, will try to upload all files. Behavior of platform
              for unexpected extensions may not be correct - for example, most likely file
              will be uploaded to s3, but won't show in data browser.
+        tolerate_duplicate_upload: bool
+            Whether to tolerate duplicate upload. A duplicate upload is identified by status code 409. The server returns a 409 status code if the same media file content exists in the project.
+            Defaults to True. If set to False, will raise a `landingai.exceptions.HttpError` if it's a duplicate upload.
 
         Returns
         -------
@@ -179,6 +183,7 @@ class Media:
                 project_id,
                 validate_extensions,
                 skipped_count,
+                tolerate_duplicate_upload,
             )
             loop = asyncio.get_event_loop()
             (
@@ -217,13 +222,17 @@ class Media:
                 metadata,
             )
             loop = asyncio.get_event_loop()
-            resp = loop.run_until_complete(file_tasks)
             error_count = 0
-            if isinstance(resp, BaseException):
+            try:
+                resp = loop.run_until_complete(file_tasks)
+                medias.append(resp)
+            except DuplicateUploadError:
+                if not tolerate_duplicate_upload:
+                    raise
+                skipped_count = 1
+            except Exception:
                 error_count = 1
                 medias_with_errors[filename] = resp
-            else:
-                medias.append(resp)
 
         return {
             "num_uploaded": len(medias),
@@ -434,6 +443,7 @@ async def _upload_folder(
     project_id: int,
     validate_extensions: bool,
     skipped_count: int,
+    tolerate_duplicate_upload: bool,
 ) -> Tuple[List[Any], int, int, Dict[str, Any]]:
     semaphore = asyncio.BoundedSemaphore(_CONCURRENCY_LIMIT)
     task_to_filename = {}
@@ -467,6 +477,10 @@ async def _upload_folder(
     for resp in tqdm(asyncio.as_completed(tasks), total=len(tasks)):
         try:
             await resp
+        except DuplicateUploadError:
+            if not tolerate_duplicate_upload:
+                raise
+            skipped_count += 1
         except Exception:
             error_count += 1
 
@@ -487,7 +501,14 @@ async def _upload_media_with_semaphore(
     semaphore: asyncio.BoundedSemaphore,
 ) -> Dict[str, Any]:
     async with semaphore:
-        return await _upload_media(client, dataset_id, filename, path, project_id, ext)
+        return await _upload_media(
+            client,
+            dataset_id,
+            filename,
+            path,
+            project_id,
+            ext,
+        )
 
 
 async def _upload_media(
@@ -530,7 +551,14 @@ async def _upload_media(
             "uploadId": dataset_id,
         },
     )
-    if "data" not in resp_data:
+    if resp_data["code"] == 409:
+        _LOGGER.warning(
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+        )
+        raise DuplicateUploadError(
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+        )
+    elif "data" not in resp_data:
         raise HttpError(
             f"Failed to upload media due to HTTP {resp_data['code']} error, reason: {resp_data['message']}"
         )

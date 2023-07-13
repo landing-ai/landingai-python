@@ -4,7 +4,12 @@ import responses
 from PIL import Image
 
 from landingai.common import ClassificationPrediction, ObjectDetectionPrediction
-from landingai.postprocess import crop, segmentation_class_pixel_coverage
+from landingai.postprocess import (
+    crop,
+    rescale_bboxes,
+    rescale_bboxes_by_image_size,
+    segmentation_class_pixel_coverage,
+)
 from landingai.predict import Predictor
 
 
@@ -25,6 +30,62 @@ def test_segmentation_class_pixel_coverage():
     assert coverage[4] == (0.24161325195570196, "Brown Field")
     assert coverage[5] == (0.40297209139620843, "Trees")
     assert coverage[6] == (0.340975356067672, "Structure")
+
+
+def test_rescale_bboxes_by_image_size():
+    input = [
+        ObjectDetectionPrediction(
+            id="123",
+            score=0.1,
+            label_index=1,
+            label_name="class1",
+            bboxes=(4, 10, 22, 23),
+        ),
+        ObjectDetectionPrediction(
+            id="124",
+            score=0.1,
+            label_index=1,
+            label_name="class2",
+            bboxes=(0, 0, 17, 33),
+        ),
+    ]
+    raw_image = Image.new("RGB", (100, 200))
+    resized_image = raw_image.resize((20, 60))
+    result = rescale_bboxes_by_image_size(input, raw_image, resized_image)
+    assert result[0].bboxes == (0, 3, 5, 7)
+    assert result[1].bboxes == (0, 0, 4, 10)
+
+    raw_image = Image.new("RGB", (150, 300))
+    resized_image = raw_image.resize((100, 200))
+    result = rescale_bboxes_by_image_size(input, resized_image, raw_image)
+    assert result[0].bboxes == (6, 15, 33, 35)
+    assert result[1].bboxes == (0, 0, 26, 50)
+
+
+def test_rescale_bboxes():
+    input = [
+        ObjectDetectionPrediction(
+            id="123",
+            score=0.1,
+            label_index=1,
+            label_name="class1",
+            bboxes=(4, 10, 22, 23),
+        ),
+        ObjectDetectionPrediction(
+            id="124",
+            score=0.1,
+            label_index=1,
+            label_name="class2",
+            bboxes=(0, 0, 17, 33),
+        ),
+    ]
+    result = rescale_bboxes(input, (0.3, 0.2))
+    assert result[0].bboxes == (0, 3, 5, 7)
+    assert result[1].bboxes == (0, 0, 4, 10)
+
+    result = rescale_bboxes(input, 1.5)
+    assert result[0].bboxes == (6, 15, 33, 35)
+    assert result[1].bboxes == (0, 0, 26, 50)
 
 
 def test_crop():
