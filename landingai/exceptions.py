@@ -110,6 +110,17 @@ class HttpError(Exception):
         return self.message
 
 
+class DuplicateUploadError(Exception):
+    """Exception raised when the uploaded media is already exists in the project. Status code: 409."""
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+
 class UnexpectedRedirectError(Exception):
     """Exception raised when the client encounters an unexpected redirect. Status code: 3xx."""
 
