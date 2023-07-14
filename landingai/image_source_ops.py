@@ -69,9 +69,13 @@ def sample_images_from_video(
 
 
 def take_photo_from_webcam(webcam_source: Union[str, int] = 0) -> PIL.Image.Image:
-    """Open a Window and allow users to take a photo from the webcam by pressing any key."""
-    # Detect if we are running on Google's colab
+    """Open a Window and allow users to take a photo from the webcam.
+    It supports running on both local environment and Google's colab notebooks.
+    For Google colab, it will open a window to allow users to take a photo from the webcam by pressing the "Capture" button.
+    For local environment, it will open a window to allow users to take a photo from the webcam by pressing the "space" button.
+    """
     try:
+        # Running on Google's colab or local Jupyter notebook
         from base64 import b64decode
 
         from google.colab.output import eval_js  # type: ignore
