@@ -34,10 +34,11 @@ def test_sample_images_from_video(tmp_path: Path):
     assert len(list(tmp_path.glob("*.jpg"))) == 2
 
 
+@mock.patch("landingai.image_source_ops.cv2.namedWindow")
 @mock.patch("landingai.image_source_ops.cv2.imshow")
 @mock.patch("landingai.image_source_ops.cv2.waitKey")
 @mock.patch("landingai.image_source_ops.cv2.VideoCapture")
-def test_take_photo_from_webcam(mocked_video_capture, mocked_wait_key, mocked_imshow):
+def test_take_photo_from_webcam(mocked_video_capture, mocked_wait_key, mocked_imshow, mocked_named_window):
     mocked_video_capture.return_value.read.return_value = (
         True,
         np.zeros((480, 640, 3), dtype=np.uint8),
