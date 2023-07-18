@@ -10,7 +10,7 @@ from contextlib import ContextDecorator
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Sequence
+from typing import Any, Callable, ClassVar, Dict, MutableSequence, Optional, Sequence
 
 
 class TextColor(Enum):
@@ -34,8 +34,8 @@ class TimerStats:
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Add a private dictionary keeping track of all timings"""
         super().__init__(*args, **kwargs)
-        self._timings: Dict[str, Sequence[float]] = defaultdict(
-            partial(deque, maxlen=_MAX_SIZE)
+        self._timings: Dict[str, MutableSequence[float]] = defaultdict(
+            partial(deque, maxlen=_MAX_SIZE)  # type: ignore
         )
 
     def add(self, name: str, value: float) -> None:
@@ -46,7 +46,7 @@ class TimerStats:
         """Clear timers."""
         self._timings.clear()
 
-    def apply(self, func: Callable[[List[float]], float], name: str) -> float:
+    def apply(self, func: Callable[[Sequence[float]], float], name: str) -> float:
         """Apply a function to the results of one named timer."""
         if name in self._timings:
             return func(self._timings[name])
