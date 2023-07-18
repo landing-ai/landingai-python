@@ -21,6 +21,7 @@ from landingai.common import (
 )
 from landingai.exceptions import HttpResponse
 from landingai.telemetry import get_runtime_environment_info, is_running_in_pytest
+from landingai.timer import Timer
 from landingai.utils import load_api_credential, serialize_image
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,6 +66,7 @@ class Predictor:
         }
         return headers
 
+    @Timer(name="Predictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
     ) -> List[Prediction]:
@@ -120,6 +122,7 @@ class OcrPredictor(Predictor):
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
+    @Timer(name="OcrPredictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
     ) -> List[Prediction]:
@@ -198,6 +201,7 @@ class EdgePredictor(Predictor):
             self._url, self._num_retry, {"contentType": "multipart/form-data"}
         )
 
+    @Timer(name="EdgePredictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
     ) -> List[Prediction]:
@@ -681,6 +685,7 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
     return session
 
 
+@Timer(name="_do_inference", log_fn=_LOGGER.debug)
 def _do_inference(
     session: Session,
     endpoint_url: str,
