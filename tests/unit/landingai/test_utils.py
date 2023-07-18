@@ -1,11 +1,14 @@
+import io
 import os
 from pathlib import Path
 
+import PIL.Image
+import numpy as np
 import pytest
 
 from landingai.common import APIKey
 from landingai.exceptions import InvalidApiKeyError
-from landingai.utils import load_api_credential
+from landingai.utils import _DEFAULT_FORMAT, load_api_credential, serialize_image
 
 
 def test_load_api_credential_invalid_key():
@@ -44,3 +47,34 @@ def test_load_api_credential_from_env_file(tmp_path):
     # reset back to the default config
     APIKey.__config__.env_file = ".env"
     env_file.unlink()
+
+
+@pytest.mark.parametrize(
+    "expected",
+    [
+        PIL.Image.open("tests/data/images/wildfire1.jpeg"),
+        PIL.Image.open("tests/data/images/ocr_test.png"),
+        PIL.Image.open("tests/data/images/cameraman.tiff"),
+        PIL.Image.new("L", (15, 20)),
+        PIL.Image.new("RGBA", (35, 25)),
+        np.random.randint(0, 255, (30, 40, 3), dtype=np.uint8),
+    ],
+)
+def test_serialize_image(expected):
+    bytes, format = serialize_image(expected)
+    assert len(bytes) > 0
+    actual = PIL.Image.open(io.BytesIO(bytes))
+    if isinstance(expected, PIL.Image.Image):
+        assert actual.size == expected.size
+        assert actual.mode == expected.mode
+        expected_format = (
+            _DEFAULT_FORMAT
+            if (not expected.format or expected.format == "TIFF")
+            else expected.format
+        )
+        if expected.mode == "RGBA":
+            expected_format = "PNG"
+        assert actual.format == expected_format
+        assert format == expected_format
+    else:
+        assert actual.size == expected.shape[:2][::-1]

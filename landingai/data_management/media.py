@@ -29,7 +29,7 @@ from landingai.data_management.utils import (
     validate_metadata,
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
-from landingai.utils import serialize_image
+from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
 
 MediaType = Enum("MediaType", ["image", "video"])
 SrcType = Enum("SrcType", ["user", "production_line", "prism"])
@@ -38,7 +38,7 @@ ThumbnailSize = Enum(
 )
 
 
-_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "bmp", "tiff"]
+_ALLOWED_EXTENSIONS = _LLENS_SUPPORTED_IMAGE_FORMATS + ["TIFF", "TIF"]
 _HIDDEN_FILES_TO_IGNORE = ["thumbs.db", "desktop.ini", ".ds_store"]
 
 _CONCURRENCY_LIMIT = 5
@@ -203,7 +203,7 @@ class Media:
                 filename = os.path.basename(source)
                 ext = os.path.splitext(filename)[-1][1:]
             # Validate extension
-            if validate_extensions and ext.lower() not in _ALLOWED_EXTENSIONS:
+            if validate_extensions and ext.upper() not in _ALLOWED_EXTENSIONS:
                 raise ValueError(
                     f"""Unexpected extension {ext}. Allowed extensions are: {_ALLOWED_EXTENSIONS}.
                     If you want to attempt the upload anyway, set validate_extensions=False.
@@ -453,7 +453,7 @@ async def _upload_folder(
             ext = os.path.splitext(filename)[-1][1:]
             if filename.lower() in _HIDDEN_FILES_TO_IGNORE:
                 pass
-            elif ext.lower() in _ALLOWED_EXTENSIONS or not validate_extensions:
+            elif ext.upper() in _ALLOWED_EXTENSIONS or not validate_extensions:
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(
                     _upload_media_with_semaphore(
@@ -531,7 +531,7 @@ async def _upload_media(
 
     filetype = f"image/{ext}" if ext != "jpg" else "image/jpeg"
     if isinstance(source, Image):
-        contents = serialize_image(source)
+        contents, _ = serialize_image(source)
     else:
         assert isinstance(source, str)
         async with aiofiles.open(source, mode="rb") as file:

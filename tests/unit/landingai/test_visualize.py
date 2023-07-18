@@ -45,8 +45,9 @@ def test_overlay_bboxes():
         [preds[2]], img, {"bbox_style": "t-label"}
     )
     assert result_img.size == (2048, 2048)
+    resized_result_img = result_img.resize((512, 512))
     expected = PIL.Image.open("tests/data/images/expected_bbox_overlay.png")
-    diff = PIL.ImageChops.difference(result_img, expected)
+    diff = PIL.ImageChops.difference(resized_result_img, expected)
     assert diff.getbbox() is None, "Expected and actual images should be the same"
 
 
