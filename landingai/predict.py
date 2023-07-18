@@ -685,7 +685,7 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
     return session
 
 
-@Timer(name="do_inference")
+@Timer(name="_do_inference", log_fn=_LOGGER.debug)
 def _do_inference(
     session: Session,
     endpoint_url: str,
