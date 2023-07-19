@@ -83,7 +83,7 @@ class Predictor:
             Each dictionary is a prediction result.
             The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
-        buffer_bytes, _ = serialize_image(image)
+        buffer_bytes = serialize_image(image)
         files = {"file": buffer_bytes}
         payload = {
             "endpoint_id": self._endpoint_id,
@@ -148,7 +148,7 @@ class OcrPredictor(Predictor):
             A list of OCR prediction result.
         """
 
-        buffer_bytes, _ = serialize_image(image)
+        buffer_bytes = serialize_image(image)
         files = {"images": buffer_bytes}
         mode: str = kwargs.get("mode", "multi-text")
         if mode not in ["multi-text", "single-text"]:
@@ -217,7 +217,7 @@ class EdgePredictor(Predictor):
         List[Prediction]
             A list of prediction result.
         """
-        buffer_bytes, _ = serialize_image(image)
+        buffer_bytes = serialize_image(image)
         files = {"file": buffer_bytes}
         return _do_inference(self._session, self._url, files, {}, _EdgeExtractor)
 

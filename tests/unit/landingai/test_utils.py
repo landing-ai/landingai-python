@@ -61,20 +61,16 @@ def test_load_api_credential_from_env_file(tmp_path):
     ],
 )
 def test_serialize_image(expected):
-    bytes, format = serialize_image(expected)
-    assert len(bytes) > 0
-    actual = PIL.Image.open(io.BytesIO(bytes))
+    serialized_img = serialize_image(expected)
+    assert len(serialized_img) > 0
+    actual = PIL.Image.open(io.BytesIO(serialized_img))
     if isinstance(expected, PIL.Image.Image):
         assert actual.size == expected.size
         assert actual.mode == expected.mode
-        expected_format = (
-            _DEFAULT_FORMAT
-            if (not expected.format or expected.format == "TIFF")
-            else expected.format
-        )
         if expected.mode == "RGBA":
             expected_format = "PNG"
+        else:
+            expected_format = _DEFAULT_FORMAT
         assert actual.format == expected_format
-        assert format == expected_format
     else:
         assert actual.size == expected.shape[:2][::-1]

@@ -531,7 +531,7 @@ async def _upload_media(
 
     filetype = f"image/{ext}" if ext != "jpg" else "image/jpeg"
     if isinstance(source, Image):
-        contents, _ = serialize_image(source)
+        contents = serialize_image(source)
     else:
         assert isinstance(source, str)
         async with aiofiles.open(source, mode="rb") as file:
