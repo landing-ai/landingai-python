@@ -55,6 +55,7 @@ def test_load_api_credential_from_env_file(tmp_path):
         PIL.Image.open("tests/data/images/wildfire1.jpeg"),
         PIL.Image.open("tests/data/images/ocr_test.png"),
         PIL.Image.open("tests/data/images/cameraman.tiff"),
+        PIL.Image.open("tests/data/images/palettised_image.png"),
         PIL.Image.new("L", (15, 20)),
         PIL.Image.new("RGBA", (35, 25)),
         np.random.randint(0, 255, (30, 40, 3), dtype=np.uint8),
@@ -66,11 +67,9 @@ def test_serialize_image(expected):
     actual = PIL.Image.open(io.BytesIO(serialized_img))
     if isinstance(expected, PIL.Image.Image):
         assert actual.size == expected.size
-        assert actual.mode == expected.mode
-        if expected.mode == "RGBA":
-            expected_format = "PNG"
-        else:
-            expected_format = _DEFAULT_FORMAT
+        expected_mode = expected.mode if not expected.mode.startswith("P") else "RGB"
+        assert actual.mode == expected_mode
+        expected_format = _DEFAULT_FORMAT if expected.mode != "RGBA" else "PNG"
         assert actual.format == expected_format
     else:
         assert actual.size == expected.shape[:2][::-1]
