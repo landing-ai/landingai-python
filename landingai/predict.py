@@ -84,7 +84,7 @@ class Predictor:
             The inference result has been filtered by the confidence threshold set in LandingLens and sorted by confidence score in descending order.
         """
         buffer_bytes = serialize_image(image)
-        files = [("file", ("image.png", buffer_bytes, "image/png"))]
+        files = {"file": buffer_bytes}
         payload = {
             "endpoint_id": self._endpoint_id,
             "device_type": "pylib",
@@ -149,7 +149,7 @@ class OcrPredictor(Predictor):
         """
 
         buffer_bytes = serialize_image(image)
-        files = [("images", ("image.png", buffer_bytes, "image/png"))]
+        files = {"images": buffer_bytes}
         mode: str = kwargs.get("mode", "multi-text")
         if mode not in ["multi-text", "single-text"]:
             raise ValueError(
@@ -218,7 +218,7 @@ class EdgePredictor(Predictor):
             A list of prediction result.
         """
         buffer_bytes = serialize_image(image)
-        files = [("file", ("image.png", buffer_bytes, "image/png"))]
+        files = {"file": buffer_bytes}
         return _do_inference(self._session, self._url, files, {}, _EdgeExtractor)
 
 
@@ -689,7 +689,7 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
 def _do_inference(
     session: Session,
     endpoint_url: str,
-    files: List[Any],
+    files: Dict[str, Any],
     payload: Dict[str, Any],
     extractor_class: Type[_Extractor],
     *,
