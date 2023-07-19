@@ -55,7 +55,7 @@ def test_load_api_credential_from_env_file(tmp_path):
         PIL.Image.open("tests/data/images/wildfire1.jpeg"),
         PIL.Image.open("tests/data/images/ocr_test.png"),
         PIL.Image.open("tests/data/images/cameraman.tiff"),
-        PIL.Image.open("tests/data/images/palettised_image.png"),
+        PIL.Image.open("tests/data/images/palettized_image.png"),
         PIL.Image.new("L", (15, 20)),
         PIL.Image.new("RGBA", (35, 25)),
         np.random.randint(0, 255, (30, 40, 3), dtype=np.uint8),
