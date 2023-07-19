@@ -689,7 +689,7 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
 def _do_inference(
     session: Session,
     endpoint_url: str,
-    files: List[Any],
+    files: Dict[str, Any],
     payload: Dict[str, Any],
     extractor_class: Type[_Extractor],
     *,
