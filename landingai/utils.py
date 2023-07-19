@@ -26,7 +26,7 @@ def serialize_image(image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
 
     The image file encoding format is set to "JPEG" for optimal latency.
     For RGBA images, the encoding format will be `PNG` to preserve transparency.
-    For palettised image, i.e. mode `P` or `PA`, the image will be converted to RGB before encoding.
+    For palettized image, i.e. mode `P` or `PA`, the image will be converted to RGB before encoding.
     In addition, the image file encoding format can be overwritten by the environment variable `DEFAULT_IMAGE_SERIALIZATION_FORMAT`.
     Supported image serialization formats are: JPEG, PNG, BMP.
     """
