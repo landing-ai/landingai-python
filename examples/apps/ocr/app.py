@@ -24,6 +24,7 @@ setup_page(page_title="LandingLens OCR")
 
 Image.MAX_IMAGE_PIXELS = None
 
+
 class DetModel(str, Enum):
     AUTO_DETECT = "multi-text"
     MANUAL_ROI = "single-text"
