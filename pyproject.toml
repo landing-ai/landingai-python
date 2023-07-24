@@ -23,7 +23,7 @@ numpy = ">=1.21.0,<2.0.0"
 pillow = "9.*" # Version 10.0.0 had a issue on FreeTypeFont that will be fixed on the next release 
 pydantic = { version = "1.*", extras = ["dotenv"] } # Version 2 has breaking changes (in particular to seetings)
 requests = "2.*"
-snowflake-connector-python = "3.0.*"  # about 51MB (exclude transitive dependencies)
+# snowflake-connector-python = "3.0.*"  # about 51MB (exclude transitive dependencies)
 bbox-visualizer = "^0.1.0"
 segmentation-mask-overlay = "^0.3.4"
 imageio = { version = "2.*", extras = ["ffmpeg"] }
