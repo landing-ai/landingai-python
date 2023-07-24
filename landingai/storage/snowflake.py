@@ -93,7 +93,7 @@ def get_snowflake_presigned_url(
     NOTE: Snowflake returns a valid URL even if the file doesn't exist.
           So the downstream needs to check if the file exists first.
     """
-    import snowflake.connector
+    import snowflake.connector  # type: ignore
 
     if credential is None:
         credential = SnowflakeCredential()
