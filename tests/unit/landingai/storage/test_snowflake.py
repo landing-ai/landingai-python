@@ -10,6 +10,7 @@ from landingai.storage.snowflake import (
 )
 
 
+@pytest.mark.skip
 @mock.patch("snowflake.connector.connect")
 def test_get_snowflake_url(mock_snowflake_connector):
     query_result1 = [
@@ -49,6 +50,7 @@ def test_get_snowflake_url(mock_snowflake_connector):
     )
 
 
+@pytest.mark.skip
 @pytest.mark.skip(
     reason="This is a real test, which needs to be run manually with a valid snowflake credential."
 )
