@@ -3,7 +3,6 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-import snowflake.connector
 from pydantic import BaseSettings, Field
 
 from landingai.storage.data_access import download_file
@@ -94,6 +93,8 @@ def get_snowflake_presigned_url(
     NOTE: Snowflake returns a valid URL even if the file doesn't exist.
           So the downstream needs to check if the file exists first.
     """
+    import snowflake.connector
+
     if credential is None:
         credential = SnowflakeCredential()
     if connection_config is None:
