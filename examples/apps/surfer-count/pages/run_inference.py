@@ -3,6 +3,7 @@ import streamlit as st
 from pathlib import Path
 from landingai.predict import Predictor
 from landingai.pipeline.image_source import NetworkedCamera, FrameSet
+from landingai.pipeline.postprocessing import get_class_counts
 
 VIDEO_CACHE_PATH = Path("cached_data")
 VIDEO_CACHE_PATH.mkdir(exist_ok=True, parents=True)
@@ -24,9 +25,10 @@ def get_latest_surfer_count():
     for i, frame in enumerate(vid_src):
         if i >= VIDEO_LEN_SEC * FPS:
             break
-        frs.extend(frame.run_predict(predictor=surfer_model).overlay_predictions())
+        frs.extend(frame)
+    frs.run_predict(predictor=surfer_model).overlay_predictions()
     frs.save_video(str(VIDEO_CACHE_PATH), video_fps=FPS, image_src="overlay")
-    surfers = frs.get_class_counts()["surfer"] / (VIDEO_LEN_SEC * FPS)
+    surfers = (get_class_counts(frs)["surfer"]) / (VIDEO_LEN_SEC * FPS)
     st.video(open(VIDEO_CACHE_PATH, "rb").read())
     st.write(f"Surfer count: **{surfers}**")
 
