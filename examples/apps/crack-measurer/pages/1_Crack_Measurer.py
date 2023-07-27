@@ -191,7 +191,9 @@ def main():
         flattened_bitmap = decode_bitmap_rle(
             seg_pred[0].encoded_mask, seg_pred[0].encoding_map
         )
-        seg_mask_channel = np.array(flattened_bitmap, dtype=np.uint8).reshape(image_shape)
+        seg_mask_channel = np.array(flattened_bitmap, dtype=np.uint8).reshape(
+            image_shape
+        )
         seg_mask_channel *= 255
 
         # Find the contours in the line_array

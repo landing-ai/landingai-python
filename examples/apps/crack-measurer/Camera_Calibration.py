@@ -76,7 +76,9 @@ def main():
             "How man inches long is this object?", min_value=0.1, value=0.1
         )
         if len(st.session_state["points"]) == 2:
-            dist = math.dist(st.session_state["points"][0], st.session_state["points"][1])
+            dist = math.dist(
+                st.session_state["points"][0], st.session_state["points"][1]
+            )
             st.session_state["inch_to_pixels"] = dist / measure
             st.write("Pixels per inch: ", st.session_state["inch_to_pixels"])
 
