@@ -3,8 +3,6 @@ import cv2
 import math
 import numpy as np
 import landingai.st_utils as lst
-import base64
-import io
 
 from PIL import Image
 from centerline.geometry import Centerline
@@ -33,7 +31,7 @@ def extend_line_to_binary(start_point, end_point, binary_image, org_image):
         row = int(start_point[0] + (col - start_point[1]) / slope)
         if row >= rows - 2:
             break
-        if row >= 0 and row < rows and (binary_image[col, row] != 0):
+        if row >= 0 and row < rows and binary_image[col, row] != 0:
             extended_start_point = (row, col)
             break
 
@@ -45,33 +43,36 @@ def extend_line_to_binary(start_point, end_point, binary_image, org_image):
             extended_end_point = (row, col)
             break
 
+    def f(start0, start1, max_rows, max_cols, binary_image):
+        start = None
+        end = None
+        for row in range(int(start0), -1, -1):
+            col = int(start1) + 3
+            if row >= max_rows - 2:
+                break
+            if row >= 0 and row < max_rows and binary_image[col, row] != 0:
+                start = (row, col)
+                break
+        for row in range(int(start0), max_cols - 1):
+            col = int(start1) + 3
+            if row >= 0 and row < max_rows and binary_image[col, row] != 0:
+                end = (row, col)
+                break
+        return start, end
+
     if start_point[1] == 0:
-        for row in range(int(start_point[0]), -1, -1):
-            col = int(start_point[1]) + 3
-            if row >= rows - 2:
-                break
-            if row >= 0 and row < rows and (binary_image[col, row] != 0):
-                extended_start_point = (row, col)
-                break
-        for row in range(int(start_point[0]), cols - 1):
-            col = int(start_point[1]) + 3
-            if row >= 0 and row < rows and binary_image[col, row] != 0:
-                extended_end_point = (row, col)
-                break
+        a, b = f(
+            start_point[0], start_point[1], rows, cols, binary_image
+        )
+        extended_start_point = a if a is not None else extended_start_point
+        extended_end_point = b if b is not None else extended_end_point
 
     if start_point[0] == 0:
-        for col in range(int(start_point[1]), -1, -1):
-            row = int(start_point[0]) + 3
-            if row >= rows - 2:
-                break
-            if row >= 0 and row < rows and (binary_image[col, row] != 0):
-                extended_start_point = (row, col)
-                break
-        for col in range(int(start_point[1]), cols - 1):
-            row = int(start_point[0]) + 3
-            if row >= 0 and row < rows and binary_image[col, row] != 0:
-                extended_end_point = (row, col)
-                break
+        a, b = f(
+            start_point[1], start_point[0], cols, rows, binary_image
+        )
+        extended_start_point = a if a is not None else extended_start_point
+        extended_end_point = b if b is not None else extended_end_point
 
     distance = math.dist(extended_start_point, extended_end_point)
 
