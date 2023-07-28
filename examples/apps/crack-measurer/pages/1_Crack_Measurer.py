@@ -13,6 +13,24 @@ from landingai.visualize import overlay_predictions
 from landingai.common import decode_bitmap_rle
 
 
+def find_endpoints(start0, start1, max_rows, max_cols, binary_image):
+    start = None
+    end = None
+    for row in range(int(start0), -1, -1):
+        col = int(start1) + 3
+        if row >= max_rows - 2:
+            break
+        if row >= 0 and row < max_rows and binary_image[col, row] != 0:
+            start = (row, col)
+            break
+    for row in range(int(start0), max_cols - 1):
+        col = int(start1) + 3
+        if row >= 0 and row < max_rows and binary_image[col, row] != 0:
+            end = (row, col)
+            break
+    return start, end
+
+
 def extend_line_to_binary(start_point, end_point, binary_image, org_image):
     # Calculate slope and intercept of the line
     if end_point[0] - start_point[0] != 0:
@@ -42,33 +60,15 @@ def extend_line_to_binary(start_point, end_point, binary_image, org_image):
         if row >= 0 and row < rows and binary_image[col, row] != 0:
             extended_end_point = (row, col)
             break
-
-    def f(start0, start1, max_rows, max_cols, binary_image):
-        start = None
-        end = None
-        for row in range(int(start0), -1, -1):
-            col = int(start1) + 3
-            if row >= max_rows - 2:
-                break
-            if row >= 0 and row < max_rows and binary_image[col, row] != 0:
-                start = (row, col)
-                break
-        for row in range(int(start0), max_cols - 1):
-            col = int(start1) + 3
-            if row >= 0 and row < max_rows and binary_image[col, row] != 0:
-                end = (row, col)
-                break
-        return start, end
-
     if start_point[1] == 0:
-        a, b = f(
+        a, b = find_endpoints(
             start_point[0], start_point[1], rows, cols, binary_image
         )
         extended_start_point = a if a is not None else extended_start_point
         extended_end_point = b if b is not None else extended_end_point
 
     if start_point[0] == 0:
-        a, b = f(
+        a, b = find_endpoints(
             start_point[1], start_point[0], cols, rows, binary_image
         )
         extended_start_point = a if a is not None else extended_start_point
