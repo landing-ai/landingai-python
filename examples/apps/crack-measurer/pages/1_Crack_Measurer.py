@@ -61,16 +61,12 @@ def extend_line_to_binary(start_point, end_point, binary_image, org_image):
             extended_end_point = (row, col)
             break
     if start_point[1] == 0:
-        a, b = find_endpoints(
-            start_point[0], start_point[1], rows, cols, binary_image
-        )
+        a, b = find_endpoints(start_point[0], start_point[1], rows, cols, binary_image)
         extended_start_point = a if a is not None else extended_start_point
         extended_end_point = b if b is not None else extended_end_point
 
     if start_point[0] == 0:
-        a, b = find_endpoints(
-            start_point[1], start_point[0], cols, rows, binary_image
-        )
+        a, b = find_endpoints(start_point[1], start_point[0], cols, rows, binary_image)
         extended_start_point = a if a is not None else extended_start_point
         extended_end_point = b if b is not None else extended_end_point
 
