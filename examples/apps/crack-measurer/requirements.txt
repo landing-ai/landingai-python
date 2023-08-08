@@ -1,0 +1,7 @@
+streamlit
+landingai
+python-opencv
+streamlit-image-coordinates
+centerline
+shapely
+scikit-image
