@@ -144,7 +144,7 @@ def test_ocr_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     predictor = OcrPredictor(
         # TODO: replace with a prod key after the OCR endpoint is deployed to prod
-        api_key="land_sk_6uttU3npa5V0MUgPWb6j33ZuszsGBqVGs4wnoSR91LBwpbjZpG",
+        api_key="",
     )
     img = Image.open("tests/data/images/ocr_test.png")
     assert img is not None
