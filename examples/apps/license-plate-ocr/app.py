@@ -63,10 +63,13 @@ def extract_frames(video):
         st.image(selected_img)
     return frames
 
+
 st.caption("Download below sample video file to try out the app or upload yours.")
 st.video("https://drive.google.com/uc?id=16iwE7mcz9zHqKCw2ilx0QEwSCjDdXEW4")
 
-if video := st.file_uploader("Upload a video file contains license plates to get started"):
+if video := st.file_uploader(
+    "Upload a video file contains license plates to get started"
+):
     st.video(video)
     frames = extract_frames(video)
     # run prediction of frames
