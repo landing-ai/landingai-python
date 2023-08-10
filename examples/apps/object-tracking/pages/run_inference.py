@@ -1,17 +1,17 @@
-import streamlit as st
-
-from landingai.predict import Predictor
 from pathlib import Path
 
-from download_data import get_latest_ts_file, get_frames
+import streamlit as st
+from download_data import get_frames, get_latest_ts_file
 from object_tracking import (
-    get_preds,
-    track_iou,
     filter_parked_cars,
     filter_spurious_preds,
     get_northbound_southbound,
+    get_preds,
+    track_iou,
     write_video,
 )
+
+from landingai.predict import Predictor
 
 VIDEO_CACHE_PATH = "cached_data"
 

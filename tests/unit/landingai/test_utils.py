@@ -2,8 +2,8 @@ import io
 import os
 from pathlib import Path
 
-import PIL.Image
 import numpy as np
+import PIL.Image
 import pytest
 
 from landingai.common import APIKey

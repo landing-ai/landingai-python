@@ -1,12 +1,12 @@
-import cv2
 import time
+from typing import Dict, List, Optional, Set, Tuple
+
+import cv2
 import numpy as np
 import numpy.typing as npt
-
-from typing import Dict, List, Optional, Set, Tuple
 from tqdm import tqdm
-from landingai.predict import Predictor
 
+from landingai.predict import Predictor
 
 CROP_BOX = (1300, 600, 1700, 800)
 

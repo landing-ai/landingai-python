@@ -76,6 +76,14 @@ class TimerStats:
         """Median value of timings."""
         return self.apply(lambda values: statistics.median(values or [0]), name=name)
 
+    def p95(self, name: str) -> float:
+        return self.apply(
+            lambda values: statistics.quantiles(
+                values or [0], n=100, method="inclusive"
+            )[95],
+            name=name,
+        )
+
     def stdev(self, name: str) -> float:
         """Standard deviation of timings."""
         if name in self._timings:
@@ -91,6 +99,7 @@ class TimerStats:
             "max": self.max(name),
             "mean": self.mean(name),
             "median": self.median(name),
+            "p95": self.p95(name),
             "stdev": self.stdev(name),
             "sum_total": self.total(name),
         }

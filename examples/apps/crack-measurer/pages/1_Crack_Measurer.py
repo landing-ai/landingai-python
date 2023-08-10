@@ -1,16 +1,17 @@
-import streamlit as st
-import cv2
 import math
-import numpy as np
-import landingai.st_utils as lst
 
-from PIL import Image
+import cv2
+import numpy as np
+import streamlit as st
 from centerline.geometry import Centerline
+from PIL import Image
 from shapely.geometry import Polygon
 from skimage.morphology import medial_axis
+
+import landingai.st_utils as lst
+from landingai.common import decode_bitmap_rle
 from landingai.predict import Predictor
 from landingai.visualize import overlay_predictions
-from landingai.common import decode_bitmap_rle
 
 
 def find_endpoints(start0, start1, max_rows, max_cols, binary_image):

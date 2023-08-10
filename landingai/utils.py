@@ -20,7 +20,7 @@ _IMG_SERIALIZATION_FORMAT_KEY = "DEFAULT_IMAGE_SERIALIZATION_FORMAT"
 _LOGGER = logging.getLogger(__name__)
 
 
-@Timer(name="serialize_image", log_fn=_LOGGER.info)
+@Timer(name="serialize_image", log_fn=_LOGGER.debug)
 def serialize_image(image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
     """Serialize the input image into bytes of an image file.
 
@@ -36,7 +36,7 @@ def serialize_image(image: Union[np.ndarray, PIL.Image.Image]) -> bytes:
     _LOGGER.debug("Use %s as the serialization format.", format)
     if isinstance(image, np.ndarray):
         image = PIL.Image.fromarray(image)
-    if image.mode == "P" or image.mode == "PA":
+    if image.mode in ["P", "PA"]:
         image = image.convert("RGB")
     img_buffer = io.BytesIO()
     image.save(img_buffer, format=format)
