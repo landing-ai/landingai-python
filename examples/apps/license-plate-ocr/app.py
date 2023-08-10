@@ -17,8 +17,8 @@ from landingai.st_utils import (
 setup_page(page_title="License Plate Detection and Recognition")
 
 st.sidebar.title("Configuration")
-api_key = ""
-od_model_endpoint = ""
+api_key = "land_sk_aMemWbpd41yXnQ0tXvZMh59ISgRuKNRKjJEIUHnkiH32NBJAwf"
+od_model_endpoint = "e001c156-5de0-43f3-9991-f19699b31202"
 
 with st.sidebar:
     render_api_config_form()
@@ -53,7 +53,7 @@ def extract_frames(video):
     with st.spinner(text="Extracting frames from video file..."):
         frames.extend(frame_info.frames[0].image for frame_info in video_source)
     st.success("Frame Extraction Finished!")
-    with st.expander("Preview input images"):
+    with st.expander("Preview extracted frames"):
         selected_img = image_select(
             label=f"Total {len(frames)} images",
             images=frames,
@@ -63,8 +63,10 @@ def extract_frames(video):
         st.image(selected_img)
     return frames
 
+st.caption("Download below sample video file to try out the app or upload yours.")
+st.video("https://drive.google.com/uc?id=16iwE7mcz9zHqKCw2ilx0QEwSCjDdXEW4")
 
-if video := st.file_uploader("Upload a video file contains license plates"):
+if video := st.file_uploader("Upload a video file contains license plates to get started"):
     st.video(video)
     frames = extract_frames(video)
     # run prediction of frames
