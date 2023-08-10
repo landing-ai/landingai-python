@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 st.title("Topanga Beach Surfer Counter")
 st.write(
     "This application will grab the latest 10s clip of surfers from the Topanga Beach surf cam"

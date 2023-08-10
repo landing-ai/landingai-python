@@ -1,10 +1,10 @@
-import streamlit as st
 import math
-import landingai.st_utils as lst
 
+import streamlit as st
 from PIL import Image, ImageDraw
 from streamlit_image_coordinates import streamlit_image_coordinates
 
+import landingai.st_utils as lst
 
 if "points" not in st.session_state:
     st.session_state["points"] = []

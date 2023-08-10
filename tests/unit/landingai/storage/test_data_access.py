@@ -1,8 +1,9 @@
 import os
+
 import pytest
 import responses
 
-from landingai.storage.data_access import read_file, download_file, fetch_from_uri
+from landingai.storage.data_access import download_file, fetch_from_uri, read_file
 
 
 # from responses import _recorder

@@ -1,16 +1,16 @@
-import logging
 import io
+import logging
 import os
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
-from landingai.common import APIKey
 
+from landingai.common import APIKey
 from landingai.exceptions import (
     BadRequestError,
     ClientError,
@@ -22,7 +22,7 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
-from landingai.predict import Predictor, EdgePredictor
+from landingai.predict import EdgePredictor, Predictor
 from landingai.visualize import overlay_predictions
 
 

@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 st.title("Landing AI Traffic Tracking")
 st.write(
     "This application will grab the latest 10 second traffic clip of the Pacific Coast Highway"

@@ -1,9 +1,9 @@
 from datetime import datetime
-from aioresponses import aioresponses
 
 import numpy as np
 import pytest
 import responses
+from aioresponses import aioresponses
 from PIL import Image
 
 from landingai.data_management.media import Media
