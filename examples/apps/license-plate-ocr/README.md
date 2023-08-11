@@ -11,3 +11,5 @@ Then run:
 ```
 streamlit run examples/apps/license-plate-ocr/app.py
 ```
+
+![screencast](https://drive.google.com/uc?id=1ic6P-WkZS8FgbtFlcycKSlJ8yQDBgaYu)
