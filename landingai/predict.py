@@ -10,6 +10,7 @@ import requests
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import socket
 
 from landingai.common import (
     APIKey,
@@ -89,7 +90,7 @@ class Predictor:
             "endpoint_id": self._endpoint_id,
             "device_type": "pylib",
         }
-        _add_defualt_query_params(payload)
+        _add_default_query_params(payload)
         return _do_inference(
             self._session, Predictor._url, files, payload, _CloudExtractor
         )
@@ -165,7 +166,7 @@ class OcrPredictor(Predictor):
             data["rois"] = serialize_rois(rois, mode)
 
         payload: Dict[str, Any] = {"device_type": "pylib"}
-        _add_defualt_query_params(payload)
+        _add_default_query_params(payload)
         preds = _do_inference(
             self._session,
             OcrPredictor._url,
@@ -191,14 +192,25 @@ def serialize_rois(rois: List[List[Tuple[int, int]]], mode: str) -> str:
 
 
 class EdgePredictor(Predictor):
+    """`EdgePredictor` runs local inference by connecting to an edge inference service (e.g. LandingEdge) """
     def __init__(
         self,
-        host: str,
-        port: int,
+        host: str = "localhost",
+        port: int = 8000,
     ) -> None:
+        """By default the inference service runs on `localhost:8000`
+        """        
         self._url = f"http://{host}:{port}/images"
+        # Check if the inference server is reachable
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex((host, port))
+        if result != 0:
+            raise ConnectionError(
+                f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
+            )
+        sock.close()
         self._session = _create_session(
-            self._url, self._num_retry, {"contentType": "multipart/form-data"}
+            self._url, 0, {"contentType": "multipart/form-data"} # No retries for the inference service
         )
 
     @Timer(name="EdgePredictor.predict")
@@ -679,7 +691,7 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
         ],
     )
     session.mount(
-        url, HTTPAdapter(max_retries=retries)
+        url, HTTPAdapter(max_retries=retries if num_retry>0 else num_retry)
     )  # Since POST is not idempotent we will ony retry on the this specific API
     session.headers.update(headers)
     return session
@@ -709,8 +721,8 @@ def _do_inference(
     return extractor_class.extract_prediction(json_dict)
 
 
-def _add_defualt_query_params(payload: Dict[str, Any]) -> None:
-    """Add default query params to the payload for tracking and analystics purppose."""
+def _add_default_query_params(payload: Dict[str, Any]) -> None:
+    """Add default query params to the payload for tracking and analytics purpose."""
     env_info = get_runtime_environment_info()
     payload["runtime"] = env_info["runtime"]
     if is_running_in_pytest():

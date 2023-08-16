@@ -1,10 +1,14 @@
 import logging
+from datetime import datetime
+import time
+import functools
 
+from landingai.predict import Predictor, EdgePredictor
 from landingai.pipeline.image_source import NetworkedCamera
 from landingai.predict import Predictor
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s %(filename)s %(funcName)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
@@ -13,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # How many frames per second should we capture and process
 _CAPTURE_INTERVAL = (
-    1  # In milliseconds. Set to 1 if you want to capture at the max prediction rate
+    0.1  # In milliseconds. Set to 1 if you want to capture at the max prediction rate XXX seconds
 )
 
 # Public Cloud & Sky detection segmentation model
@@ -37,17 +41,29 @@ stream_url = (
 
 
 if __name__ == "__main__":
-    # stream(capture_frame=False, inference_mode=True, detect_change=True)
+    # Cloud inference model to segment clouds
     cloud_sky_model = Predictor(endpoint_id, api_key=api_key)
+    # Local inference model example. In order to use it, you need to manually run the local inference server with the "cloud & sky" model.
+    # cloud_sky_model = EdgePredictor()
+
     Camera = NetworkedCamera(
         stream_url, motion_detection_threshold=1, capture_interval=_CAPTURE_INTERVAL
     )
+    _LOGGER.info("Starting")
+    start_time = datetime.now()
     for frame in Camera:
-        (
-            frame.downsize(width=1024)
-            .run_predict(predictor=cloud_sky_model)
-            .overlay_predictions()
-            # .show_image()
-            .show_image(image_src="overlay")
-            # .save_image(filename_prefix="./capture")
+        _LOGGER.info(
+            f"Aquisition time {(datetime.now()-start_time).total_seconds():.5f} sec"
         )
+        frame = frame.downsize(width=1024)
+        start_time = datetime.now()
+        frame = frame.run_predict(predictor=cloud_sky_model)
+        _LOGGER.info(
+            f"Inference time {(datetime.now()-start_time).total_seconds():.2f} sec"
+        )
+        start_time = datetime.now()
+
+        # .overlay_predictions()
+        # .show_image()
+        # .show_image(image_src="overlay")
+        # .save_image(filename_prefix="./capture")
