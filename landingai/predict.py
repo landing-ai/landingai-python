@@ -192,14 +192,14 @@ def serialize_rois(rois: List[List[Tuple[int, int]]], mode: str) -> str:
 
 
 class EdgePredictor(Predictor):
-    """`EdgePredictor` runs local inference by connecting to an edge inference service (e.g. LandingEdge) """
+    """`EdgePredictor` runs local inference by connecting to an edge inference service (e.g. LandingEdge)"""
+
     def __init__(
         self,
         host: str = "localhost",
         port: int = 8000,
     ) -> None:
-        """By default the inference service runs on `localhost:8000`
-        """        
+        """By default the inference service runs on `localhost:8000`"""
         self._url = f"http://{host}:{port}/images"
         # Check if the inference server is reachable
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -210,7 +210,11 @@ class EdgePredictor(Predictor):
             )
         sock.close()
         self._session = _create_session(
-            self._url, 0, {"contentType": "multipart/form-data"} # No retries for the inference service
+            self._url,
+            0,
+            {
+                "contentType": "multipart/form-data"
+            },  # No retries for the inference service
         )
 
     @Timer(name="EdgePredictor.predict")
@@ -691,7 +695,7 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
         ],
     )
     session.mount(
-        url, HTTPAdapter(max_retries=retries if num_retry>0 else num_retry)
+        url, HTTPAdapter(max_retries=retries if num_retry > 0 else num_retry)
     )  # Since POST is not idempotent we will ony retry on the this specific API
     session.headers.update(headers)
     return session

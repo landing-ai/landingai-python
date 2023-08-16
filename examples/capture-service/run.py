@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # How many frames per second should we capture and process
 _CAPTURE_INTERVAL = (
-    0.1  # In milliseconds. Set to 1 if you want to capture at the max prediction rate XXX seconds
+    0.1  # In seconds. Set to None if you want to capture at the maximum rate
 )
 
 # Public Cloud & Sky detection segmentation model
