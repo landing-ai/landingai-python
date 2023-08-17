@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -7,6 +8,7 @@ from aioresponses import aioresponses
 from PIL import Image
 
 from landingai.data_management.media import Media
+from landingai.exceptions import HttpError
 
 _API_KEY = "123"
 _PROJECT_ID = 30863867234314
@@ -44,6 +46,27 @@ def test_single_file_upload(mocked_aioresponse, tmp_path):
     medias = resp["medias"]
     assert len(medias) >= 1
     assert file_name == medias[0]["name"]
+
+
+@mock.patch("landingai.data_management.media.LandingLens")
+def test_single_file_upload_400(mocked_ll_client, tmp_path):
+    ll_client_instance = mocked_ll_client.return_value
+    ll_client_instance._api_async.side_effect = HttpError(
+        "HTTP request to LandingLens server failed with code 400-Bad Request and error message: \nInvalid xml file format"
+    )
+    media = Media(_PROJECT_ID, _API_KEY)
+    file_name, img_path = _write_random_test_image(
+        tmp_path, file_name="image_1688427395107.jpeg"
+    )
+    resp = media.upload(img_path)
+    assert resp["num_uploaded"] == 0
+    assert resp["skipped_count"] == 0
+    assert resp["error_count"] == 1
+    assert len(resp["medias"]) == 0
+    assert (
+        resp["files_with_errors"][file_name]
+        == "HTTP request to LandingLens server failed with code 400-Bad Request and error message: \nInvalid xml file format"
+    )
 
 
 @responses.activate
