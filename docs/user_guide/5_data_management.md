@@ -48,7 +48,7 @@ metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", label
 You can use the `landingai.data_management.media.Media` API to upload medias to a specific project or list what medias are available in that project on LandingLens.
 
 In addition to upload medias, the upload API supports a few nice features:
-1. Assign a split ('train'/'dev'/'test'/'') to the media(s). '' represents Unassigned and is the default.
+1. Assign a split ('train'/'dev'/'test') to the media(s). An empty string '' represents Unassigned and is the default.
 2. Upload labels along with the media. The suported label files are:
     a. Pascal VOC xml file for object detection project
     b. A segmentation mask file for segmentation project
