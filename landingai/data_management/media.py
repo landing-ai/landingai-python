@@ -230,9 +230,9 @@ class Media:
                 if not tolerate_duplicate_upload:
                     raise
                 skipped_count = 1
-            except Exception:
+            except Exception as e:
                 error_count = 1
-                medias_with_errors[filename] = resp
+                medias_with_errors[filename] = str(e)
 
         return {
             "num_uploaded": len(medias),
@@ -580,10 +580,10 @@ async def _upload_media(
                         f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
                         f"and error message {content}"
                     )
-                except BaseException:
+                except BaseException as e:
                     raise HttpError(
                         f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
-                    )
+                    ) from e
 
     img_nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(img_nparr, cv2.IMREAD_UNCHANGED)
