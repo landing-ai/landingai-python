@@ -77,7 +77,7 @@ YOUR_API_KEY = "land_sk_12345"
 YOUR_PROJECT_ID = 1190
 
 # Lists all medias with metadata from a project
-media_client = Media(YOUR_API_KEY, YOUR_PROJECT_ID)
+media_client = Media(YOUR_PROJECT_ID, YOUR_API_KEY)
 media_client.ls()
 # Output:
 # { medias: [{'id': 4358352, 'mediaType': 'image', 'srcType': 'user', 'srcName': 'Michal', 'properties': {'width': 258, 'height': 176}, 'name': 'n01443537_501.JPEG', 'uploadTime': '2020-09-15T22:29:01.338Z', 'metadata': {'split': 'train', 'source': 'prod'}, 'media_status': 'raw'}, ...],
