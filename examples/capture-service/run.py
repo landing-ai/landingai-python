@@ -1,11 +1,8 @@
 import logging
 from datetime import datetime
-import time
-import functools
 
-from landingai.predict import Predictor, EdgePredictor
+from landingai.predict import Predictor  # , EdgePredictor
 from landingai.pipeline.image_source import NetworkedCamera
-from landingai.predict import Predictor
 
 logging.basicConfig(
     level=logging.INFO,
