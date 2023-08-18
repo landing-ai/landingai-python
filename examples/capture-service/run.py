@@ -33,7 +33,7 @@ endpoint_id = "432d58f6-6cd4-4108-a01c-2f023503d838"
 # Louisiana Department of Transportation - https://511la.org/
 # stream_url = "https://itsstreamingbr.dotd.la.gov/public/br-cam-015.streams/playlist.m3u8"
 stream_url = (
-    "https://itsstreamingbr.dotd.la.gov/public/br-cam-110.streams/playlist.m3u8"
+    "https://itsstreamingbr2.dotd.la.gov/public/lkc-cam-271.streams/playlist.m3u8"
 )
 
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     start_time = datetime.now()
     for frame in Camera:
         _LOGGER.info(
-            f"Aquisition time {(datetime.now()-start_time).total_seconds():.5f} sec"
+            f"Acquisition time {(datetime.now()-start_time).total_seconds():.5f} sec"
         )
         frame = frame.downsize(width=1024)
         start_time = datetime.now()
@@ -58,9 +58,11 @@ if __name__ == "__main__":
         _LOGGER.info(
             f"Inference time {(datetime.now()-start_time).total_seconds():.2f} sec"
         )
+        # Do some further processing on the pipeline
+        frame = (
+            frame.overlay_predictions()
+            # .show_image()
+            .show_image(image_src="overlay")
+            # .save_image(filename_prefix="./capture")
+        )
         start_time = datetime.now()
-
-        # .overlay_predictions()
-        # .show_image()
-        # .show_image(image_src="overlay")
-        # .save_image(filename_prefix="./capture")

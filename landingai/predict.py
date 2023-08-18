@@ -11,6 +11,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import socket
+from urllib.parse import urlparse
 
 from landingai.common import (
     APIKey,
@@ -39,6 +40,7 @@ class Predictor:
         endpoint_id: str,
         *,
         api_key: Optional[str] = None,
+        check_server_ready: bool = True,
     ) -> None:
         """Predictor constructor
 
@@ -53,7 +55,25 @@ class Predictor:
             The API Key of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_KEY or from the .env file.
+        check_server_ready : bool, optional
+            Check if the cloud inference service is reachable, by default True
         """
+        # Check if the cloud inference service is reachable
+        if check_server_ready:
+            parsed_url = urlparse(Predictor._url)
+            if parsed_url.port:
+                port = parsed_url.port
+            else:
+                port = socket.getservbyname(parsed_url.scheme)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((parsed_url.hostname, port))
+            if result != 0:
+                raise ConnectionError(
+                    f"Failed to connect to the cloud inference service. Check that {Predictor._url} is accesible from this device"
+                )
+            sock.close()
+
         self._endpoint_id = endpoint_id
         self._api_credential = load_api_credential(api_key)
         headers = self._build_default_headers(self._api_credential)
@@ -195,20 +215,30 @@ class EdgePredictor(Predictor):
     """`EdgePredictor` runs local inference by connecting to an edge inference service (e.g. LandingEdge)"""
 
     def __init__(
-        self,
-        host: str = "localhost",
-        port: int = 8000,
+        self, host: str = "localhost", port: int = 8000, check_server_ready: bool = True
     ) -> None:
-        """By default the inference service runs on `localhost:8000`"""
+        """By default the inference service runs on `localhost:8000`
+
+        Parameters
+        ----------
+        host : str, optional
+            Hostname or IP, by default "localhost"
+        port : int, optional
+            Port, by default 8000
+        check_server_ready : bool, optional
+            Check if the inference server is running, by default True
+        """
         self._url = f"http://{host}:{port}/images"
         # Check if the inference server is reachable
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex((host, port))
-        if result != 0:
-            raise ConnectionError(
-                f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
-            )
-        sock.close()
+        if check_server_ready:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((host, port))
+            if result != 0:
+                raise ConnectionError(
+                    f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
+                )
+            sock.close()
         self._session = _create_session(
             self._url,
             0,
