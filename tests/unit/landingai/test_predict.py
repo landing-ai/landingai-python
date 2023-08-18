@@ -242,8 +242,12 @@ def test_predict_matching_expected_request_body():
     predictor.predict(img)
 
 
+@patch("socket.socket")
 @responses.activate
-def test_edge_class_predict():
+def test_edge_class_predict(connect_mock):
+    # Fake a succesfull connection
+    sock_instance = connect_mock.return_value
+    sock_instance.connect_ex.return_value = 0
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     responses._add_from_file(
         file_path="tests/data/responses/test_edge_class_predict.yaml"
@@ -267,7 +271,11 @@ def test_edge_class_predict():
 
 
 @responses.activate
-def test_edge_od_predict():
+@patch("socket.socket")
+def test_edge_od_predict(connect_mock):
+    # Fake a succesfull connection
+    sock_instance = connect_mock.return_value
+    sock_instance.connect_ex.return_value = 0
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     # Endpoint: https://app.landing.ai/app/376/pr/11165/deployment?device=tiger-team-integration-tests
     # run LandingEdge.CLI with cmdline parameters: run-online -k "your_api_key" -s "your_secret_key" -r 11165 \
@@ -298,7 +306,12 @@ def test_edge_od_predict():
 
 
 @responses.activate
-def test_edge_seg_predict(seg_mask_validator):
+@patch("socket.socket")
+def test_edge_seg_predict(connect_mock, seg_mask_validator):
+    # Fake a succesfull connection
+    sock_instance = connect_mock.return_value
+    sock_instance.connect_ex.return_value = 0
+
     expected_seg_prediction = {
         "label_name": "screw",
         "label_index": 1,
