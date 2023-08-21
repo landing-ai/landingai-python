@@ -32,7 +32,7 @@ from landingai.data_management import Metadata
 # Provide API Key and project ID
 YOUR_API_KEY = "land_sk_12345"
 YOUR_PROJECT_ID = 1190
-metadata_client = Metadata(YOUR_API_KEY, YOUR_PROJECT_ID)
+metadata_client = Metadata(YOUR_PROJECT_ID, YOUR_API_KEY)
 # Set three metadata ('timestamp', 'country' and 'labeler') for media with id 123 and 124. 
 metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", labeler="tom")
 # Output:
