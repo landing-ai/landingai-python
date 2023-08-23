@@ -60,24 +60,33 @@ class Predictor:
         """
         # Check if the cloud inference service is reachable
         if check_server_ready:
-            parsed_url = urlparse(Predictor._url)
-            if parsed_url.port:
-                port = parsed_url.port
-            else:
-                port = socket.getservbyname(parsed_url.scheme)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(1)
-            result = sock.connect_ex((parsed_url.hostname, port))
-            if result != 0:
+            if not self._check_connectivity(url=Predictor._url):
                 raise ConnectionError(
                     f"Failed to connect to the cloud inference service. Check that {Predictor._url} is accesible from this device"
                 )
-            sock.close()
 
         self._endpoint_id = endpoint_id
         self._api_credential = load_api_credential(api_key)
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
+
+    def _check_connectivity(
+        self, url: Optional[str] = None, host: Optional[Tuple[str, int]] = None
+    ) -> bool:
+        if url:
+            parsed_url = urlparse(url)
+            if parsed_url.port:
+                port = parsed_url.port
+            else:
+                port = socket.getservbyname(parsed_url.scheme)
+            host = (parsed_url.hostname, port)  # type: ignore
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(host)  # type: ignore
+        # print(f"Checking if {host[0]}:{host[1]} is open (res={result})")
+        sock.close()
+        return result == 0
 
     def _build_default_headers(self, api_key: APIKey) -> Dict[str, str]:
         """Build the HTTP headers for the request to the Cloud inference endpoint(s)."""
@@ -231,14 +240,10 @@ class EdgePredictor(Predictor):
         self._url = f"http://{host}:{port}/images"
         # Check if the inference server is reachable
         if check_server_ready:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(1)
-            result = sock.connect_ex((host, port))
-            if result != 0:
+            if not self._check_connectivity(host=(host, port)):
                 raise ConnectionError(
                     f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
                 )
-            sock.close()
         self._session = _create_session(
             self._url,
             0,

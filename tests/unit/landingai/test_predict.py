@@ -271,6 +271,12 @@ def test_edge_class_predict(connect_mock):
 
 
 @responses.activate
+def test_connection_check():
+    with pytest.raises(ConnectionError):
+        predictor = EdgePredictor("localhost", 51203)  # Non existing port
+
+
+@responses.activate
 @patch("socket.socket")
 def test_edge_od_predict(connect_mock):
     # Fake a succesfull connection
