@@ -11,6 +11,7 @@ def test_get_label_map():
     client = Label(project_id, api_key)
     res = client.get_label_map()
     assert res == {
+        "0": "ok",
         "1": "num_plate",
         "2": "number_plate",
     }

@@ -12,6 +12,7 @@ class Label:
     -------
     >>> client = Label(project_id, api_key)
     >>> client.get_label_map()
+    >>> {'0': 'ok', '1': 'cat', '2': 'dog'}
 
     Parameters
     ----------
@@ -44,4 +45,6 @@ class Label:
         project_id = self._client._project_id
         resp = self._client._api(GET_DEFECTS, params={"projectId": project_id})
         resp_data = resp["data"]
-        return {str(label["indexId"]): label["name"] for label in resp_data}
+        label_map = {str(label["indexId"]): label["name"] for label in resp_data}
+        label_map["0"] = "ok"
+        return label_map
