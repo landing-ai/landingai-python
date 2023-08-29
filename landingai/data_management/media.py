@@ -104,7 +104,7 @@ class Media:
             Path to the segmentation mask file for segmentation project
         seg_defect_map: str
             Path to the segmentation defect_map.json file for segmentation project.
-            To get this map, you can use the `landingai.data_management.label.Label` API. 
+            To get this map, you can use the `landingai.data_management.label.Label` API.
             See below code as an example.
             ```python
             >>> client = Label(project_id, api_key)
