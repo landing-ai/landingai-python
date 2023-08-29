@@ -103,7 +103,14 @@ class Media:
         seg_mask: str
             Path to the segmentation mask file for segmentation project
         seg_defect_map: str
-            Path to the segmentation defect_map.json file for segmentation project
+            Path to the segmentation defect_map.json file for segmentation project.
+            To get this map, you can use the `landingai.data_management.label.Label` API. 
+            See below code as an example.
+            ```python
+            >>> client = Label(project_id, api_key)
+            >>> client.get_label_map()
+            >>> {'0': 'ok', '1': 'cat', '2': 'dog'}
+            ```
         nothing_to_label: bool
             Set the media's label as OK, valid for object detection and segmetation project
         metadata_dict: dict
