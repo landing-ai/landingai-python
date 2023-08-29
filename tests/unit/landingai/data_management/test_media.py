@@ -15,6 +15,48 @@ _PROJECT_ID = 30863867234314
 
 
 """
+Tests for Media.update_split_key
+"""
+
+
+@responses.activate
+def test_update_split_key_bulk_update(caplog):
+    responses._add_from_file(
+        file_path="tests/data/responses/test_update_split_key_bulk_update.yaml"
+    )
+    media = Media(21529989074947, _API_KEY)
+    res = media.ls()
+    media_ids = [m["id"] for m in res["medias"]]
+    media_ids_to_update = media_ids[:2]
+    media.update_split_key(media_ids_to_update, "dev")
+    assert (
+        "Successfully updated split key to 'dev' for 2 medias with media ids: [10607910, 10607881]"
+        in caplog.text
+    )
+    media.update_split_key([media_ids_to_update[0]], "train")
+    assert (
+        "Successfully updated split key to 'train' for 1 medias with media ids: [10607910]"
+        in caplog.text
+    )
+
+
+@responses.activate
+def test_update_split_key_unassigned(caplog):
+    responses._add_from_file(
+        file_path="tests/data/responses/test_update_split_key_unassigned.yaml"
+    )
+    media = Media(21529989074947, _API_KEY)
+    res = media.ls()
+    media_ids = [m["id"] for m in res["medias"]]
+    media_ids_to_update = media_ids[2:4]
+    media.update_split_key(media_ids_to_update, "")
+    assert (
+        "Successfully updated split key to '' for 2 medias with media ids: [10604095, 10604010]"
+        in caplog.text
+    )
+
+
+"""
 Tests for Media.upload
 """
 

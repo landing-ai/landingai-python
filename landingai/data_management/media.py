@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import hashlib
+import json
 import logging
 import os
 from datetime import datetime
@@ -17,9 +18,11 @@ from PIL.Image import Image
 from tqdm import tqdm
 
 from landingai.data_management.client import (
+    GET_PROJECT_SPLIT,
     MEDIA_LIST,
     MEDIA_REGISTER,
     MEDIA_SIGN,
+    MEDIA_UPDATE_SPLIT,
     LandingLens,
 )
 from landingai.data_management.utils import (
@@ -40,7 +43,7 @@ ThumbnailSize = Enum(
 
 _ALLOWED_EXTENSIONS = _LLENS_SUPPORTED_IMAGE_FORMATS + ["TIFF", "TIF"]
 _HIDDEN_FILES_TO_IGNORE = ["thumbs.db", "desktop.ini", ".ds_store"]
-
+_SUPPORTED_KEYS = {"train", "dev", "test", ""}
 _CONCURRENCY_LIMIT = 5
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,7 +177,7 @@ class Media:
         skipped_count = 0
         medias_with_errors: Dict[str, Any] = {}
 
-        assert isinstance(source, str) or isinstance(source, Image)
+        assert isinstance(source, (str, Image))
         if isinstance(source, str) and os.path.isdir(source):
             folder_tasks = _upload_folder(
                 self._client,
@@ -313,6 +316,60 @@ class Media:
             "offset": offset,
             "limit": limit,
         }
+
+    def update_split_key(
+        self,
+        media_ids: List[int],
+        split_key: str,
+    ) -> None:
+        """
+        Update the split key for a list of medias on the LandingLens platform.
+
+        Parameters
+        ----------
+        media_ids: List[int]
+            A list of media ids to update split key.
+        split: str
+            The split key to set for these medias, it could be 'train', 'dev', 'test' or '' (where '' represents Unassigned) and is the default.
+
+        Example
+        -------
+        >>> client = Media(project_id, api_key)
+        >>> client.update_split_key(media_ids=[1001, 1002], split_key="test")  # assign split key 'test' for media ids 1001 and 1002
+        >>> client.update_split_key(media_ids=[1001, 1002], split_key="")    # remove split key for media ids 1001 and 1002
+
+        """
+        split_key = split_key.strip().lower()
+        if split_key not in _SUPPORTED_KEYS:
+            raise ValueError(
+                f"Invalid split key: {split_key}. Supported split keys are: {_SUPPORTED_KEYS}"
+            )
+        project_id = self._client._project_id
+        split_id = 0  # 0 is Unassigned split
+        if split_key != "":
+            resp = self._client._api(
+                GET_PROJECT_SPLIT, params={"projectId": project_id}
+            )
+            split_name_to_id = {
+                split["splitSetName"].lower(): split["id"] for split in resp["data"]
+            }
+            assert (
+                split_key in split_name_to_id
+            ), f"Split key {split_key} not found in project {project_id}. Available split keys in this project are: {split_name_to_id.keys()}"
+            split_id = split_name_to_id[split_key]
+        dataset_id = self._client.get_project_property(project_id)["datasetId"]
+        self._client._api(
+            MEDIA_UPDATE_SPLIT,
+            params={
+                "projectId": project_id,
+                "datasetId": dataset_id,
+                "splitSet": split_id,
+                "selectMediaOptions": json.dumps({"selectedMedia": media_ids}),
+            },
+        )
+        _LOGGER.info(
+            f"Successfully updated split key to '{split_key}' for {len(media_ids)} medias with media ids: {media_ids}"
+        )
 
 
 class _MediaBody(PrettyPrintable):
