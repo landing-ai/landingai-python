@@ -273,7 +273,13 @@ def test_edge_class_predict(connect_mock):
 @responses.activate
 def test_connection_check():
     with pytest.raises(ConnectionError):
-        EdgePredictor("localhost", 51203)  # Non existing port
+        EdgePredictor("localhost", 51203, check_server_ready=True)  # Non existing port
+    # There should not be any ConnectionError for Cloud inference endpoint
+    Predictor(
+        endpoint_id="123",
+        api_key="land_sk_1234",
+        check_server_ready=True,
+    )
 
 
 @responses.activate

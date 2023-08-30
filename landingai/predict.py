@@ -40,7 +40,7 @@ class Predictor:
         endpoint_id: str,
         *,
         api_key: Optional[str] = None,
-        check_server_ready: bool = True,
+        check_server_ready: bool = False,
     ) -> None:
         """Predictor constructor
 
@@ -224,7 +224,10 @@ class EdgePredictor(Predictor):
     """`EdgePredictor` runs local inference by connecting to an edge inference service (e.g. LandingEdge)"""
 
     def __init__(
-        self, host: str = "localhost", port: int = 8000, check_server_ready: bool = True
+        self,
+        host: str = "localhost",
+        port: int = 8000,
+        check_server_ready: bool = False,
     ) -> None:
         """By default the inference service runs on `localhost:8000`
 
