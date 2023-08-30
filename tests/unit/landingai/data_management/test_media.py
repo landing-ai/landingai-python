@@ -74,10 +74,10 @@ def test_single_file_upload_metadata(mocked_aioresponse, tmp_path):
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_upload_metadata.yaml"
     )
-    _setup_aio_mocks(["image_1688427395107.jpeg"], mocked_aioresponse)
+    _setup_aio_mocks(["image.jpeg"], mocked_aioresponse)
     media = Media(_PROJECT_ID, _API_KEY)
     file_name, img_path = _write_random_test_image(
-        tmp_path, file_name="image_1688427395107.jpeg"
+        tmp_path, file_name="image.jpeg"
     )
     resp = media.upload(img_path, metadata_dict={"test": "test"})
     assert resp["num_uploaded"] == 1
