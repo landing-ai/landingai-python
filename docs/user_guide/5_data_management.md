@@ -45,7 +45,7 @@ metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", label
 
 ### Update split key for medias on LandingLens
 
-When managing hundreds or thousands of images on the platform, it's handy to manage (add/update/remove) split key programmatically. You an use the `update_split_key()` function in `landingai.data_management.media.Media` to achieve it.
+When managing hundreds or thousands of images on the platform, it's handy to manage (add/update/remove) split key programmatically. You can use the `update_split_key()` function in `landingai.data_management.media.Media` to achieve it.
 
 **Example**
 
