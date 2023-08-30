@@ -27,6 +27,7 @@ from landingai.data_management.utils import (
     obj_to_dict,
     obj_to_params,
     validate_metadata,
+    metadata_to_ids,
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
 from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
@@ -48,7 +49,8 @@ _LOGGER = logging.getLogger(__name__)
 class Media:
     """Media management API client.
     This class provides a set of APIs to manage the medias (images) uploaded to LandingLens.
-    For example, you can use this class to upload medias (images) to LandingLens or list the medias are already uploaded to the LandingLens.
+    For example, you can use this class to upload medias (images) to LandingLens or list
+    the medias are already uploaded to the LandingLens.
 
     Example
     -------
@@ -62,7 +64,8 @@ class Media:
     project_id: int
         LandingLens project id.  Can override this default in individual commands.
     api_key: Optional[str]
-        LandingLens API Key. If it's not provided, it will be read from the environment variable LANDINGAI_API_KEY, or from .env file on your project root directory.
+        LandingLens API Key. If it's not provided, it will be read from the environment
+        variable LANDINGAI_API_KEY, or from .env file on your project root directory.
     """
 
     def __init__(self, project_id: int, api_key: Optional[str] = None):
@@ -89,12 +92,15 @@ class Media:
         Parameters
         ----------
         source: Union[str, Path, Image]
-            The image source to upload. It can be a path to the local image file, an image folder or a PIL Image object.
-            For image files, the supported formats are jpg, jpeg, png, bmp and tiff.
+            The image source to upload. It can be a path to the local image file, an
+            image folder or a PIL Image object. For image files, the supported formats
+            are jpg, jpeg, png, bmp and tiff.
         split: str
-            Set this media to one split ('train'/'dev'/'test'), '' represents Unassigned and is the default
+            Set this media to one split ('train'/'dev'/'test'), '' represents Unassigned
+            and is the default
         classification_name: str
-            Set the media's classification if the project type is Classification or Anomaly Detection
+            Set the media's classification if the project type is Classification or
+            Anomaly Detection
         object_detection_xml: str
             Path to the Pascal VOC xml file for object detection project
         seg_mask: str
@@ -102,18 +108,22 @@ class Media:
         seg_defect_map: str
             Path to the segmentation defect_map.json file for segmentation project
         nothing_to_label: bool
-            Set the media's label as OK, valid for object detection and segmetation project
+            Set the media's label as OK, valid for object detection and segmetation
+            project
         metadata_dict: dict
-            A dictionary of metadata to be updated or inserted.
-            The key of the metadata needs to be created/registered (for the first time) on LandingLens before media uploading.
+            A dictionary of metadata to be updated or inserted. The key of the metadata
+            needs to be created/registered (for the first time) on LandingLens before
+            media uploading.
         validate_extensions: bool
             Defaults to True. Files other than jpg/jpeg/png/bmp will be skipped.
             If set to False, will try to upload all files. Behavior of platform
-             for unexpected extensions may not be correct - for example, most likely file
-             will be uploaded to s3, but won't show in data browser.
+            for unexpected extensions may not be correct - for example, most likely file
+            will be uploaded to s3, but won't show in data browser.
         tolerate_duplicate_upload: bool
-            Whether to tolerate duplicate upload. A duplicate upload is identified by status code 409. The server returns a 409 status code if the same media file content exists in the project.
-            Defaults to True. If set to False, will raise a `landingai.exceptions.HttpError` if it's a duplicate upload.
+            Whether to tolerate duplicate upload. A duplicate upload is identified by
+            status code 409. The server returns a 409 status code if the same media file
+            content exists in the project. Defaults to True. If set to False, will raise
+            a `landingai.exceptions.HttpError` if it's a duplicate upload.
 
         Returns
         -------
@@ -169,6 +179,11 @@ class Media:
 
         # construct metadata
         metadata: Dict[str, Any] = {} if metadata_dict is None else metadata_dict
+        if metadata != {}:
+            metadata_mapping, _ = self._client.get_metadata_mappings(
+                project_id
+            )
+            metadata = metadata_to_ids(metadata, metadata_mapping)
 
         medias: List[Dict[str, Any]] = []
         skipped_count = 0

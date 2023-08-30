@@ -4,7 +4,8 @@ from landingai.data_management.client import METADATA_UPDATE, LandingLens
 from landingai.data_management.utils import (
     PrettyPrintable,
     obj_to_dict,
-    validate_metadata,
+    metadata_to_ids,
+    ids_to_metadata,
 )
 
 
@@ -41,8 +42,9 @@ class Metadata:
         media_ids
             Media ids to update.
         input_metadata
-            A dictionary of metadata to be updated or inserted.
-            The key of the metadata needs to be created/registered (for the first time) on LandingLens before calling update().
+            A dictionary of metadata to be updated or inserted. The key of the metadata
+            needs to be created/registered (for the first time) on LandingLens before
+            calling update().
 
         Returns
         ----------
@@ -83,14 +85,14 @@ class Metadata:
         body = _MetadataUploadRequestBody(
             selectOption=_SelectOption(media_ids),
             project=_Project(project_id, dataset_id),
-            metadata=_metadata_to_ids(input_metadata, metadata_mapping),
+            metadata=metadata_to_ids(input_metadata, metadata_mapping),
         )
 
         resp = self._client._api(METADATA_UPDATE, data=obj_to_dict(body))
         resp_data = resp["data"]
         return {
             "project_id": project_id,
-            "metadata": _ids_to_metadata(resp_data[0]["metadata"], id_to_metadata),
+            "metadata": ids_to_metadata(resp_data[0]["metadata"], id_to_metadata),
             "media_ids": [media["objectId"] for media in resp_data],
         }
 
@@ -124,24 +126,3 @@ class _MetadataUploadRequestBody(PrettyPrintable):
         self.selectOption = selectOption
         self.project = project
         self.metadata = metadata
-
-
-def _metadata_to_ids(
-    input_metadata: Dict[str, Any], metadata_mapping: Dict[str, Any]
-) -> Dict[str, Any]:
-    validate_metadata(input_metadata, metadata_mapping)
-    return {
-        metadata_mapping[key][0]: val
-        for key, val in input_metadata.items()
-        if key in metadata_mapping
-    }
-
-
-def _ids_to_metadata(
-    metadata_ids: Dict[str, Any], id_to_metadata: Dict[int, str]
-) -> Dict[str, Any]:
-    return {
-        id_to_metadata[int(key)]: val
-        for key, val in metadata_ids.items()
-        if int(key) in id_to_metadata
-    }
