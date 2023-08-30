@@ -180,9 +180,7 @@ class Media:
         # construct metadata
         metadata: Dict[str, Any] = {} if metadata_dict is None else metadata_dict
         if metadata != {}:
-            metadata_mapping, _ = self._client.get_metadata_mappings(
-                project_id
-            )
+            metadata_mapping, _ = self._client.get_metadata_mappings(project_id)
             metadata = metadata_to_ids(metadata, metadata_mapping)
 
         medias: List[Dict[str, Any]] = []

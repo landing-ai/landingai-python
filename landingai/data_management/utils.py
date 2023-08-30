@@ -24,6 +24,7 @@ def ids_to_metadata(
         if int(key) in id_to_metadata
     }
 
+
 def to_camel_case(snake_str: str) -> str:
     """Convert a snake case string to camel case"""
     words = snake_str.split("_")
