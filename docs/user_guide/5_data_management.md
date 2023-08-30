@@ -43,6 +43,34 @@ metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", label
 # }
 ```
 
+### Update split key for medias on LandingLens
+
+When managing hundreds or thousands of images on the platform, it's handy to manage (add/update/remove) split key programmatically. You an use the `update_split_key()` function in `landingai.data_management.media.Media` to achieve it.
+
+**Example**
+
+```python
+>>> client = Media(project_id, api_key)
+>>> client.update_split_key(media_ids=[1001, 1002], split_key="test")  # assign split key 'test' for media ids 1001 and 1002
+>>> client.update_split_key(media_ids=[1001, 1002], split_key="")    # remove split key for media ids 1001 and 1002
+```
+
+**Split Keys**
+
+Valid split keys are "train", "dev", or "test" (case insensitive).
+You can also remove a split key from a media by assigning a "" split, then the media will be under the "unassigned" split.
+
+**Media ID**
+
+To update split key, you need to provide a list of media ids. The media ids can be found from the browser UI or using the `ls()` function in `landingai.data_management.media.Media`.
+
+Example:
+
+```python
+>>> media_client.ls()
+>>> { medias: [{'id': 4358352, 'mediaType': 'image', 'srcType': 'user', 'srcName': 'Michal', 'properties': {'width': 258 'height': 176}, 'name': 'n01443537_501.JPEG', 'uploadTime': '2020-09-15T22:29:01.338Z', 'metadata': {'split': 'train' 'source': 'prod'}, 'media_status': 'raw'}, ...], num_requested: 1000, count: 300, offset: 0, limit: 1000 }
+```
+
 ### Upload medias to LandingLens
 
 You can use the `landingai.data_management.media.Media` API to upload medias to a specific project or list what medias are available in that project on LandingLens.
@@ -56,6 +84,17 @@ In addition to upload medias, the upload API supports a few nice features:
 3. Attach additional metadata (key-value pairs) to the medias.
 
 See [here](https://support.landing.ai/landinglens/docs/uploading#upload-images-with-split-and-label-information) for more information.
+
+
+### Upload Segmentation Masks
+
+You can use the `upload()` function to upload an image and its label together. When you upload a segmentation mask, the function requires a `seg_defect_map` parameter. This parameter points to a json file that maps the pixel values to class names. To get this map, you can use the `landingai.data_management.label.Label` API. See below code as an example.
+
+```python
+>>> client = Label(project_id, api_key)
+>>> client.get_label_map()
+>>> {'0': 'ok', '1': 'cat', '2': 'dog'}  # then write this map to a json file locally
+```
 
 ### File Upload Limitations
 

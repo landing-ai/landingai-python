@@ -17,9 +17,28 @@ METADATA_UPDATE = "metadata_update"
 MEDIA_LIST = "media_list"
 MEDIA_REGISTER = "media_register"
 MEDIA_SIGN = "media_sign"
+MEDIA_UPDATE_SPLIT = "media_update_split"
+GET_PROJECT_SPLIT = "get_project_split"
 GET_PROJECT = "get_project"
+GET_DEFECTS = "get_defects"
+
 
 ROUTES = {
+    GET_PROJECT_SPLIT: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/project/split",
+        "method": requests.get,
+    },
+    MEDIA_UPDATE_SPLIT: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/dataset/update_media_split",
+        "method": requests.post,
+    },
+    GET_DEFECTS: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/defect/defects",
+        "method": requests.get,
+    },
     METADATA_ITEMS: {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/metadata/get_metadata_by_projectId",

@@ -2,7 +2,9 @@
 
 import json
 import logging
+import socket
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
+from urllib.parse import urlparse
 
 import numpy as np
 import PIL.Image
@@ -10,8 +12,6 @@ import requests
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-import socket
-from urllib.parse import urlparse
 
 from landingai.common import (
     APIKey,

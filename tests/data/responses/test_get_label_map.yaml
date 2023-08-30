@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"code":0,"message":"","data":[{"id":84689,"name":"num_plate","descriptionText":"","orgId":1,"projectId":34243219343364,"sections":[],"createdAt":"2023-07-21T19:43:50.625Z","color":null,"defect_book_example_ids":[],"indexId":1,"updatedAt":null,"isArchived":null,"updatedByUserId":"912093c0-2842-4c0e-9131-1069df8255c5"},{"id":84690,"name":"number_plate","descriptionText":"","orgId":1,"projectId":34243219343364,"sections":[],"createdAt":"2023-07-21T19:44:39.318Z","color":null,"defect_book_example_ids":[],"indexId":2,"updatedAt":null,"isArchived":null,"updatedByUserId":"912093c0-2842-4c0e-9131-1069df8255c5"}]}'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: https://app.landing.ai/api/defect/defects?projectId=34243219343364
