@@ -112,6 +112,33 @@ def test_single_file_upload_400(mocked_ll_client, tmp_path):
 
 
 @responses.activate
+def test_single_file_upload_metadata(mocked_aioresponse, tmp_path):
+    responses._add_from_file(
+        file_path="tests/data/responses/v1_media_upload_metadata.yaml"
+    )
+    _setup_aio_mocks(["image.jpeg"], mocked_aioresponse)
+    media = Media(_PROJECT_ID, _API_KEY)
+    file_name, img_path = _write_random_test_image(tmp_path, file_name="image.jpeg")
+    resp = media.upload(img_path, metadata_dict={"test": "test"})
+    assert resp["num_uploaded"] == 1
+    assert resp["skipped_count"] == 0
+    assert resp["error_count"] == 0
+    assert len(resp["medias"]) == 1
+    assert file_name in resp["medias"][0]["path"]
+    assert resp["medias"][0]["id"] is not None
+    assert resp["medias"][0]["uploadTime"] is not None
+    assert resp["medias"][0]["properties"] == {
+        "height": 20,
+        "width": 20,
+        "imgType": "jpeg",
+    }
+    resp = media.ls()
+    medias = resp["medias"]
+    assert len(medias) >= 1
+    assert file_name == medias[0]["name"]
+
+
+@responses.activate
 def test_folder_upload_with_subdirectories_skip_txt(mocked_aioresponse, tmp_path):
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_upload_folder.yaml"

@@ -4,6 +4,27 @@ from enum import Enum
 from typing import Any, Dict, cast
 
 
+def metadata_to_ids(
+    input_metadata: Dict[str, Any], metadata_mapping: Dict[str, Any]
+) -> Dict[str, Any]:
+    validate_metadata(input_metadata, metadata_mapping)
+    return {
+        metadata_mapping[key][0]: val
+        for key, val in input_metadata.items()
+        if key in metadata_mapping
+    }
+
+
+def ids_to_metadata(
+    metadata_ids: Dict[str, Any], id_to_metadata: Dict[int, str]
+) -> Dict[str, Any]:
+    return {
+        id_to_metadata[int(key)]: val
+        for key, val in metadata_ids.items()
+        if int(key) in id_to_metadata
+    }
+
+
 def to_camel_case(snake_str: str) -> str:
     """Convert a snake case string to camel case"""
     words = snake_str.split("_")
