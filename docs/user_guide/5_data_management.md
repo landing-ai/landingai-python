@@ -98,6 +98,6 @@ media_client.upload("/Users/tom/Downloads/image.jpg", split="dev", object_detect
 # upload a folder of images and assign them to the 'train' split
 media_client.upload("/Users/tom/Downloads/images", split="train")
 
-# if you have created a metadata in the platform, you can also upload a value for that metadata
+# if you have created a metadata in the platform, for example "cloudy" (this is case sensitive), you can also upload a value for that metadata
 media_client.upload("/Users/tom/Downloads/images/image1.png", metadata_dict={"cloudy": "true"})
 ```
