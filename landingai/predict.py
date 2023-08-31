@@ -3,6 +3,7 @@
 import json
 import logging
 import socket
+import time
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 from urllib.parse import urlparse
 
@@ -40,7 +41,7 @@ class Predictor:
         endpoint_id: str,
         *,
         api_key: Optional[str] = None,
-        check_server_ready: bool = False,
+        check_server_ready: bool = True,
     ) -> None:
         """Predictor constructor
 
@@ -78,7 +79,12 @@ class Predictor:
             if parsed_url.port:
                 port = parsed_url.port
             else:
-                port = socket.getservbyname(parsed_url.scheme)
+                if parsed_url.scheme == "https":
+                    port = 443
+                elif parsed_url.scheme == "http":
+                    port = 80
+                else:
+                    port = socket.getservbyname(parsed_url.scheme)
             host = (parsed_url.hostname, port)  # type: ignore
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -227,7 +233,7 @@ class EdgePredictor(Predictor):
         self,
         host: str = "localhost",
         port: int = 8000,
-        check_server_ready: bool = False,
+        check_server_ready: bool = True,
     ) -> None:
         """By default the inference service runs on `localhost:8000`
 
@@ -720,13 +726,13 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
     retries = Retry(
         # TODO: make them configurable
         total=num_retry,
-        backoff_factor=3,
+        backoff_factor=3,  # This the amount of seconds to wait on the second retry (i.e. 0, 3, 6, 12). First retry is immediate
         raise_on_redirect=True,
         raise_on_status=False,  # We are already raising exceptions during backend invocations
         allowed_methods=["GET", "POST", "PUT"],
         status_forcelist=[
             # 408 Request Timeout , 413 Content Too Large, 500 Internal Server Error
-            429,  # Too Many Requests  (ie. rate limiter)
+            # 429,  # Too Many Requests  (ie. rate limiter). This is handled externally
             502,  # Bad Gateway
             503,  # Service Unavailable
             504,  # Gateway Timeout
@@ -750,13 +756,24 @@ def _do_inference(
     data: Optional[Dict[str, Any]] = None,
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
-    try:
-        resp = session.post(endpoint_url, files=files, params=payload, data=data)
-    except requests.exceptions.ConnectionError as e:
-        raise ConnectionError(
-            f"Failed to connect to the model server. Please double check the model server url ({endpoint_url}) is correct.\nException detail: {e}"
+
+    # Make number of requests required
+    while True:
+        try:
+            resp = session.post(endpoint_url, files=files, params=payload, data=data)
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError(
+                f"Failed to connect to the model server. Please double check the model server url ({endpoint_url}) is correct.\nException detail: {e}"
+            )
+        response = HttpResponse.from_response(resp)
+        if response.status_code != 429:
+            # The requests was successful or failed not due to the rate limiter
+            break
+        _LOGGER.warning(
+            "Got HTTP 429: You are exceeding your cloud inference rate. Sleeping for 60 sec"
         )
-    response = HttpResponse.from_response(resp)
+        time.sleep(60)
+
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()
     json_dict = response.json()

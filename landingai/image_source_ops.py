@@ -41,15 +41,18 @@ def sample_images_from_video(
     ----------
     video_file: The local path to the video file
     output_dir: The local directory path that stores the sampled images
-    samples_per_second: The number of images to sample per second
+    samples_per_second: The number of images to sample per second. If set to zero, it disables sampling
     Returns
     -------
     a list of local file paths to the sampled images
     """
     output_dir.mkdir(parents=True, exist_ok=True)
-    total_frames, sample_size, _ = probe_video(video_file, samples_per_second)
-    # Calculate the frame interval based on the desired frame rate
-    sample_interval = int(total_frames / sample_size)
+    if samples_per_second != 0:
+        total_frames, sample_size, _ = probe_video(video_file, samples_per_second)
+        # Calculate the frame interval based on the desired frame rate
+        sample_interval = int(total_frames / sample_size)
+    else:
+        sample_interval = 1
     frame_count = 0
     output = []
     cap = cv2.VideoCapture(video_file)
