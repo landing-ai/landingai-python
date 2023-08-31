@@ -17,7 +17,6 @@ from landingai.exceptions import (
     InternalServerError,
     InvalidApiKeyError,
     PermissionDeniedError,
-    RateLimitExceededError,
     ServiceUnavailableError,
     UnauthorizedError,
     UnexpectedRedirectError,
