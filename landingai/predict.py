@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 import numpy as np
 import PIL.Image
 import requests
+from tenacity import retry, retry_if_exception_type, wait_fixed, before_sleep_log
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -22,7 +23,7 @@ from landingai.common import (
     Prediction,
     SegmentationPrediction,
 )
-from landingai.exceptions import HttpResponse
+from landingai.exceptions import HttpResponse, RateLimitExceededError
 from landingai.telemetry import get_runtime_environment_info, is_running_in_pytest
 from landingai.timer import Timer
 from landingai.utils import load_api_credential, serialize_image
@@ -102,6 +103,12 @@ class Predictor:
         }
         return headers
 
+    @retry(
+        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry
+        retry=retry_if_exception_type(RateLimitExceededError),
+        wait=wait_fixed(60),
+        before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
+    )
     @Timer(name="Predictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
@@ -158,6 +165,12 @@ class OcrPredictor(Predictor):
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
+    @retry(
+        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry
+        retry=retry_if_exception_type(RateLimitExceededError),
+        wait=wait_fixed(60),
+        before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
+    )
     @Timer(name="OcrPredictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
@@ -756,24 +769,13 @@ def _do_inference(
     data: Optional[Dict[str, Any]] = None,
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
-
-    # Make number of requests required
-    while True:
-        try:
-            resp = session.post(endpoint_url, files=files, params=payload, data=data)
-        except requests.exceptions.ConnectionError as e:
-            raise ConnectionError(
-                f"Failed to connect to the model server. Please double check the model server url ({endpoint_url}) is correct.\nException detail: {e}"
-            )
-        response = HttpResponse.from_response(resp)
-        if response.status_code != 429:
-            # The requests was successful or failed not due to the rate limiter
-            break
-        _LOGGER.warning(
-            "Got HTTP 429: You are exceeding your cloud inference rate. Sleeping for 60 sec"
+    try:
+        resp = session.post(endpoint_url, files=files, params=payload, data=data)
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError(
+            f"Failed to connect to the model server. Please double check the model server url ({endpoint_url}) is correct.\nException detail: {e}"
         )
-        time.sleep(60)
-
+    response = HttpResponse.from_response(resp)
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()
     json_dict = response.json()

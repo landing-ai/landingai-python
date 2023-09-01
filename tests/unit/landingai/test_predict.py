@@ -17,6 +17,7 @@ from landingai.exceptions import (
     InternalServerError,
     InvalidApiKeyError,
     PermissionDeniedError,
+    RateLimitExceededError,
     ServiceUnavailableError,
     UnauthorizedError,
     UnexpectedRedirectError,
@@ -140,6 +141,25 @@ def test_predict_300():
         ).predict(img)
     assert (
         "Unexpected redirect. Please report this issue to LandingLens support for further assistant."
+        in str(excinfo.value)
+    )
+
+
+@responses.activate
+def test_predict_429_rate_limited():
+    responses._add_from_file(
+        file_path="tests/data/responses/v1_predict_status_429.yaml"
+    )
+
+    img_path = "tests/data/images/wildfire1.jpeg"
+    img = Image.open(img_path)
+    with pytest.raises(RateLimitExceededError) as excinfo:
+        Predictor._num_retry = 1
+        Predictor(
+            "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", api_key="land_sk_1111"
+        ).predict(img)
+    assert (
+        "Rate limit exceeded. You have sent too many requests in a minute. Please wait for a minute before sending new requests. Contact your account admin or LandingLens support for how to increase your rate limit."
         in str(excinfo.value)
     )
 
