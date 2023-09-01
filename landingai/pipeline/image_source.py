@@ -150,6 +150,7 @@ class VideoFile(ImageSourceBase):
         self._src_fps = cap.get(cv2.CAP_PROP_FPS)
         self._src_total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         cap.release()
+        # Compute video properties (i.e. the target number of samples and FPS based on the user provided `samples_per_second`)
         if self._samples_per_second != 0:
             # Adjust the video frames and fps based on sampling rate
             self._target_total_frames = int(
@@ -160,11 +161,18 @@ class VideoFile(ImageSourceBase):
             self._target_total_frames = self._src_total_frames
             self._target_fps = self._src_fps
 
-    def probe_video(self) -> Tuple[float, int, float, int]:
-        #    A tuple of three values
-        #     - The total number of frames,
-        #     - The number of frames to sample,
-        #     - The video length in seconds.
+    def properties(self) -> Tuple[float, int, float, int]:
+        """Return properties of the of the source file and the resulting FrameSet
+
+        Returns
+        -------
+        Tuple[float, int, float, int]
+            Properties:
+            0. Source file FPS (frames per second)
+            1. Source file total number of frames
+            2. Resulting FPS after applying sampling rate
+            3. Number of frames after applying sampling rate
+        """
         return (
             self._src_fps,
             self._src_total_frames,

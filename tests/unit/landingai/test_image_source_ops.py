@@ -34,6 +34,15 @@ def test_sample_images_from_video(tmp_path: Path):
     assert len(list(tmp_path.glob("*.jpg"))) == 2
 
 
+def test_sample_images_from_video_no_sampling(tmp_path: Path):
+    test_video_file_path = "tests/data/videos/test.mp4"
+    result = sample_images_from_video(
+        test_video_file_path, tmp_path, samples_per_second=0
+    )
+    assert len(result) == 48
+    assert len(list(tmp_path.glob("*.jpg"))) == 48
+
+
 @mock.patch("landingai.image_source_ops.cv2.namedWindow")
 @mock.patch("landingai.image_source_ops.cv2.imshow")
 @mock.patch("landingai.image_source_ops.cv2.waitKey")
