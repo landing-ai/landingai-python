@@ -3,7 +3,6 @@
 import json
 import logging
 import socket
-import time
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 from urllib.parse import urlparse
 
