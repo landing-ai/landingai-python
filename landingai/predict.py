@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import numpy as np
 import PIL.Image
 import requests
+from tenacity import retry, retry_if_exception_type, wait_fixed, before_sleep_log
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -21,7 +22,7 @@ from landingai.common import (
     Prediction,
     SegmentationPrediction,
 )
-from landingai.exceptions import HttpResponse
+from landingai.exceptions import HttpResponse, RateLimitExceededError
 from landingai.telemetry import get_runtime_environment_info, is_running_in_pytest
 from landingai.timer import Timer
 from landingai.utils import load_api_credential, serialize_image
@@ -40,7 +41,7 @@ class Predictor:
         endpoint_id: str,
         *,
         api_key: Optional[str] = None,
-        check_server_ready: bool = False,
+        check_server_ready: bool = True,
     ) -> None:
         """Predictor constructor
 
@@ -78,7 +79,12 @@ class Predictor:
             if parsed_url.port:
                 port = parsed_url.port
             else:
-                port = socket.getservbyname(parsed_url.scheme)
+                if parsed_url.scheme == "https":
+                    port = 443
+                elif parsed_url.scheme == "http":
+                    port = 80
+                else:
+                    port = socket.getservbyname(parsed_url.scheme)
             host = (parsed_url.hostname, port)  # type: ignore
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -96,6 +102,12 @@ class Predictor:
         }
         return headers
 
+    @retry(
+        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry
+        retry=retry_if_exception_type(RateLimitExceededError),
+        wait=wait_fixed(60),
+        before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
+    )
     @Timer(name="Predictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
@@ -152,6 +164,12 @@ class OcrPredictor(Predictor):
         headers = self._build_default_headers(self._api_credential)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
+    @retry(
+        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry
+        retry=retry_if_exception_type(RateLimitExceededError),
+        wait=wait_fixed(60),
+        before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
+    )
     @Timer(name="OcrPredictor.predict")
     def predict(
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
@@ -227,7 +245,7 @@ class EdgePredictor(Predictor):
         self,
         host: str = "localhost",
         port: int = 8000,
-        check_server_ready: bool = False,
+        check_server_ready: bool = True,
     ) -> None:
         """By default the inference service runs on `localhost:8000`
 
@@ -720,13 +738,13 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
     retries = Retry(
         # TODO: make them configurable
         total=num_retry,
-        backoff_factor=3,
+        backoff_factor=3,  # This the amount of seconds to wait on the second retry (i.e. 0, 3, 6, 12). First retry is immediate
         raise_on_redirect=True,
         raise_on_status=False,  # We are already raising exceptions during backend invocations
         allowed_methods=["GET", "POST", "PUT"],
         status_forcelist=[
             # 408 Request Timeout , 413 Content Too Large, 500 Internal Server Error
-            429,  # Too Many Requests  (ie. rate limiter)
+            # 429,  # Too Many Requests  (ie. rate limiter). This is handled externally
             502,  # Bad Gateway
             503,  # Service Unavailable
             504,  # Gateway Timeout

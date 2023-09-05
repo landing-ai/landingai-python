@@ -9,6 +9,7 @@ import pytest
 import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
+from unittest import mock
 
 from landingai.common import APIKey
 from landingai.exceptions import (
@@ -17,7 +18,6 @@ from landingai.exceptions import (
     InternalServerError,
     InvalidApiKeyError,
     PermissionDeniedError,
-    RateLimitExceededError,
     ServiceUnavailableError,
     UnauthorizedError,
     UnexpectedRedirectError,
@@ -145,21 +145,28 @@ def test_predict_300():
     )
 
 
+@mock.patch("tenacity.nap.time.sleep")
 @responses.activate
-def test_predict_429_rate_limited():
+def test_predict_429_rate_limited(mocked_sleep):
+    mocked_sleep.return_value = 0
+    # This response will be retried
     responses._add_from_file(
         file_path="tests/data/responses/v1_predict_status_429.yaml"
+    )
+    # This response will be used to finish the test
+    responses._add_from_file(
+        file_path="tests/data/responses/v1_predict_status_300.yaml"
     )
 
     img_path = "tests/data/images/wildfire1.jpeg"
     img = Image.open(img_path)
-    with pytest.raises(RateLimitExceededError) as excinfo:
+    with pytest.raises(UnexpectedRedirectError) as excinfo:
         Predictor._num_retry = 1
         Predictor(
             "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43", api_key="land_sk_1111"
         ).predict(img)
     assert (
-        "Rate limit exceeded. You have sent too many requests in a minute. Please wait for a minute before sending new requests. Contact your account admin or LandingLens support for how to increase your rate limit."
+        "Unexpected redirect. Please report this issue to LandingLens support for further assistant."
         in str(excinfo.value)
     )
 

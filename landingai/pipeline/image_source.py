@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 from typing import Iterator as IteratorType
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import cv2
 import numpy as np
@@ -141,11 +141,44 @@ class VideoFile(ImageSourceBase):
         uri : str
             URI to the video file. This could be a local file or a URL that serves the video file in bytes.
         samples_per_second : float, optional
-            The number of images to sample per second (by default 1)
+            The number of images to sample per second (by default 1). If set to zero, it disables sampling
         """
         self._video_file = str(fetch_from_uri(uri))
         self._local_cache_dir = Path(tempfile.mkdtemp())
         self._samples_per_second = samples_per_second
+        cap = cv2.VideoCapture(self._video_file)
+        self._src_fps = cap.get(cv2.CAP_PROP_FPS)
+        self._src_total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        cap.release()
+        # Compute video properties (i.e. the target number of samples and FPS based on the user provided `samples_per_second`)
+        if self._samples_per_second != 0:
+            # Adjust the video frames and fps based on sampling rate
+            self._target_total_frames = int(
+                self._src_total_frames * self._samples_per_second / self._src_fps
+            )
+            self._target_fps = self._samples_per_second
+        else:
+            self._target_total_frames = self._src_total_frames
+            self._target_fps = self._src_fps
+
+    def properties(self) -> Tuple[float, int, float, int]:
+        """Return properties of the of the source file and the resulting FrameSet
+
+        Returns
+        -------
+        Tuple[float, int, float, int]
+            Properties:
+            0. Source file FPS (frames per second)
+            1. Source file total number of frames
+            2. Resulting FPS after applying sampling rate
+            3. Number of frames after applying sampling rate
+        """
+        return (
+            self._src_fps,
+            self._src_total_frames,
+            self._target_fps,
+            self._target_total_frames,
+        )
 
     def __iter__(self) -> IteratorType[FrameSet]:
         for img_path in sample_images_from_video(

@@ -7,6 +7,7 @@ import numpy as np
 import PIL.Image
 import pytest
 
+import landingai.pipeline as pl
 from landingai.pipeline.frameset import FrameSet
 from landingai.pipeline.image_source import ImageFolder, NetworkedCamera
 
@@ -118,3 +119,12 @@ def test_networked_camera():
     assert (
         image_distance > 100000
     )  # Even with little motion this number should exceed 100k
+
+
+def test_videofile_properties():
+    video_file = "tests/data/videos/test.mp4"
+    video_source = pl.image_source.VideoFile(video_file, samples_per_second=8)
+    (s_fps, s_total_frames, t_fps, t_total_frames) = video_source.properties()
+    assert s_total_frames == 48
+    assert s_fps == 24
+    assert t_total_frames == 16

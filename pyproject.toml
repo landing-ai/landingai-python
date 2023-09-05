@@ -30,6 +30,7 @@ imageio = { version = "2.*", extras = ["ffmpeg"] }
 aiohttp = { version = ">=3.7.3,<4.0.0", extras = ["speedups"] }
 aiofiles = ">=0.7.0,<1.0.0"
 tqdm = ">=4.64.0,<5.0.0"
+tenacity = "^8.2.3"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "1.*"
