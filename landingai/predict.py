@@ -9,14 +9,15 @@ from urllib.parse import urlparse
 import numpy as np
 import PIL.Image
 import requests
-from tenacity import retry, retry_if_exception_type, wait_fixed, before_sleep_log
 from requests import Session
 from requests.adapters import HTTPAdapter
+from tenacity import before_sleep_log, retry, retry_if_exception_type, wait_fixed
 from urllib3.util.retry import Retry
 
 from landingai.common import (
     APIKey,
     ClassificationPrediction,
+    InferenceMetadata,
     ObjectDetectionPrediction,
     OcrPrediction,
     Prediction,
@@ -60,11 +61,10 @@ class Predictor:
             Check if the cloud inference service is reachable, by default True
         """
         # Check if the cloud inference service is reachable
-        if check_server_ready:
-            if not self._check_connectivity(url=Predictor._url):
-                raise ConnectionError(
-                    f"Failed to connect to the cloud inference service. Check that {Predictor._url} is accesible from this device"
-                )
+        if check_server_ready and not self._check_connectivity(url=Predictor._url):
+            raise ConnectionError(
+                f"Failed to connect to the cloud inference service. Check that {Predictor._url} is accesible from this device"
+            )
 
         self._endpoint_id = endpoint_id
         self._api_credential = load_api_credential(api_key)
@@ -78,13 +78,12 @@ class Predictor:
             parsed_url = urlparse(url)
             if parsed_url.port:
                 port = parsed_url.port
+            elif parsed_url.scheme == "https":
+                port = 443
+            elif parsed_url.scheme == "http":
+                port = 80
             else:
-                if parsed_url.scheme == "https":
-                    port = 443
-                elif parsed_url.scheme == "http":
-                    port = 80
-                else:
-                    port = socket.getservbyname(parsed_url.scheme)
+                port = socket.getservbyname(parsed_url.scheme)
             host = (parsed_url.hostname, port)  # type: ignore
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -96,21 +95,23 @@ class Predictor:
 
     def _build_default_headers(self, api_key: APIKey) -> Dict[str, str]:
         """Build the HTTP headers for the request to the Cloud inference endpoint(s)."""
-        headers = {
-            "contentType": "application/json",
+        return {
+            "contentType": "multipart/form-data",
             "apikey": api_key.api_key,
         }
-        return headers
 
     @retry(
-        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry
+        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry.
         retry=retry_if_exception_type(RateLimitExceededError),
         wait=wait_fixed(60),
         before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
     )
     @Timer(name="Predictor.predict")
     def predict(
-        self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
+        self,
+        image: Union[np.ndarray, PIL.Image.Image],
+        metadata: Optional[InferenceMetadata] = None,
+        **kwargs: Any,
     ) -> List[Prediction]:
         """Call the inference endpoint and return the prediction result.
 
@@ -118,6 +119,11 @@ class Predictor:
         ----------
         image
             The input image to be predicted. The image should be in the RGB format if it has three channels.
+        metadata
+            The (optional) metadata associated with this inference/image.
+            Metadata is helpful for attaching additional information to the inference result so you can later filter the historical inference results by your custom values on LandingLens.
+
+            See `landingai.common.InferenceMetadata` for more details.
 
         Returns
         -------
@@ -132,8 +138,14 @@ class Predictor:
             "device_type": "pylib",
         }
         _add_default_query_params(payload)
+        data = {"metadata": metadata.json()} if metadata else None
         return _do_inference(
-            self._session, Predictor._url, files, payload, _CloudExtractor
+            self._session,
+            Predictor._url,
+            files,
+            payload,
+            _CloudExtractor,
+            data=data,
         )
 
 
@@ -208,8 +220,7 @@ class OcrPredictor(Predictor):
                 "regions_of_interest parameter must be provided in single-text mode."
             )
         data = {}
-        rois: List[List[Tuple[int, int]]] = kwargs.get("regions_of_interest", [])
-        if rois:
+        if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
 
         payload: Dict[str, Any] = {"device_type": "pylib"}
@@ -227,14 +238,13 @@ class OcrPredictor(Predictor):
 
 def serialize_rois(rois: List[List[Tuple[int, int]]], mode: str) -> str:
     """Serialize the regions of interest into a JSON string."""
-    rois_payload = []
-    for roi in rois:
-        rois_payload.append(
-            {
-                "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
-                "mode": mode,
-            }
-        )
+    rois_payload = [
+        {
+            "location": [{"x": coord[0], "y": coord[1]} for coord in roi],
+            "mode": mode,
+        }
+        for roi in rois
+    ]
     return json.dumps([rois_payload])
 
 
@@ -260,11 +270,10 @@ class EdgePredictor(Predictor):
         """
         self._url = f"http://{host}:{port}/images"
         # Check if the inference server is reachable
-        if check_server_ready:
-            if not self._check_connectivity(host=(host, port)):
-                raise ConnectionError(
-                    f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
-                )
+        if check_server_ready and not self._check_connectivity(host=(host, port)):
+            raise ConnectionError(
+                f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
+            )
         self._session = _create_session(
             self._url,
             0,
@@ -275,7 +284,10 @@ class EdgePredictor(Predictor):
 
     @Timer(name="EdgePredictor.predict")
     def predict(
-        self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
+        self,
+        image: Union[np.ndarray, PIL.Image.Image],
+        metadata: Optional[InferenceMetadata] = None,
+        **kwargs: Any,
     ) -> List[Prediction]:
         """Run Edge inference on the input image and return the prediction result.
 
@@ -283,6 +295,12 @@ class EdgePredictor(Predictor):
         ----------
         image
             The input image to be predicted
+        metadata
+            The (optional) metadata associated with this inference/image.
+            Metadata is helpful for attaching additional information to the inference result so you can later filter the historical inference results by your custom values on LandingLens.
+            NOTE: the metadata is not reported back to LandingLens by default unless the edge inference server (i.e. ModelRunner) enables the feature of reporting historical inference result.
+
+            See `landingai.common.InferenceMetadata` for more details.
 
         Returns
         -------
@@ -291,7 +309,10 @@ class EdgePredictor(Predictor):
         """
         buffer_bytes = serialize_image(image)
         files = {"file": buffer_bytes}
-        return _do_inference(self._session, self._url, files, {}, _EdgeExtractor)
+        data = {"metadata": metadata.json()} if metadata else None
+        return _do_inference(
+            self._session, self._url, files, {}, _EdgeExtractor, data=data
+        )
 
 
 class _Extractor:
@@ -762,18 +783,18 @@ def _do_inference(
     session: Session,
     endpoint_url: str,
     files: Dict[str, Any],
-    payload: Dict[str, Any],
+    params: Dict[str, Any],
     extractor_class: Type[_Extractor],
     *,
     data: Optional[Dict[str, Any]] = None,
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
     try:
-        resp = session.post(endpoint_url, files=files, params=payload, data=data)
+        resp = session.post(endpoint_url, files=files, params=params, data=data)
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError(
             f"Failed to connect to the model server. Please double check the model server url ({endpoint_url}) is correct.\nException detail: {e}"
-        )
+        ) from e
     response = HttpResponse.from_response(resp)
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()

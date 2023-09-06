@@ -2,6 +2,7 @@ import io
 import logging
 import os
 from pathlib import Path
+from unittest import mock
 from unittest.mock import patch
 
 import numpy as np
@@ -9,9 +10,8 @@ import pytest
 import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
-from unittest import mock
 
-from landingai.common import APIKey
+from landingai.common import APIKey, InferenceMetadata
 from landingai.exceptions import (
     BadRequestError,
     ClientError,
@@ -350,7 +350,14 @@ def test_edge_seg_predict(connect_mock, seg_mask_validator):
     predictor = EdgePredictor("localhost", 8123)
     img = Image.open("tests/data/images/cereal1.jpeg")
     assert img is not None
-    preds = predictor.predict(img)
+    preds = predictor.predict(
+        img,
+        metadata=InferenceMetadata(
+            imageId="test-img-id-1",
+            inspectionStationId="camera-station-1",
+            locationId="factory-floor-1",
+        ),
+    )
     assert len(preds) == 1, "Result should not be empty or None"
     seg_mask_validator(preds[0], expected_seg_prediction)
     logging.info(preds)
