@@ -183,7 +183,7 @@ class OcrPredictor(Predictor):
         before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
     )
     @Timer(name="OcrPredictor.predict")
-    def predict(
+    def predict(  # type: ignore
         self, image: Union[np.ndarray, PIL.Image.Image], **kwargs: Any
     ) -> List[Prediction]:
         """Run OCR on the input image and return the prediction result.
