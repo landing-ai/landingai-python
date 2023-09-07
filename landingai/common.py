@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
-from pydantic import BaseModel, BaseSettings, validator
+from pydantic import BaseModel, BaseSettings, Field, validator
 
 from landingai.exceptions import InvalidApiKeyError
 
@@ -158,6 +158,35 @@ class SegmentationPrediction(ClassificationPrediction):
 
     class Config:
         keep_untouched = (cached_property,)
+
+
+class InferenceMetadata(BaseModel):
+    """LandingLens inference metadata associated with each inference.
+    You can view the inference metadata (on each image) in the LandingLens web app, or use it to filter the historical inference results.
+    Currently, only below four metadata fields are supported.
+    They are all optional fields, and you can choose to provide them or not.
+
+    Example:
+    ```
+    metadata = InferenceMetadata(
+        image_id="28587.jpg",
+        inspection_station_id="camera#1",
+        location_id="factory_floor#1",
+        capture_timestamp="2021-10-11T12:00:00.00000",
+    )
+    ```
+    """
+
+    image_id: str = Field(alias="imageId", description="Image ID", default="")
+    inspection_station_id: str = Field(
+        alias="inspectionStationId", description="Inspection station ID.", default=""
+    )
+    location_id: str = Field(alias="locationId", description="Location ID.", default="")
+    capture_timestamp: str = Field(
+        alias="captureTimestamp",
+        description="Inference occurred timestamp. If not provided, the inference server will use the current timestamp when request is received.",
+        default="",
+    )
 
 
 def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:

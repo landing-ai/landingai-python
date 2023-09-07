@@ -35,17 +35,44 @@ The actual computation of model inference does not happen on the library side, i
 This library abstracts out the complexity of server communication, error handling, and result parsing into a simple class called `landingai.predict.Predictor`. For more information, see `landingai.predict.Predictor` in the API doc.
 
 
+#### Attach Inference Metadata
+
+When you make inferences via the `landingai.predict.Predictor` class, the `LandingLens` platform saves all the inference result and allow you to browse and filter the historical inference result on the platform.
+
+When you made hundreds or thousands of inferences over time, it's handy to attach some metadata during inference so later you can use it to filter historical result. You can attach metadata via the `predict()` API.
+
+For example, you can achieve that with below code.
+
+```python
+from landingai.common import InferenceMetadata
+from landingai.predict import Predictor
+
+predictor = Predictor(endpoint_id, api_key=api_key)
+results = predictor.predict(
+    img,
+    metadata=InferenceMetadata(
+        imageId="img1001.png",
+        inspectionStationId="camera-1",
+        locationId="factory-floor-1",
+    ),
+)
+```
+
+For more information, see `landingai.common.InferenceMetadata` and `landingai.predict.Predictor.predict`.
+
 #### Cloud Inference Limitations
 
 The `Predictor` class uses Cloud Deployment, which comes with below limitations.
 
 1. **Rate Limit**
 
-For non-enterprise users, you can make inference up to 40 inferences per minute per organization. If you exceed that limit, the cloud delpoyment server returns a 429 Too Many Requests response status code.
+    For non-enterprise users, you can make inference up to 40 inferences per minute per organization. If you exceed that limit, the cloud delpoyment server returns a 429 Too Many Requests response status code.
 
-Reference: https://community.landing.ai/c/ask-the-community/friday-facts-inference-limits
+    Reference: https://community.landing.ai/c/ask-the-community/friday-facts-inference-limits
 
-If you need to make more frequent calls (i.e. more inference throughput), consider using the second deployment option (Edge Deployment), which is currently under alpha testing. Reach out to us at support@landing.ai for more information.
+    NOTE: if the server return a 429, the `landingai.predict.Predictor.predict` API will wait 60 seconds and retry by default.
+
+    If you need to make more frequent calls (i.e. more inference throughput), consider using the second deployment option (Edge Deployment), which is currently under alpha testing. Reach out to us at support@landing.ai for more information.
 
 ### Prediction Results
 

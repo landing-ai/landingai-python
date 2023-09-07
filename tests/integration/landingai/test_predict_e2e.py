@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from PIL import Image, ImageChops
+from landingai.common import InferenceMetadata
 
 from landingai.predict import OcrPredictor, Predictor
 from landingai.visualize import overlay_predictions
@@ -55,7 +56,14 @@ def test_od_predict():
     img = Image.open("tests/data/images/cereal1.jpeg")
     assert img is not None
     # Call LandingLens inference endpoint with Predictor.predict()
-    preds = predictor.predict(img)
+    preds = predictor.predict(
+        img,
+        metadata=InferenceMetadata(
+            imageId="test-img-id-1",
+            inspectionStationId="camera-station-1",
+            locationId="factory-floor-1",
+        ),
+    )
     assert len(preds) == 3, "Result should not be empty or None"
     expected_scores = [0.9997851252555847, 0.9983770251274109, 0.9983124732971191]
     expected_bboxes = [
