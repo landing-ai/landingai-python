@@ -30,7 +30,7 @@ phases:
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
       - cd examples/apps/ocr
-      - infra-cli get-st-app lappocr
+      - infra-cli gen-st-app lappocr
       - cd /tmp/infra-cli-st/apprepo/lappocr/
       - infra-cli build-lnd-app --tag $IMAGE_TAG
 artifacts:
