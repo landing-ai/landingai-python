@@ -121,9 +121,9 @@ class Predictor:
             The input image to be predicted. The image should be in the RGB format if it has three channels.
         metadata
             The (optional) metadata associated with this inference/image.
-            Metadata is helpful for attaching additional information to the inference result so you can later filter the historical inference results by your custom values on LandingLens.
+            Metadata is helpful for attaching additional information to the inference result so you can later filter the historical inference results by your custom values in LandingLens.
 
-            See `landingai.common.InferenceMetadata` for more details.
+            See `landingai.common.InferenceMetadata` for more information.
 
         Returns
         -------
@@ -297,8 +297,8 @@ class EdgePredictor(Predictor):
             The input image to be predicted
         metadata
             The (optional) metadata associated with this inference/image.
-            Metadata is helpful for attaching additional information to the inference result so you can later filter the historical inference results by your custom values on LandingLens.
-            NOTE: the metadata is not reported back to LandingLens by default unless the edge inference server (i.e. ModelRunner) enables the feature of reporting historical inference result.
+            Metadata is helpful for attaching additional information to the inference result so you can later filter the historical inference results by your custom values in LandingLens.
+            Note: The metadata is not reported back to LandingLens by default unless the edge inference server (i.e. ModelRunner) enables the feature of reporting historical inference results.
 
             See `landingai.common.InferenceMetadata` for more details.
 
