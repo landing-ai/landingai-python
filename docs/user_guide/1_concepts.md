@@ -37,11 +37,11 @@ This library abstracts out the complexity of server communication, error handlin
 
 #### Attach Inference Metadata
 
-When you make inferences via the `landingai.predict.Predictor` class, the `LandingLens` platform saves all the inference result and allow you to browse and filter the historical inference result on the platform.
+When you run inference via the `landingai.predict.Predictor` class, LandingLens saves the inference results. You can browse and filter through the historical inference results in the LandingLens user interface.
 
-When you made hundreds or thousands of inferences over time, it's handy to attach some metadata during inference so later you can use it to filter historical result. You can attach metadata via the `predict()` API.
+When you run inference hundreds or thousands of times, it's helpful to attach metadata during the inference process. That way you can filter by that metadata later in the LandingLens user interface. You can attach metadata via the `predict()` API.
 
-For example, you can achieve that with below code.
+The following snippet shows how to attach metadata:
 
 ```python
 from landingai.common import InferenceMetadata
@@ -60,19 +60,13 @@ results = predictor.predict(
 
 For more information, see `landingai.common.InferenceMetadata` and `landingai.predict.Predictor.predict`.
 
-#### Cloud Inference Limitations
+#### Cloud Inference Rate Limit
 
-The `Predictor` class uses Cloud Deployment, which comes with below limitations.
+The `Predictor` class uses Cloud Deployment, which limits how often inference can be run. 
 
-1. **Rate Limit**
+You can run inference up to 40 times per minute per endpoint. If you exceed that limit, the API returns a `429 Too Many Requests` response status code. If you have questions about inference limits, or need to run inference more frequently, please contact your Landing AI representative or [sales@landing.ai](mailto:sales@landing.ai).
 
-    For non-enterprise users, you can make inference up to 40 inferences per minute per organization. If you exceed that limit, the cloud delpoyment server returns a 429 Too Many Requests response status code.
-
-    Reference: https://community.landing.ai/c/ask-the-community/friday-facts-inference-limits
-
-    NOTE: if the server return a 429, the `landingai.predict.Predictor.predict` API will wait 60 seconds and retry by default.
-
-    If you need to make more frequent calls (i.e. more inference throughput), consider using the second deployment option (Edge Deployment), which is currently under alpha testing. Reach out to us at support@landing.ai for more information.
+Note: if the server return a 429, the `landingai.predict.Predictor.predict` API will wait 60 seconds and retry by default.
 
 ### Prediction Results
 
