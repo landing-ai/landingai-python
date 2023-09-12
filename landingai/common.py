@@ -11,10 +11,10 @@ from landingai.exceptions import InvalidApiKeyError
 
 
 class APIKey(BaseSettings):
-    """The API key of an user in a particular organization in LandingLens.
+    """The API key of a user in a particular organization in LandingLens.
     It's also known as the "API Key v2" in LandingLens.
-    The difference between this v2 key and the legacy API key is that the v2 key is a single string, and the string always starts with "land_sk_" prefix.
-    NOTE: This is the recommended way to authenticate with the LandingLens API.
+    The difference between this v2 key and the legacy API key is that the v2 key is a single string, and the string always starts with "land_sk_" prefix. The legacy API key also required an API Secret.
+    Note: Using the v2 key is the recommended way to authenticate with the LandingLens API.
 
     It supports loading from environment variables or .env files.
 
