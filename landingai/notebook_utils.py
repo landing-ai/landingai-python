@@ -39,7 +39,7 @@ def is_running_in_notebook() -> bool:
 
 
 def display_video(path_to_file: str):  # type: ignore
-    """Return a notebook independent video object that can be shown on Jupyter and Collab"""
+    """Return a notebook-independent video object that can be shown on Jupyter and Colab."""
     if is_running_in_colab_notebook():
         from IPython.display import HTML
         from base64 import b64encode
