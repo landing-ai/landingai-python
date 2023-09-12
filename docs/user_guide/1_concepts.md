@@ -64,7 +64,7 @@ For more information, see `landingai.common.InferenceMetadata` and `landingai.pr
 
 The `Predictor` class uses Cloud Deployment, which limits how often inference can be run. 
 
-You can run inference up to 40 times per minute per endpoint. If you exceed that limit, the API returns a `429 Too Many Requests` response status code. We recommend implementing an error handling or retry function in your application. If you have questions about inference limits, or need to run inference more frequently, please contact your Landing AI representative or [sales@landing.ai](mailto:sales@landing.ai).
+You can run inference up to 40 times per minute per endpoint. If you exceed that limit, the API returns a `429 Too Many Requests` response status code. If you have questions about inference limits, or need to run inference more frequently, please contact your Landing AI representative or [sales@landing.ai](mailto:sales@landing.ai).
 
 Note: if the server return a 429, the `landingai.predict.Predictor.predict` API will wait 60 seconds and retry by default.
 
