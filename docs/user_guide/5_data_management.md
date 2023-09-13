@@ -1,39 +1,38 @@
-## Data management
+## Data Management
 
-The `landingai` library provides a set of APIs to manage dataset medias (e.g. images) and their metadata.
+The `landingai` library provides a set of APIs to manage dataset images and their metadata.
 This section explains how to use the associated Python APIs to:
 
--   Upload new (single) media with metadata
--   Upload all medias from folder with metadata
--   Set metadata for existing medias
+-   Upload new (single) images with metadata
+-   Upload all images from a folder with metadata
+-   Set metadata for images already in LandingLens
 
 
 ### Introduction to Metadata
 
-Metadata is additional information you can attach to a media (e.g. image). Every media can be associated with multiple metadata. Each metadata is a key-value pair associated with this media, where key is the name of this metadata and value is a string that represents this information.
-For example, when you upload an image to LandingLens, you can add metadata like the country where the image was created, the timestamp when the image was created, etc.
+Metadata is additional information you can attach to an image. Every image can be associated with multiple metadata. Each metadata is a key-value pair associated with an image, where key is the metadata name and value is a string that represents the information. For example, when you upload an image to LandingLens, you can add metadata like the country where the image was created, the timestamp when the image was created, etc.
 
-Metadata is useful when you need to manage hundreds or thousands of medias on LandingLens or you need to collaborate with other team members to label this dataset.
-For example, you can use metadata to group certain type of medias together (e.g. images taken last week), then change their the split key, or create a [labeling task](https://support.landing.ai/landinglens/docs/agreement-based-labeling#send-labeling-tasks) out of those medias.
+Metadata is useful when you need to manage hundreds or thousands of images in LandingLens or you need to collaborate with other team members to label datasets. For example, you can metadata to group certain types of images together (ex: images taken last week), then change their [split key](https://support.landing.ai/docs/datasets-and-splits) or create a [labeling task](https://support.landing.ai/landinglens/docs/agreement-based-labeling#send-labeling-tasks) for those images.
 
-You can use the `landingai.data_management.metadata.Metadata` API to manage metadata.
+Use the `landingai.data_management.metadata.Metadata` API to manage metadata.
 
-**Prerequisite**: if this is the first time you update a metadata, you need to register the metadata key on LandingLens first through the web UI.
+**Prerequisite**: You must create a metadata key in the LandingLens UI before you can update it (assign a value to it) via the API. Each metadata key is project-specific.
 
-Below screenshot shows you how to access the Metadata Management UI.
+The following screenshot shows how to acess the Manage Metadata module.
 
 ![the Metadata Management UI](assets/Metadata_Management_UI.png)
 
 ### Code Example of Metadata Management
+The following code snippet shows how to assign values to the Timestamp, Country, and Labeler metadata keys. 
 
 ```python
 from landingai.data_management import Metadata
 
-# Provide API Key and project ID
+# Provide the API key and project ID
 YOUR_API_KEY = "land_sk_12345"
 YOUR_PROJECT_ID = 1190
 metadata_client = Metadata(YOUR_PROJECT_ID, YOUR_API_KEY)
-# Set three metadata ('timestamp', 'country' and 'labeler') for media with id 123 and 124. 
+# Set three metadata values ('timestamp', 'country' and 'labeler') for images with IDs 123 and 124 
 metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", labeler="tom")
 # Output:
 # {
@@ -43,26 +42,26 @@ metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", label
 # }
 ```
 
-### Update split key for medias on LandingLens
+### Update Split Key for Images
 
-When managing hundreds or thousands of images on the platform, it's handy to manage (add/update/remove) split key programmatically. You can use the `update_split_key()` function in `landingai.data_management.media.Media` to achieve it.
+When managing hundreds or thousands of images on the platform, it can be more efficient to manage (add/update/remove) the [split key](https://support.landing.ai/docs/datasets-and-splits) programmatically. Use the `update_split_key()` function in `landingai.data_management.media.Media` to manage the the split value for images.
 
 **Example**
 
 ```python
 >>> client = Media(project_id, api_key)
->>> client.update_split_key(media_ids=[1001, 1002], split_key="test")  # assign split key 'test' for media ids 1001 and 1002
->>> client.update_split_key(media_ids=[1001, 1002], split_key="")    # remove split key for media ids 1001 and 1002
+>>> client.update_split_key(media_ids=[1001, 1002], split_key="test")  # assign split key 'test' for images with IDs 1001 and 1002
+>>> client.update_split_key(media_ids=[1001, 1002], split_key="")    # remove split key for images with IDs 1001 and 1002
 ```
 
 **Split Keys**
 
 Valid split keys are "train", "dev", or "test" (case insensitive).
-You can also remove a split key from a media by assigning a "" split, then the media will be under the "unassigned" split.
+To remove a split key from an image, assign the split value as "". After that, the image split will be  "unassigned".
 
 **Media ID**
 
-To update split key, you need to provide a list of media ids. The media ids can be found from the browser UI or using the `ls()` function in `landingai.data_management.media.Media`.
+To update the split key, you need to provide a list of `media ids` (image IDs). The image IDs can be found in the LandingLens UI or by using the `ls()` function in `landingai.data_management.media.Media`.
 
 Example:
 
@@ -71,42 +70,44 @@ Example:
 >>> { medias: [{'id': 4358352, 'mediaType': 'image', 'srcType': 'user', 'srcName': 'Michal', 'properties': {'width': 258 'height': 176}, 'name': 'n01443537_501.JPEG', 'uploadTime': '2020-09-15T22:29:01.338Z', 'metadata': {'split': 'train' 'source': 'prod'}, 'media_status': 'raw'}, ...], num_requested: 1000, count: 300, offset: 0, limit: 1000 }
 ```
 
-### Upload medias to LandingLens
+### Upload Images to LandingLens
 
-You can use the `landingai.data_management.media.Media` API to upload medias to a specific project or list what medias are available in that project on LandingLens.
+Use the `landingai.data_management.media.Media` API to upload images to a specific project or list the images already in a specific project.
 
-In addition to upload medias, the upload API supports a few nice features:
-1. Assign a split ('train'/'dev'/'test') to the media(s). An empty string '' represents Unassigned and is the default.
-2. Upload labels along with the media. The suported label files are:
-    a. Pascal VOC xml file for object detection project
-    b. A segmentation mask file for segmentation project
-    c. A classification name (string) for classificaiton project
-3. Attach additional metadata (key-value pairs) to the medias.
+In addition to uploading images, the upload API supports the following features:
+1. Assign a split ('train'/'dev'/'test') to images. An empty string '' represents Unassigned and is the default.
+2. Upload labels along with images. The suported label files are:
+    * [Pascal VOC XML files](https://support.landing.ai/docs/upload-labeled-images-od) for Object Detection projects.
+    * [Segmentation mask files](https://support.landing.ai/docs/upload-labeled-images-seg) for Segmentation projects.
+    * A classification name (string) for Classificaiton projects.
+3. Attach additional metadata (key-value pairs) to images.
 
-See [here](https://support.landing.ai/landinglens/docs/uploading#upload-images-with-split-and-label-information) for more information.
+for more information, go [here](https://support.landing.ai/landinglens/docs/uploading#upload-images-with-split-and-label-information).
 
 
 ### Upload Segmentation Masks
 
-You can use the `upload()` function to upload an image and its label together. When you upload a segmentation mask, the function requires a `seg_defect_map` parameter. This parameter points to a json file that maps the pixel values to class names. To get this map, you can use the `landingai.data_management.label.Label` API. See below code as an example.
+Use the `upload()` function to upload an image and its segmentation mask (labels) together. When you upload a segmentation mask, the function requires a `seg_defect_map` parameter. This parameter points to a JSON file that maps the pixel values to class names. To get this map, use the `landingai.data_management.label.Label` API. 
+
+The following code snippet shows how to upload an image and its segmentation mask. 
 
 ```python
 >>> client = Label(project_id, api_key)
 >>> client.get_label_map()
->>> {'0': 'ok', '1': 'cat', '2': 'dog'}  # then write this map to a json file locally
+>>> {'0': 'ok', '1': 'cat', '2': 'dog'}  # then write this map to a JSON file locally
 ```
 
 ### File Upload Limitations
 
-**Supported Media File Types**
+**Supported Image File Types**
 
-The following media file types are supported by LandingLens: "jpg", "jpeg", "png", "bmp"
+LandingLens supports the following image file types: `bmp`, `jpeg`, `jpg`, `png`.
 
-In addition, the Python upload API supports uploading `tiff` image file. But the `upload()` API will automatically convert `tiff` to a `png` file and then upload the converted `png` image to the platform.
+Additionally, the Python `upload()` API supports uploading `tiff` image files. However, the `upload()` API will automatically convert the `tiff` to a `png` file and, then upload the `png` image to LandingLens.
 
-### Code Example of Media Management
+### Code Example of Image Management
 
-Below code example shows you how to list existing medias in a project, and upload a single media or a folder of medias.
+The following code snippet shows how to list images currently in a project, upload a single image, and upload a folder of images. 
 
 ```python
 from landingai.data_management import Media
