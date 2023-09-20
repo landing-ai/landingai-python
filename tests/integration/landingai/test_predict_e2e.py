@@ -146,14 +146,9 @@ def test_class_predict():
     img_with_masks.save("tests/output/test_class.jpg")
 
 
-# TODO: re-enable below test after OCR endpoint is deployed to prod
-@pytest.mark.skip(reason="OCR endpoint is not deployed to prod yet")
 def test_ocr_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
-    predictor = OcrPredictor(
-        # TODO: replace with a prod key after the OCR endpoint is deployed to prod
-        api_key="",
-    )
+    predictor = OcrPredictor(api_key=_API_KEY)
     img = Image.open("tests/data/images/ocr_test.png")
     assert img is not None
     # Test multi line
@@ -210,17 +205,17 @@ def test_ocr_predict():
         {
             "text": "公司名称",
             "location": [(99, 19), (366, 19), (366, 75), (99, 75)],
-            "score": 0.8279303908348083,
+            "score": 0.828,
         },
         {
             "text": "英语学习",
             "location": [(599, 842), (814, 845), (814, 894), (599, 892)],
-            "score": 0.939440906047821,
+            "score": 0.9393,
         },
     ]
     for pred, expected in zip(preds, expected):
         assert pred.text == expected["text"]
         assert pred.location == expected["location"]
-        assert pred.score == expected["score"]
+        assert pytest.approx(pred.score, 0.0001) == expected["score"]
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_ocr_singleline.jpg")
