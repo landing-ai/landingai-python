@@ -152,7 +152,7 @@ class Predictor:
 class OcrPredictor(Predictor):
     """A class that calls your OCR inference endpoint on the LandingLens platform."""
 
-    _url: str = "https://app.staging.landing.ai/ocr/v1/detect-text"
+    _url: str = "https://app.landing.ai/ocr/v1/detect-text"
 
     def __init__(
         self,
