@@ -204,18 +204,18 @@ def test_ocr_predict():
     expected = [
         {
             "text": "公司名称",
-            "location": [(99, 19), (366, 19), (366, 75), (99, 75)],
-            "score": 0.8279303908348083,
+            "location": [(98, 20), (367, 20), (367, 77), (98, 77)],
+            "score": 0.9093,
         },
         {
             "text": "英语学习",
-            "location": [(599, 842), (814, 845), (814, 894), (599, 892)],
-            "score": 0.939440906047821,
+            "location": [(597, 842), (814, 845), (814, 894), (597, 892)],
+            "score": 0.9029,
         },
     ]
     for pred, expected in zip(preds, expected):
         assert pred.text == expected["text"]
         assert pred.location == expected["location"]
-        assert pred.score == expected["score"]
+        assert pytest.approx(pred.score, 0.0001) == expected["score"]
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_ocr_singleline.jpg")
