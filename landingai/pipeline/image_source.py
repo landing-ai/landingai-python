@@ -1,6 +1,7 @@
 """A module that provides a set of abstractions and APIs for reading images from different sources."""
 
 import glob
+import logging
 import shutil
 import tempfile
 import threading
@@ -20,6 +21,9 @@ from landingai.image_source_ops import sample_images_from_video
 from landingai.pipeline.frameset import Frame, FrameSet
 from landingai.storage.data_access import fetch_from_uri
 
+
+_LOGGER = logging.getLogger(__name__)
+_DEFAULT_FPS = 30
 
 class ImageSourceBase(Iterator):
     """The base class for all image sources."""
@@ -148,6 +152,9 @@ class VideoFile(ImageSourceBase):
         self._samples_per_second = samples_per_second
         cap = cv2.VideoCapture(self._video_file)
         self._src_fps = cap.get(cv2.CAP_PROP_FPS)
+        if self._src_fps == 0:
+            _LOGGER.warning(f"Could not read FPS from video file ({self._video_file}). Set src FPS to {_DEFAULT_FPS}")
+            self._src_fps = _DEFAULT_FPS
         self._src_total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         cap.release()
         # Compute video properties (i.e. the target number of samples and FPS based on the user provided `samples_per_second`)
