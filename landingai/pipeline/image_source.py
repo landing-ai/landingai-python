@@ -25,6 +25,7 @@ from landingai.storage.data_access import fetch_from_uri
 _LOGGER = logging.getLogger(__name__)
 _DEFAULT_FPS = 30
 
+
 class ImageSourceBase(Iterator):
     """The base class for all image sources."""
 
@@ -153,7 +154,9 @@ class VideoFile(ImageSourceBase):
         cap = cv2.VideoCapture(self._video_file)
         self._src_fps = cap.get(cv2.CAP_PROP_FPS)
         if self._src_fps == 0:
-            _LOGGER.warning(f"Could not read FPS from video file ({self._video_file}). Set src FPS to {_DEFAULT_FPS}")
+            _LOGGER.warning(
+                f"Could not read FPS from video file ({self._video_file}). Set src FPS to {_DEFAULT_FPS}"
+            )
             self._src_fps = _DEFAULT_FPS
         self._src_total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         cap.release()
