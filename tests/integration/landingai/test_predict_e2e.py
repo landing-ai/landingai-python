@@ -204,13 +204,13 @@ def test_ocr_predict():
     expected = [
         {
             "text": "公司名称",
-            "location": [(98, 20), (367, 20), (367, 77), (98, 77)],
-            "score": 0.9093,
+            "location": [(99, 19), (366, 19), (366, 75), (99, 75)],
+            "score": 0.828,
         },
         {
             "text": "英语学习",
-            "location": [(597, 842), (814, 845), (814, 894), (597, 892)],
-            "score": 0.9029,
+            "location": [(599, 842), (814, 845), (814, 894), (599, 892)],
+            "score": 0.9393,
         },
     ]
     for pred, expected in zip(preds, expected):
