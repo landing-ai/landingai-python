@@ -364,7 +364,16 @@ class Webcam(NetworkedCamera):
 
 
 class Screenshot(ImageSourceBase):
-    """Take a screenshot from the screen as an image source."""
+    """
+    Take a screenshot from the screen as an image source.
+
+    The screenshot will be taken at each iteration when looping over this object. For example:
+    ```
+    for frameset in Screenshot():
+        # `frameset` will contain a single frame with the screenshot here
+        time.sleep(1)
+    ```
+    """
 
     def __iter__(self) -> Iterator:
         return self
