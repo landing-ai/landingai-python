@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List
+from unittest import mock
 
 import cv2
 import numpy as np
@@ -9,7 +10,7 @@ import pytest
 
 import landingai.pipeline as pl
 from landingai.pipeline.frameset import FrameSet
-from landingai.pipeline.image_source import ImageFolder, NetworkedCamera
+from landingai.pipeline.image_source import ImageFolder, NetworkedCamera, Screenshot, Webcam
 
 
 def test_image_folder_for_loop(input_image_folder):
@@ -119,6 +120,26 @@ def test_networked_camera():
     assert (
         image_distance > 100000
     )  # Even with little motion this number should exceed 100k
+
+
+@mock.patch("landingai.pipeline.image_source.cv2")
+def test_webcam(mock_cv2):
+    """Makes sure webcam is a networked camare that just uses camera index as stream URL"""
+    cam = Webcam()
+    assert isinstance(cam, NetworkedCamera)
+    mock_cv2.VideoCapture.assert_called_once_with(0)
+
+
+@mock.patch(
+    "landingai.pipeline.image_source.ImageGrab.grab",
+    return_value=PIL.Image.open("tests/data/images/cereal1.jpeg")
+)
+def test_screenshot(mock_img_grab):
+    screenshot = Screenshot()
+    frame = next(screenshot)
+    assert isinstance(frame, FrameSet)
+    expected_img = PIL.Image.open("tests/data/images/cereal1.jpeg")
+    assert (np.asarray(frame[0].image) == np.asarray(expected_img)).all()
 
 
 def test_videofile_properties():

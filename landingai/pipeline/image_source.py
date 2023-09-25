@@ -14,6 +14,7 @@ from typing import Iterator as IteratorType
 from typing import List, Optional, Union, Tuple
 
 import cv2
+from PIL import ImageGrab
 import numpy as np
 from pydantic import BaseModel, PrivateAttr
 
@@ -337,3 +338,35 @@ class NetworkedCamera(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class Webcam(NetworkedCamera):
+    """
+    The Webcam class can connect to a local webcam in order to grab frames.
+
+    This leverages the NetworkedCamera implementations, with the constructor
+    receiving the webcam ID to be sent to OpenCV (instead of a stream URL).
+    """
+    def __init__(
+        self,
+        webcam_source: int = 0,
+        motion_detection_threshold: int = 0,
+        capture_interval: Optional[float] = None,
+        fps: Optional[int] = None
+    ) -> None:
+        super().__init__(
+            webcam_source,
+            motion_detection_threshold=motion_detection_threshold,
+            capture_interval=capture_interval,
+            fps=fps,
+        )
+
+
+class Screenshot(ImageSourceBase):
+    """Take a screenshot from the screen as an image source."""
+    def __iter__(self) -> Iterator:
+        return self
+
+    def __next__(self) -> FrameSet:
+        frame = np.asarray(ImageGrab.grab())
+        return FrameSet.from_array(frame, is_bgr=False)
