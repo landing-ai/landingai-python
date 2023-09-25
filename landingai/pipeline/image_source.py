@@ -342,10 +342,11 @@ class NetworkedCamera(BaseModel):
 
 class Webcam(NetworkedCamera):
     """
-    The Webcam class can connect to a local webcam in order to grab frames.
+    The Webcam class can connect to a local webcam in order to iterate over captured frames.
 
     This leverages the NetworkedCamera implementations, with the constructor
     receiving the webcam ID to be sent to OpenCV (instead of a stream URL).
+    Note that it doesn't work with Collab or remote Jupyter notebooks (yet).
     """
 
     def __init__(
