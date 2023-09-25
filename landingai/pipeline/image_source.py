@@ -218,7 +218,7 @@ class NetworkedCamera(BaseModel):
 
     def __init__(
         self,
-        stream_url: str,
+        stream_url: Union[str, int],
         motion_detection_threshold: int = 0,
         capture_interval: Optional[float] = None,
         fps: Optional[int] = None,
