@@ -10,7 +10,12 @@ import pytest
 
 import landingai.pipeline as pl
 from landingai.pipeline.frameset import FrameSet
-from landingai.pipeline.image_source import ImageFolder, NetworkedCamera, Screenshot, Webcam
+from landingai.pipeline.image_source import (
+    ImageFolder,
+    NetworkedCamera,
+    Screenshot,
+    Webcam,
+)
 
 
 def test_image_folder_for_loop(input_image_folder):
@@ -132,7 +137,7 @@ def test_webcam(mock_cv2):
 
 @mock.patch(
     "landingai.pipeline.image_source.ImageGrab.grab",
-    return_value=PIL.Image.open("tests/data/images/cereal1.jpeg")
+    return_value=PIL.Image.open("tests/data/images/cereal1.jpeg"),
 )
 def test_screenshot(mock_img_grab):
     screenshot = Screenshot()

@@ -347,12 +347,13 @@ class Webcam(NetworkedCamera):
     This leverages the NetworkedCamera implementations, with the constructor
     receiving the webcam ID to be sent to OpenCV (instead of a stream URL).
     """
+
     def __init__(
         self,
         webcam_source: int = 0,
         motion_detection_threshold: int = 0,
         capture_interval: Optional[float] = None,
-        fps: Optional[int] = None
+        fps: Optional[int] = None,
     ) -> None:
         super().__init__(
             webcam_source,
@@ -364,6 +365,7 @@ class Webcam(NetworkedCamera):
 
 class Screenshot(ImageSourceBase):
     """Take a screenshot from the screen as an image source."""
+
     def __iter__(self) -> Iterator:
         return self
 
