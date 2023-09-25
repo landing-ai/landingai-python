@@ -226,7 +226,7 @@ class NetworkedCamera(BaseModel):
         """
         Parameters
         ----------
-        stream_url : url to video source
+        stream_url : url to video source, or a number indicating the webcam index
         motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
         capture_interval : Number of seconds to wait in between frames. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
         fps: Capture speed in frames per second. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
