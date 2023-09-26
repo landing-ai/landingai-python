@@ -28,12 +28,12 @@ jobs:
           poetry-version: "1.2.2"
 
       - run: poetry install --all-extras
-      - run: mkdir -p docs
-      - run: poetry run pdoc --docformat=numpy -o docs landingai
+      - run: mkdir -p docs-build
+      - run: poetry run pdoc -t docs/templates --docformat=numpy -o docs-build landingai
 
       - uses: actions/upload-pages-artifact@v1
         with:
-          path: docs/
+          path: docs-build/
 
   # Deploy the artifact to GitHub pages.
   # This is a separate job so that only actions/deploy-pages has the necessary permissions.
