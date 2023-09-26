@@ -5,6 +5,7 @@ import os
 import streamlit as st
 import snowflake.connector
 import textwrap
+import pandas as pd
 from PIL import Image
 
 import aiohttp

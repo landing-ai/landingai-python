@@ -1,6 +1,7 @@
 streamlit
 Pillow~=9.3.0
 aiohttp>=3.7.4
+pandas~=1.3.4
 
 # BEGIN: Snowflake requirements file
 # Generated on: Python 3.9.15
