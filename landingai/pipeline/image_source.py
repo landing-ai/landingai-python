@@ -14,6 +14,7 @@ from typing import Iterator as IteratorType
 from typing import List, Optional, Union, Tuple
 
 import cv2
+from PIL import ImageGrab
 import numpy as np
 from pydantic import BaseModel, PrivateAttr
 
@@ -217,7 +218,7 @@ class NetworkedCamera(BaseModel):
 
     def __init__(
         self,
-        stream_url: str,
+        stream_url: Union[str, int],
         motion_detection_threshold: int = 0,
         capture_interval: Optional[float] = None,
         fps: Optional[int] = None,
@@ -225,7 +226,7 @@ class NetworkedCamera(BaseModel):
         """
         Parameters
         ----------
-        stream_url : url to video source
+        stream_url : url to video source, or a number indicating the webcam index
         motion_detection_threshold : If set to zero then motion detections is disabled. Any other value (0-100) will make the camera drop all images that don't have significant changes
         capture_interval : Number of seconds to wait in between frames. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
         fps: Capture speed in frames per second. If set to None, the NetworkedCamera will acquire images as fast as the source permits.
@@ -337,3 +338,48 @@ class NetworkedCamera(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class Webcam(NetworkedCamera):
+    """
+    The Webcam class can connect to a local webcam in order to iterate over captured frames.
+
+    This leverages the NetworkedCamera implementations, with the constructor
+    receiving the webcam ID to be sent to OpenCV (instead of a stream URL).
+    Note that it doesn't work with Collab or remote Jupyter notebooks (yet). In this case,
+    use `landingai.image_source_ops.take_photo_from_webcam()` instead.
+    """
+
+    def __init__(
+        self,
+        webcam_source: int = 0,
+        motion_detection_threshold: int = 0,
+        capture_interval: Optional[float] = None,
+        fps: Optional[int] = None,
+    ) -> None:
+        super().__init__(
+            webcam_source,
+            motion_detection_threshold=motion_detection_threshold,
+            capture_interval=capture_interval,
+            fps=fps,
+        )
+
+
+class Screenshot(ImageSourceBase):
+    """
+    Take a screenshot from the screen as an image source.
+
+    The screenshot will be taken at each iteration when looping over this object. For example:
+    ```
+    for frameset in Screenshot():
+        # `frameset` will contain a single frame with the screenshot here
+        time.sleep(1)
+    ```
+    """
+
+    def __iter__(self) -> Iterator:
+        return self
+
+    def __next__(self) -> FrameSet:
+        frame = np.asarray(ImageGrab.grab())
+        return FrameSet.from_array(frame, is_bgr=False)
