@@ -20,6 +20,33 @@ from landingai.visualize import overlay_predictions
 _LOGGER = logging.getLogger(__name__)
 
 
+class PredictionList(list):
+    """
+    A list of predictions from LandingLens, with some helper methods to filter and check prediction results.
+
+    This class inherits from `list`, so it can be used as a list. For example, you can iterate over the predictions, or use `len()` to get the number of predictions.
+    Some operations are overriten to make it easier to work with predictions. For example, you can use `in` operator to check if a label is in the prediction list:
+
+    >>> "label-that-exists" in frameset.predictions
+    True
+    >>> "not-found-label" in frameset.predictions
+    False
+    """
+
+    def __contains__(self, key: object) -> bool:
+        if isinstance(key, str):
+            return any([p.label_name == key for p in self])
+        return super().__contains__(key)
+
+    def filter_threshold(self, min_score: float) -> "PredictionList":
+        """Return a new PredictionList with only the predictions that have a score greater than the threshold"""
+        return PredictionList([p for p in self if p.score >= min_score])
+
+    def filter_label(self, label: str) -> "PredictionList":
+        """Return a new PredictionList with only the predictions that have the specified label"""
+        return PredictionList([p for p in self if p.label_name == label])
+
+
 class Frame(BaseModel):
     """A Frame stores a main image, its metadata and potentially other derived images. This class will be mostly used internally by the FrameSet clase. A pipeline will `FrameSet` since it is more general and a can also keep new `Frames` extracted from existing ones"""
 
@@ -29,7 +56,7 @@ class Frame(BaseModel):
     other_images: Dict[str, Image.Image] = {}
     """Other derivative images associated with this the main image. For example: `FrameSet.overlay_predictions` will store the resulting image on `Frame.other_images["overlay"]"""
 
-    predictions: List[ClassificationPrediction] = []
+    predictions: PredictionList[ClassificationPrediction] = PredictionList([])
     """List of predictions for the main image"""
 
     metadata: Dict[str, Any] = {}
@@ -120,6 +147,14 @@ class FrameSet(BaseModel):
                 )
             )
         )
+
+    @property
+    def predictions(self) -> PredictionList[ClassificationPrediction]:
+        """Returns the predictions from all the frames in the FrameSet"""
+        ret = PredictionList()
+        for p in self.frames:
+            ret.extend(p.predictions)
+        return ret
 
     def is_empty(self) -> bool:
         """Check if the FrameSet is empty
