@@ -85,7 +85,7 @@ class Frame(BaseModel):
         ----------
         predictor: the model to be invoked.
         """
-        self.predictions = predictor.predict(np.asarray(self.image))  # type: ignore
+        self.predictions = PredictionList(predictor.predict(np.asarray(self.image)))  # type: ignore
         return self
 
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
