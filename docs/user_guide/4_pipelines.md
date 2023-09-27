@@ -17,9 +17,9 @@ predictor = Predictor(endpoint_id="abcde-1234-xxxx", api_key="land_sk_xxxx")
 # Get images from Webcam at a 1 FPS rate, run predictions on it and save results.
 for frame in Webcam(fps=1):
     frame
-      .downsize(width=512)
-      .run_predict(predictor=predictor)
-      .save_image(f"/tmp/detected-object", image_src="overlay")
+        .downsize(width=512)
+        .run_predict(predictor=predictor)
+        .save_image(f"/tmp/detected-object", image_src="overlay")
 ```
 
 You can also check the prediction result using some of the helper methods:
@@ -29,11 +29,21 @@ predictor = Predictor(endpoint_id="abcde-1234-xxxx", api_key="land_sk_xxxx")
 # Get images from Webcam at a 1 FPS rate, run predictions on it and check if
 # in the prediction we find "coffee-mug", a class created in LandingLens platform:
 for frame in Webcam(fps=1):
-    frameset = frame
-      .downsize(width=512)
-      .run_predict(predictor=predictor)
-    if "coffee-mug" in frameset.predictions:
-      print(f"Found {len(frameset.predictions)} coffee mugs in the image")
+    frame = frame
+        .downsize(width=512)
+        .run_predict(predictor=predictor)
+    if "coffee-mug" in frame.predictions:
+        print(f"Found {len(frame.predictions)} coffee mugs in the image")
+```
+
+FrameSet predictions has also other methods to help filter predicted classes:
+
+```python
+# Returns only the predictions with a confidence score above 0.9
+sure_predictions = frame.predictions.filter_threshold(0.9)
+
+# Returns only predictions for the "teapot" class
+teapot_predictions = frame.predictions.filter_label("teapot")
 ```
 
 As an other example, if we are detecting faces from a live stream, we may want to first use an object detection model to identify the regions of interest and then break the initial `Frame` into multiple frames (one per face). Subsequent stages of the pipeline may apply other models to individual faces.
