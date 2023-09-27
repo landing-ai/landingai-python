@@ -20,7 +20,7 @@ from landingai.visualize import overlay_predictions
 _LOGGER = logging.getLogger(__name__)
 
 
-class PredictionList(list[ClassificationPrediction]):
+class PredictionList(List[ClassificationPrediction]):
     """
     A list of predictions from LandingLens, with some helper methods to filter and check prediction results.
 
@@ -39,11 +39,28 @@ class PredictionList(list[ClassificationPrediction]):
         return super().__contains__(key)
 
     def filter_threshold(self, min_score: float) -> "PredictionList":
-        """Return a new PredictionList with only the predictions that have a score greater than the threshold"""
+        """Return a new PredictionList with only the predictions that have a score greater than the threshold
+
+        Parameters
+        ----------
+        min_score: The threshold to filter predictions out
+
+        Returns
+        -------
+        PredictionList : A new instance of PredictionList containing only predictions above min_score
+        """
         return PredictionList([p for p in self if p.score >= min_score])
 
     def filter_label(self, label: str) -> "PredictionList":
-        """Return a new PredictionList with only the predictions that have the specified label"""
+        """Return a new PredictionList with only the predictions that have the specified label
+
+        Parameters
+        ----------
+        label: The label name to filter for
+        Returns
+        -------
+        PredictionList : A new instance of PredictionList containing only the filtered labels
+        """
         return PredictionList([p for p in self if p.label_name == label])
 
 

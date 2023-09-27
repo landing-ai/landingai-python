@@ -52,9 +52,8 @@ def test_predictions_with_extra_frames_in_frameset(frameset_with_od_coffee_predi
     assert isinstance(frameset_with_od_coffee_prediction.predictions, PredictionList)
 
     assert (
-        len(frameset_with_od_coffee_prediction.predictions) == 2,
-        "frameset.predictions should concatenate predictions from all frames",
-    )
+        len(frameset_with_od_coffee_prediction.predictions) == 2
+    ), "frameset.predictions should concatenate predictions from all frames"
     assert frameset_with_od_coffee_prediction.predictions == [
         frameset_with_od_coffee_prediction.frames[0].predictions[0],
         frameset_with_od_coffee_prediction.frames[1].predictions[0],
