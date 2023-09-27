@@ -20,7 +20,7 @@ from landingai.visualize import overlay_predictions
 _LOGGER = logging.getLogger(__name__)
 
 
-class PredictionList(list):
+class PredictionList(list[ClassificationPrediction]):
     """
     A list of predictions from LandingLens, with some helper methods to filter and check prediction results.
 
@@ -56,7 +56,7 @@ class Frame(BaseModel):
     other_images: Dict[str, Image.Image] = {}
     """Other derivative images associated with this the main image. For example: `FrameSet.overlay_predictions` will store the resulting image on `Frame.other_images["overlay"]"""
 
-    predictions: PredictionList[ClassificationPrediction] = PredictionList([])
+    predictions: PredictionList = PredictionList([])
     """List of predictions for the main image"""
 
     metadata: Dict[str, Any] = {}
@@ -149,7 +149,7 @@ class FrameSet(BaseModel):
         )
 
     @property
-    def predictions(self) -> PredictionList[ClassificationPrediction]:
+    def predictions(self) -> PredictionList:
         """Returns the predictions from all the frames in the FrameSet"""
         ret = PredictionList()
         for p in self.frames:
