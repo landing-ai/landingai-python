@@ -364,6 +364,10 @@ class NetworkedCamera(BaseModel, ImageSourceBase):
             return True
         return False
 
+    # Make the class iterable. TODO Needs test cases
+    def __iter__(self) -> Any:
+        return self
+
     def __next__(self) -> "FrameSet":
         return self.get_latest_frame()
 
