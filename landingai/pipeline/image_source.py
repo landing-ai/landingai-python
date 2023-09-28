@@ -2,6 +2,7 @@
 
 import glob
 import logging
+import os
 import shutil
 import tempfile
 import threading
@@ -9,9 +10,11 @@ import time
 from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from types import TracebackType
+from typing import Any, Type
 from typing import Iterator as IteratorType
 from typing import List, Optional, Union, Tuple
+import warnings
 
 import cv2
 from PIL import ImageGrab
@@ -30,8 +33,23 @@ _DEFAULT_FPS = 30
 class ImageSourceBase(Iterator):
     """The base class for all image sources."""
 
+    def close(self) -> None:
+        """Free up any resource used by the image source"""
+        pass
+
     def __next__(self) -> FrameSet:
         raise NotImplementedError()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> Optional[bool]:
+        self.close()
 
 
 class ImageFolder(ImageSourceBase):
@@ -198,12 +216,21 @@ class VideoFile(ImageSourceBase):
             yield FrameSet.from_image(img_path)
 
     def __del__(self) -> None:
+        if os.path.exists(self._local_cache_dir):
+            # TODO: deprecate the __del__ method in future versions.
+            warnings.warn(
+                "VideoFile object should be closed explicitly with close(), or using with statement."
+                "Automatically closing it "
+            )
+            self.close()
+
+    def close(self) -> None:
         shutil.rmtree(self._local_cache_dir)
 
 
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will start to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
-class NetworkedCamera(BaseModel):
+class NetworkedCamera(ImageSourceBase, BaseModel):
     """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame"""
 
     stream_url: str
@@ -264,6 +291,15 @@ class NetworkedCamera(BaseModel):
         self._t.start()
 
     def __del__(self) -> None:
+        if self._t_running:
+            # TODO: deprecate the __del__ method in future versions.
+            warnings.warn(
+                "NetworkedCamera object should be closed explicitly with close(), or using with statement."
+                "Automatically closing it when derreferencing is deprecated, and will be removed in future versions."
+            )
+            self.close()
+
+    def close(self) -> None:
         self._t_running = False
         self._t.join(timeout=10)
         self._cap.release()
@@ -328,10 +364,6 @@ class NetworkedCamera(BaseModel):
             self.previous_frame = prepared_frame
             return True
         return False
-
-    # Make the class iterable. TODO Needs test cases
-    def __iter__(self) -> Any:
-        return self
 
     def __next__(self) -> "FrameSet":
         return self.get_latest_frame()
