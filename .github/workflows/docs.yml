@@ -28,9 +28,9 @@ jobs:
           poetry-version: "1.2.2"
 
       - run: poetry install --all-extras
-      - run: mkdir -p docs-build docs-build/__v2-preview
+      - run: mkdir -p docs-build
       - run: poetry run pdoc -t pdocs/templates --docformat=numpy -o docs-build landingai
-      - run: poetry run mkdocs build -f mkdocs.yml -d docs-build/__v2-preview
+      # - run: poetry run mkdocs build -f mkdocs.yml -d docs-build/
 
       - uses: actions/upload-pages-artifact@v1
         with:
