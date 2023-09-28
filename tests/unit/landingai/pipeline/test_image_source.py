@@ -105,7 +105,6 @@ def test_networked_camera():
     with NetworkedCamera(
         stream_url=test_video_file_path, motion_detection_threshold=50
     ) as camera:
-
         # Get the first frame and the next frame where motion is detected. I keep the detection threshold low to make the test fast
         i = iter(camera)
         frame1 = next(i)
@@ -117,7 +116,9 @@ def test_networked_camera():
         # frame1.show_image()
         # frame2.show_image()
         image_distance = np.sum(
-            cv2.absdiff(src1=frame1[0].to_numpy_array(), src2=frame2[0].to_numpy_array())
+            cv2.absdiff(
+                src1=frame1[0].to_numpy_array(), src2=frame2[0].to_numpy_array()
+            )
         )
 
         # Compute the diff by summing the delta between each pixel across the two images
