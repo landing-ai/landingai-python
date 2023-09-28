@@ -19,7 +19,7 @@ First, install the SDK:
 pip install landingai
 ```
 
-### Acquiring our first images
+### Acquiring your first images
 After that, you can start acquiring images from one of our image sources.
 
 For example, from your webcam:
@@ -75,4 +75,4 @@ with Webcam(fps=0.5) as webcam:
 
 That's it. Now, with just a few lines of code, you detect coffee mugs passing by your webcam.
 
-You can now check the other image sources available, and other helpers to process your images and the predictions you do on them. Check also our [Examples section](/examples) for inspiration.
+You can now check the other image sources available, and other helpers to process your images and the predictions you do on them. Check also our [Examples section](examples.md) for inspiration.

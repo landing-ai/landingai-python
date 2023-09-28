@@ -2,5 +2,13 @@
 
 {% block footer %}
   {{ super() }}
-  "Google Analytics tag goes here"
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z0XHQRFQQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-6Z0XHQRFQQ', {cookie_domain: 'landing-ai.github.io', cookie_flags: 'SameSite=None;Secure'});
+    </script>
 {% endblock %}

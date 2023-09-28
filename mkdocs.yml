@@ -31,11 +31,11 @@ markdown_extensions:
 
 nav:
   - Quick start: index.md
-  - Examples: examples
+  - Examples: examples.md
   #- Image acquisition: image-acquisition
   #- Image operations: image-operations
   #- Running Inferences: inferences
-  - Changelog: changelog
-  - Contributing: contributing
+  - Changelog: changelog.md
+  - Contributing: contributing.md
   - API docs:
-    - landingai.pipeline: api/pipeline
+    - landingai.pipeline: api/pipeline.md
