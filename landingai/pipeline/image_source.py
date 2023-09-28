@@ -11,7 +11,7 @@ from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Type
+from typing import Any, Literal, Type
 from typing import Iterator as IteratorType
 from typing import List, Optional, Union, Tuple
 import warnings
@@ -40,7 +40,7 @@ class ImageSourceBase(Iterator):
     def __next__(self) -> FrameSet:
         raise NotImplementedError()
 
-    def __enter__(self):
+    def __enter__(self) -> "ImageSourceBase":
         return self
 
     def __exit__(
@@ -48,8 +48,9 @@ class ImageSourceBase(Iterator):
         exc_type: Optional[Type[BaseException]],
         exc: Optional[BaseException],
         traceback: Optional[TracebackType],
-    ) -> Optional[bool]:
+    ) -> Literal[False]:
         self.close()
+        return False
 
 
 class ImageFolder(ImageSourceBase):
@@ -229,7 +230,7 @@ class VideoFile(ImageSourceBase):
 
 # openCV's default VideoCapture cannot drop frames so if the CPU is overloaded the stream will start to lag behind realtime.
 # This class creates a treaded capture implementation that can stay up to date wit the stream and decodes frames only on demand
-class NetworkedCamera(ImageSourceBase, BaseModel):
+class NetworkedCamera(BaseModel, ImageSourceBase):
     """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame"""
 
     stream_url: str
