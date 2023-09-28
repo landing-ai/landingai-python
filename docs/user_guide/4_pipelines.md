@@ -15,11 +15,12 @@ You can use data pipelines to run predictions quite easily, using the `landingai
 predictor = Predictor(endpoint_id="abcde-1234-xxxx", api_key="land_sk_xxxx")
 
 # Get images from Webcam at a 1 FPS rate, run predictions on it and save results.
-for frame in Webcam(fps=1):
-    frame
-        .downsize(width=512)
-        .run_predict(predictor=predictor)
-        .save_image(f"/tmp/detected-object", image_src="overlay")
+with Webcam(fps=1) as webcam:
+    for frame in webcam:
+        frame
+            .downsize(width=512)
+            .run_predict(predictor=predictor)
+            .save_image(f"/tmp/detected-object", image_src="overlay")
 ```
 
 You can also check the prediction result using some of the helper methods:
@@ -28,12 +29,13 @@ You can also check the prediction result using some of the helper methods:
 predictor = Predictor(endpoint_id="abcde-1234-xxxx", api_key="land_sk_xxxx")
 # Get images from Webcam at a 1 FPS rate, run predictions on it and check if
 # in the prediction we find "coffee-mug", a class created in LandingLens platform:
-for frame in Webcam(fps=1):
-    frame = frame
-        .downsize(width=512)
-        .run_predict(predictor=predictor)
-    if "coffee-mug" in frame.predictions:
-        print(f"Found {len(frame.predictions)} coffee mugs in the image")
+with Webcam(fps=1) as webcam:
+    for frame in webcam:
+        frame = frame
+            .downsize(width=512)
+            .run_predict(predictor=predictor)
+        if "coffee-mug" in frame.predictions:
+            print(f"Found {len(frame.predictions)} coffee mugs in the image")
 ```
 
 FrameSet predictions has also other methods to help filter predicted classes:
