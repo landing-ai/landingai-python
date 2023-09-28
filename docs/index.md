@@ -20,10 +20,10 @@ For example, from your webcam:
 ```py
 from landingai.pipeline.image_source import Webcam
 
-webcam = Webcam(fps=0.5)  # (1)!
-for frame in webcam:
-    resized_frame = frame.resize(width=512, height=512) # (2)!
-    resized_frame.save_image("/tmp/webcam-image-") # (3)!
+with Webcam(fps=0.5) as webcam:  # (1)!
+    for frame in webcam:
+        resized_frame = frame.resize(width=512, height=512) # (2)!
+        resized_frame.save_image("/tmp/webcam-image-") # (3)!
 ```
 
 1. Capture images from the webcam at 0.5 frames per second (1 frame every 2 seconds)
@@ -48,12 +48,12 @@ predictor = Predictor(  # (1)!
     endpoint_id="abcdef01-abcd-abcd-abcd-01234567890", # (2)!
     api_key="land_sk_xxxxxx", # (3)!
 )
-webcam = Webcam(fps=0.5)
-for frame in webcam:
-    resized_frame = frame.resize(width=512, height=512)
-    frame_with_predictions = resized_frame.run_predict(predictor=predictor) # (4)!
-    if "coffee-mug" in frame_with_predictions.predictions:  # (5)!
-        resized_frame.save_image("/tmp/webcam-image-", image_src="overlay") # (6)!
+with Webcam(fps=0.5) as webcam:
+    for frame in webcam:
+        resized_frame = frame.resize(width=512, height=512)
+        frame_with_predictions = resized_frame.run_predict(predictor=predictor) # (4)!
+        if "coffee-mug" in frame_with_predictions.predictions:  # (5)!
+            resized_frame.save_image("/tmp/webcam-image-", image_src="overlay") # (6)!
 ```
 
 1. asdfasdfasdf
