@@ -1,5 +1,8 @@
 site_name: Landing.ai SDK Documentation
 site_url: https://landing-ai.github.io/
+repo_url: https://github.com/landing-ai/landingai-python
+edit_uri: edit/main/docs/
+
 
 theme:
   name: "material"
@@ -7,6 +10,7 @@ theme:
   features:
     - content.code.copy
     - content.code.annotate
+    - content.action.edit
 
 plugins:
   - mkdocstrings
@@ -27,5 +31,11 @@ markdown_extensions:
 
 nav:
   - Quick start: index.md
+  - Examples: examples
+  #- Image acquisition: image-acquisition
+  #- Image operations: image-operations
+  #- Running Inferences: inferences
+  - Changelog: changelog
+  - Contributing: contributing
   - API docs:
-    - landingai.pipeline: api/pipeline.md
+    - landingai.pipeline: api/pipeline
