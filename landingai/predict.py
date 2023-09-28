@@ -758,16 +758,18 @@ def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Sessio
     session = Session()
     retries = Retry(
         # TODO: make them configurable
-        total=num_retry,
-        backoff_factor=3,  # This the amount of seconds to wait on the second retry (i.e. 0, 3, 6, 12). First retry is immediate
+        # The 5XX retry scheme needs to account for the circuit breaker which will shutdown a service for 10 seconds
+        total=num_retry,  # Defaults to 3
+        backoff_factor=7,  # This the amount of seconds to wait on the second retry (i.e. 0, 7, 21). First retry is immediate.
         raise_on_redirect=True,
         raise_on_status=False,  # We are already raising exceptions during backend invocations
         allowed_methods=["GET", "POST", "PUT"],
         status_forcelist=[
-            # 408 Request Timeout , 413 Content Too Large, 500 Internal Server Error
+            # 408 Request Timeout , 413 Content Too Large
             # 429,  # Too Many Requests  (ie. rate limiter). This is handled externally
+            # 500 Internal Server Error -> We don't retry here since it tends to reflect determinist software bugs
             502,  # Bad Gateway
-            503,  # Service Unavailable
+            503,  # Service Unavailable (include cloud circuit breaker)
             504,  # Gateway Timeout
         ],
     )
