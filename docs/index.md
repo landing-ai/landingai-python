@@ -39,7 +39,7 @@ with Webcam(fps=0.5) as webcam:  # (1)!
 
 
 ### Running inferences
-Nice. Now, if you already have a LandingLens account and a trained model, you
+Now, if you already have a LandingLens account and a trained model, you
 can start detecting things in your images.
 
 Let's use the images from our webcam and our coffee mug detector model, already deployed in LandingLens:
