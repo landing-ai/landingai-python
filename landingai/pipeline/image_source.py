@@ -219,8 +219,7 @@ class VideoFile(ImageSourceBase):
         if os.path.exists(self._local_cache_dir):
             # TODO: deprecate the __del__ method in future versions.
             warnings.warn(
-                "VideoFile object should be closed explicitly with close(), or using with statement."
-                "Automatically closing it "
+                "VideoFile object should be closed explicitly with close(), or using 'with' statement."
             )
             self.close()
 
@@ -295,7 +294,6 @@ class NetworkedCamera(ImageSourceBase, BaseModel):
             # TODO: deprecate the __del__ method in future versions.
             warnings.warn(
                 "NetworkedCamera object should be closed explicitly with close(), or using with statement."
-                "Automatically closing it when derreferencing is deprecated, and will be removed in future versions."
             )
             self.close()
 
