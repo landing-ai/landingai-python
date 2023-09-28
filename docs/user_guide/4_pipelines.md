@@ -15,7 +15,7 @@ You can use data pipelines to run predictions quite easily, using the `landingai
 predictor = Predictor(endpoint_id="abcde-1234-xxxx", api_key="land_sk_xxxx")
 
 # Get images from Webcam at a 1 FPS rate, run predictions on it and save results.
-with webcam as Webcam(fps=1):
+with Webcam(fps=1) as webcam:
     for frame in webcam:
         frame
             .downsize(width=512)
@@ -29,7 +29,7 @@ You can also check the prediction result using some of the helper methods:
 predictor = Predictor(endpoint_id="abcde-1234-xxxx", api_key="land_sk_xxxx")
 # Get images from Webcam at a 1 FPS rate, run predictions on it and check if
 # in the prediction we find "coffee-mug", a class created in LandingLens platform:
-with webcam as Webcam(fps=1):
+with Webcam(fps=1) as webcam:
     for frame in webcam:
         frame = frame
             .downsize(width=512)
