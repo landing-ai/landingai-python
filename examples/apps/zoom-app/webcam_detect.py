@@ -43,4 +43,3 @@ class WebcamDetect:
             )
             > 0
         )
-

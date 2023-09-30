@@ -14,4 +14,5 @@ def save(api_key: str, endpoint_id: str):
     st.session_state["api_key"] = api_key
     st.session_state["endpoint_id"] = endpoint_id
 
+
 st.button("Save", on_click=save(api_key, endpoint_id))
