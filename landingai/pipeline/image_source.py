@@ -37,7 +37,7 @@ class ImageSourceBase(Iterator):
         """Free up any resource used by the image source"""
         pass
 
-    def __next__(self) -> FrameSet:
+    def __next__(self) -> Frame:
         raise NotImplementedError()
 
     def __enter__(self) -> "ImageSourceBase":
@@ -120,10 +120,10 @@ class ImageFolder(ImageSourceBase):
             self._image_paths = [str(x) for x in p.glob("*") if x.is_file()]
             self._image_paths.sort()
 
-    def __iter__(self) -> IteratorType[FrameSet]:
+    def __iter__(self) -> IteratorType[Frame]:
         for img_path in self._image_paths:
             meta = {"image_path": img_path}
-            yield FrameSet.from_image(str(img_path), metadata=meta)
+            yield Frame.from_image(str(img_path), metadata=meta)
 
     def __len__(self) -> int:
         return len(self._image_paths)
@@ -210,11 +210,11 @@ class VideoFile(ImageSourceBase):
             self._target_total_frames,
         )
 
-    def __iter__(self) -> IteratorType[FrameSet]:
+    def __iter__(self) -> IteratorType[Frame]:
         for img_path in sample_images_from_video(
             self._video_file, self._local_cache_dir, self._samples_per_second
         ):
-            yield FrameSet.from_image(img_path)
+            yield Frame.from_image(img_path)
 
     def __del__(self) -> None:
         if os.path.exists(self._local_cache_dir):
@@ -318,7 +318,7 @@ class NetworkedCamera(BaseModel, ImageSourceBase):
             time.sleep(inter_frame_interval)  # Limit acquisition speed
 
     # retrieve latest frame
-    def get_latest_frame(self) -> "FrameSet":
+    def get_latest_frame(self) -> Optional["Frame"]:
         """Return the most up to date frame by dropping all by the latest frame. This function is blocking"""
         if self.capture_interval is not None:
             t = datetime.now()
@@ -332,11 +332,11 @@ class NetworkedCamera(BaseModel, ImageSourceBase):
         self._last_capture_time = datetime.now()
         if self.motion_detection_threshold > 0:
             if self._detect_motion(frame):
-                return FrameSet.from_array(frame)
+                return Frame.from_array(frame)
             else:
-                return FrameSet()  # Empty frame
+                return None  # Empty frame
 
-        return FrameSet.from_array(frame)
+        return Frame.from_array(frame)
 
     def _detect_motion(self, frame: np.ndarray) -> bool:  # TODO Needs test cases
         """ """
@@ -368,8 +368,14 @@ class NetworkedCamera(BaseModel, ImageSourceBase):
     def __iter__(self) -> Any:
         return self
 
-    def __next__(self) -> "FrameSet":
-        return self.get_latest_frame()
+    def __next__(self) -> "Frame":
+        latest_frame = self.get_latest_frame()
+        while latest_frame is None:
+            # If motion detection is set, we may get empty frames.
+            # We should not yield then, though: we should wait for the next frame
+            # until we get a real Frame.
+            latest_frame = self.get_latest_frame()
+        return latest_frame
 
     class Config:
         arbitrary_types_allowed = True
@@ -415,6 +421,6 @@ class Screenshot(ImageSourceBase):
     def __iter__(self) -> Iterator:
         return self
 
-    def __next__(self) -> FrameSet:
+    def __next__(self) -> Frame:
         frame = np.asarray(ImageGrab.grab())
-        return FrameSet.from_array(frame, is_bgr=False)
+        return Frame.from_array(frame, is_bgr=False)

@@ -65,7 +65,7 @@ class PredictionList(List[ClassificationPrediction]):
 
 
 class Frame(BaseModel):
-    """A Frame stores a main image, its metadata and potentially other derived images. This class will be mostly used internally by the FrameSet clase. A pipeline will `FrameSet` since it is more general and a can also keep new `Frames` extracted from existing ones"""
+    """A Frame stores a main image, its metadata and potentially other derived images."""
 
     image: Image.Image
     """Main image generated typically at the beginning of a pipeline"""
@@ -78,6 +78,43 @@ class Frame(BaseModel):
 
     metadata: Dict[str, Any] = {}
     """An optional collection of metadata"""
+
+    @classmethod
+    def from_image(cls, uri: str, metadata: Optional[Dict[str, Any]] = {}) -> "Frame":
+        """Creates a Frame from an image file
+
+        Parameters
+        ----------
+        uri : URI to file (local or remote)
+
+        Returns
+        -------
+        Frame : New Frame enclosing the image
+        """
+
+        image = Image.open(str(fetch_from_uri(uri)))
+        return cls(image=image, metadata=metadata)
+
+    @classmethod
+    def from_array(cls, array: np.ndarray, is_bgr: bool = True) -> "Frame":
+        """Creates a Frame from a image encode as ndarray
+
+        Parameters
+        ----------
+        array : np.ndarray
+            Image
+        is_bgr : bool, optional
+            Assume OpenCV's BGR channel ordering? Defaults to True
+
+        Returns
+        -------
+        Frame
+        """
+        # TODO: Make is_bgr and enum and support grayscale, rgba (what can PIL autodetect?)
+        if is_bgr:
+            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+        im = Image.fromarray(array)
+        return cls(image=im)
 
     def run_predict(self, predictor: Predictor) -> "Frame":
         """Run a cloud inference model
@@ -97,6 +134,55 @@ class Frame(BaseModel):
         """
         img = self.image if image_src == "" else self.other_images[image_src]
         return np.asarray(img)
+
+    def save_image(self, path: str, format: str = "png") -> None:
+        """Save the image to path
+
+        Parameters
+        ----------
+        path: File path for the output image
+        format: File format for the output image. Defaults to "png"
+        """
+        self.image.save(path, format=format.upper())
+
+    def resize(
+        self, width: Optional[int] = None, height: Optional[int] = None
+    ) -> "Frame":
+        """Resizes the frame to the given dimensions. If width or height is missing the resize will preserve the aspect ratio.
+        Parameters
+        ----------
+        width: The requested width in pixels.
+        height: The requested width in pixels.
+        """
+        if width is None and height is None:  # No resize needed
+            return self
+
+        if width is None:
+            width = int(height * float(self.image.size[0] / self.image.size[1]))  # type: ignore
+        if height is None:
+            height = int(width * float(self.image.size[1] / self.image.size[0]))
+        self.image = self.image.resize((width, height))
+        return self
+
+    def downsize(
+        self, width: Optional[int] = None, height: Optional[int] = None
+    ) -> "Frame":
+        """Resize only if the image is larger than the expected dimensions,
+        Parameters
+        ----------
+        width: The requested width in pixels.
+        height: The requested width in pixels.
+        """
+        if width is None and height is None:  # No resize needed
+            return self
+        # Compute the final dimensions on the first image
+        if width is None:
+            width = int(height * float(self.image.size[0] / self.image.size[1]))  # type: ignore
+        if height is None:
+            height = int(width * float(self.image.size[1] / self.image.size[0]))
+        if self.image.size[0] > width or self.image.size[1] > height:
+            self.image = self.image.resize((width, height))
+        return self
 
     class Config:
         arbitrary_types_allowed = True
@@ -125,9 +211,7 @@ class FrameSet(BaseModel):
         -------
         FrameSet : New FrameSet containing a single image
         """
-
-        im = Image.open(str(fetch_from_uri(uri)))
-        return cls(frames=[Frame(image=im, metadata=metadata)])
+        return cls(frames=[Frame.from_image(uri=uri, metadata=metadata)])
 
     @classmethod
     def from_array(cls, array: np.ndarray, is_bgr: bool = True) -> "FrameSet":
@@ -144,11 +228,7 @@ class FrameSet(BaseModel):
         -------
         FrameSet
         """
-        # TODO: Make is_bgr and enum and support grayscale, rgba (what can PIL autodetect?)
-        if is_bgr:
-            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-        im = Image.fromarray(array)
-        return cls(frames=[Frame(image=im)])
+        return cls(frames=[Frame.from_array(array=array, is_bgr=is_bgr)])
 
     # TODO: Is it worth to emulate a full container? - https://docs.python.org/3/reference/datamodel.html#emulating-container-types
     def __getitem__(self, key: int) -> Frame:
@@ -214,12 +294,7 @@ class FrameSet(BaseModel):
         if width is None and height is None:  # No resize needed
             return self
         for frame in self.frames:
-            # Compute the final dimensions on the first image
-            if width is None:
-                width = int(height * float(frame.image.size[0] / frame.image.size[1]))  # type: ignore
-            if height is None:
-                height = int(width * float(frame.image.size[1] / frame.image.size[0]))
-            frame.image = frame.image.resize((width, height))
+            frame.resize(width, height)
         return self
 
     def downsize(
@@ -243,7 +318,9 @@ class FrameSet(BaseModel):
                 frame.image = frame.image.resize((width, height))
         return self
 
-    def save_image(self, filename_prefix: str, image_src: str = "") -> "FrameSet":
+    def save_image(
+        self, filename_prefix: str, image_src: str = "", format: str = "png"
+    ) -> "FrameSet":
         """Save all the images on the FrameSet to disk (as PNG)
 
         Parameters
@@ -251,14 +328,25 @@ class FrameSet(BaseModel):
         filename_prefix : path and name prefix for the image file
         image_src : if empty the source image will be saved. Otherwise the image will be selected from `other_images`
         """
-        timestamp = datetime.now().strftime(
-            "%Y%m%d-%H%M%S"
-        )  # TODO saving faster than 1 sec will cause image overwrite
-        c = 0
-        for frame in self.frames:
-            img = frame.image if image_src == "" else frame.other_images[image_src]
-            img.save(f"{filename_prefix}_{timestamp}_{image_src}_{c}.png", format="PNG")
-            c += 1
+        # If there is only one frame, save it with the given prefix without timestamp
+        if len(self.frames) == 1:
+            self.frames[0].save_image(
+                f"{filename_prefix}.{format.lower()}", format=format.upper()
+            )
+        else:
+            # TODO: deprecate this behavior. Using timestamp here makes it really hard
+            # to find the images later. We should probably use a counter instead (like "prefix_{i}.png")
+            timestamp = datetime.now().strftime(
+                "%Y%m%d-%H%M%S"
+            )  # TODO saving faster than 1 sec will cause image overwrite
+            c = 0
+            for frame in self.frames:
+                img = frame.image if image_src == "" else frame.other_images[image_src]
+                img.save(
+                    f"{filename_prefix}_{timestamp}_{image_src}_{c}.{format.lower()}",
+                    format=format.upper(),
+                )
+                c += 1
         return self
 
     def save_video(

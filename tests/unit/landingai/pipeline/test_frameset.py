@@ -9,6 +9,34 @@ from landingai.storage.data_access import fetch_from_uri
 from landingai.pipeline.frameset import FrameSet, Frame, PredictionList
 
 
+def get_frameset_with_od_coffee_prediction() -> FrameSet:
+    frameset = FrameSet.from_image("tests/data/images/cereal1.jpeg")
+    frameset.frames[0].predictions = [
+        ObjectDetectionPrediction(
+            score=0.6,
+            label_name="coffee",
+            label_index=1,
+            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            bboxes=(352, 147, 463, 248),
+        )
+    ]
+    return frameset
+
+
+def get_frame_with_od_coffee_prediction() -> Frame:
+    frame = Frame.from_image("tests/data/images/cereal1.jpeg")
+    frame.predictions = [
+        ObjectDetectionPrediction(
+            score=0.6,
+            label_name="coffee",
+            label_index=1,
+            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            bboxes=(352, 147, 463, 248),
+        )
+    ]
+    return frame
+
+
 def test_save_video(tmp_path: Path):
     frs = FrameSet.from_image("tests/data/images/cereal1.jpeg")
 
@@ -33,7 +61,8 @@ def test_predictions_empty():
     assert len(frameset.predictions) == 0
 
 
-def test_predictions_with_extra_frames_in_frameset(frameset_with_od_coffee_prediction):
+def test_predictions_with_extra_frames_in_frameset():
+    frameset_with_od_coffee_prediction = get_frameset_with_od_coffee_prediction()
     img = Image.open(str(fetch_from_uri("tests/data/images/cereal1.jpeg")))
 
     other_prediction = ObjectDetectionPrediction(
@@ -60,12 +89,14 @@ def test_predictions_with_extra_frames_in_frameset(frameset_with_od_coffee_predi
     ]
 
 
-def test_od_predictions_contains_label(frameset_with_od_coffee_prediction):
+def test_od_predictions_contains_label():
+    frameset_with_od_coffee_prediction = get_frameset_with_od_coffee_prediction()
     assert "coffee" in frameset_with_od_coffee_prediction.predictions
     assert "tea" not in frameset_with_od_coffee_prediction.predictions
 
 
-def test_od_predictions_filter_threshold(frameset_with_od_coffee_prediction):
+def test_od_predictions_filter_threshold():
+    frameset_with_od_coffee_prediction = get_frameset_with_od_coffee_prediction()
     assert "coffee" in frameset_with_od_coffee_prediction.predictions
     assert "tea" not in frameset_with_od_coffee_prediction.predictions
 
@@ -77,7 +108,8 @@ def test_od_predictions_filter_threshold(frameset_with_od_coffee_prediction):
     assert "tea" not in filtered_preds
 
 
-def test_od_predictions_filter_label(frameset_with_od_coffee_prediction):
+def test_od_predictions_filter_label():
+    frameset_with_od_coffee_prediction = get_frameset_with_od_coffee_prediction()
     assert "coffee" in frameset_with_od_coffee_prediction.predictions
     assert "tea" not in frameset_with_od_coffee_prediction.predictions
 
@@ -94,16 +126,50 @@ def test_od_predictions_filter_label(frameset_with_od_coffee_prediction):
     assert "tea" not in filtered_preds
 
 
-@pytest.fixture
-def frameset_with_od_coffee_prediction():
-    frameset = FrameSet.from_image("tests/data/images/cereal1.jpeg")
-    frameset.frames[0].predictions = [
-        ObjectDetectionPrediction(
-            score=0.6,
-            label_name="coffee",
-            label_index=1,
-            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            bboxes=(352, 147, 463, 248),
-        )
-    ]
-    return frameset
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+def test_resize(frame_getter):
+    frame = frame_getter()
+    frame.resize(width=100, height=100)
+    assert get_image_from_frame_or_frameset(frame).size == (100, 100)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+def test_frameset_downsize(frame_getter):
+    frame = frame_getter()
+    frame.downsize(width=5, height=5)
+    assert get_image_from_frame_or_frameset(frame).size == (5, 5)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+def test_frameset_downsize_bigger_than_original(frame_getter):
+    # "Downsizing" the image to a bigger size should not change the image size
+    frame = frame_getter()
+    image = get_image_from_frame_or_frameset(frame)
+    width, height = image.size
+    frame.downsize(width=width + 10, height=height + 10)
+    assert get_image_from_frame_or_frameset(frame).size == (width, height)
+
+
+def get_image_from_frame_or_frameset(frame_or_frameset) -> Image:
+    if isinstance(frame_or_frameset, FrameSet):
+        return frame_or_frameset.frames[0].image
+    else:
+        return frame_or_frameset.image
