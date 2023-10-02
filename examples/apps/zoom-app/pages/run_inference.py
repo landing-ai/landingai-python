@@ -2,7 +2,7 @@ import numpy as np
 import streamlit as st
 
 from sys import platform
-from landingai.pipeline.image_source import NetworkedCamera, Webcam
+from landingai.pipeline.image_source import Webcam
 from landingai.predict import Predictor
 
 
