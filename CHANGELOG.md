@@ -7,6 +7,23 @@ and this project (v1.0.0 and above) adheres to [Semantic Versioning](https://sem
 
 > WARNING: currently the `landingai` library is in alpha version, and it's not strictly following [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes will result a minor version bump instead of a major version bump. Feature releases will result in a patch version bump.
 
+## [0.3.0] - 2023-XX-YY
+
+### Major changes
+
+- [Image source iterators yielding single Frame](https://github.com/xxxxxx)
+
+
+### Migration Guide
+
+Whenever you iterate over an image source (`NetworkedCamera`, `Webcam`, etc), each iteration yields a single `Frame`, and not a `FrameSet`.
+But most `FrameSet` operations were migrated to `Frame` class, so you can still use the same API to manipulate the `Frame` object with very minor changes:
+
+1. `Frame` does not contain a `.frames` attribute, nor you can get index items from that. Instead, you should just use the `Frame` object directly (to do resize, check predictions, overlay predictions, etc).
+2. `Frame.save_image` receives a direct file path to where the frame image should be saved (not just a prefix, as it happens with `FrameSet`).
+
+
+
 ## [0.2.0] - 2023-07-12
 
 ### Major changes
