@@ -32,9 +32,15 @@ markdown_extensions:
 nav:
   - Quick start: index.md
   - Examples: examples.md
-  #- Image acquisition: image-acquisition
-  #- Image operations: image-operations
-  #- Running Inferences: inferences
+  - Image acquisition (soon):
+    - Image acquisition: image-acquisition/image-acquisition.md
+    - Image files: image-acquisition/image-file.md
+    - Video files: image-acquisition/video-file
+    - Webcam: webcam
+    - Network Camera: netcam
+    - Screenshots: screenshot
+  - Running Inferences (soon): inferences
+  - Image operations (soon): image-operations
   - Changelog: changelog.md
   - Contributing: contributing.md
   - API docs:

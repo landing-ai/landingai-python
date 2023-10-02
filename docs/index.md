@@ -20,22 +20,40 @@ pip install landingai
 ```
 
 ### Acquiring your first images
-After that, you can start acquiring images from one of our image sources.
+After installing, you can start acquiring images from one of our image sources.
 
-For example, from your webcam:
+For example, from a single image file:
+
+```py
+from landingai.pipeline.frameset import FrameSet
+
+frame = FrameSet.from_image("/path/to/your/image.jpg") # (1)!
+frame.resize(width=512, height=512) # (2)!
+frame.save_image("/tmp/resized-image.png") # (3)!
+```
+
+1. We support a large variety of image files formats. Just give it a try.
+2. Resize the image to 512x512 pixels.
+3. Save the resized image to `/tmp/resized-image.png`.
+
+
+You can also extract frames from your webcam, for example:
 
 ```py
 from landingai.pipeline.image_source import Webcam
 
 with Webcam(fps=0.5) as webcam:  # (1)!
     for frame in webcam:
-        resized_frame = frame.resize(width=512, height=512) # (2)!
-        resized_frame.save_image("/tmp/webcam-image-") # (3)!
+        frame.resize(width=512, height=512) # (2)!
+        frame.save_image("/tmp/webcam-image.png") # (3)!
 ```
 
 1. Capture images from the webcam at 0.5 frames per second (1 frame every 2 seconds), closing the camera at the end of the `with` block
 2. Resize the frame to 512x512 pixels
 3. Save the images as `/tmp/webcam-image-<timestamp>.png`
+
+
+For more image sources, check the [Image aquisition section](image-acquisition/image-acquisition.md).
 
 
 ### Running inferences
@@ -59,10 +77,10 @@ predictor = Predictor(  # (1)!
 )
 with Webcam(fps=0.5) as webcam:
     for frame in webcam:
-        frame = frame.resize(width=512) # (4)!
-        frame = frame.run_predict(predictor=predictor) # (5)!
+        frame.resize(width=512) # (4)!
+        frame.run_predict(predictor=predictor) # (5)!
         if "coffee-mug" in frame.predictions:  # (6)!
-            frame.save_image("/tmp/webcam-image-", image_src="overlay") # (7)!
+            frame.save_image("/tmp/latest-webcam-image.png", image_src="overlay") # (7)!
 ```
 
 1. Creates a LandingLens predictor object
