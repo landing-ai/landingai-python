@@ -22,7 +22,7 @@ import numpy as np
 from pydantic import BaseModel, PrivateAttr
 
 from landingai.image_source_ops import sample_images_from_video
-from landingai.pipeline.frameset import Frame, FrameSet
+from landingai.pipeline.frameset import Frame
 from landingai.storage.data_access import fetch_from_uri
 
 
