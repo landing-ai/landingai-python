@@ -125,6 +125,12 @@ class Frame(BaseModel):
         self.predictions = PredictionList(predictor.predict(np.asarray(self.image)))  # type: ignore
         return self
 
+    def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
+        self.other_images["overlay"] = overlay_predictions(
+            cast(List[Prediction], self.predictions), self.image, options
+        )
+        return self
+
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
         """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
 
@@ -277,9 +283,7 @@ class FrameSet(BaseModel):
         self, options: Optional[Dict[str, Any]] = None
     ) -> "FrameSet":  # TODO: Optional where to store
         for frame in self.frames:
-            frame.other_images["overlay"] = overlay_predictions(
-                cast(List[Prediction], frame.predictions), frame.image, options
-            )
+            frame.overlay_predictions(options)
         return self
 
     def resize(
