@@ -514,6 +514,20 @@ class FrameSet(BaseModel):
         self.frames.extend(frs.frames)
         return self
 
+    def append(self, fr: Frame) -> None:
+        """Add a Frame into this FrameSet
+
+        Parameters
+        ----------
+        fr : Frame
+            Frame to be added at the end of the current one
+
+        Returns
+        -------
+        FrameSet
+        """
+        self.frames.append(fr)
+
     def apply(self, function: Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
         """Apply a function to all frames
 
