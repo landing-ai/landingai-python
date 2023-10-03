@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union, cast
+import warnings
 
 import cv2
 import imageio
@@ -78,6 +79,15 @@ class Frame(BaseModel):
 
     metadata: Dict[str, Any] = {}
     """An optional collection of metadata"""
+
+    @property
+    def frames(self) -> List["Frame"]:
+        """Returns a list with a single frame"""
+        warnings.warn(
+            "frame.frames[x].<method> is deprecated and will be removed in future versions. "
+            "Use frame.<method> instead"
+        )
+        return [self]
 
     @classmethod
     def from_image(cls, uri: str, metadata: Optional[Dict[str, Any]] = {}) -> "Frame":
