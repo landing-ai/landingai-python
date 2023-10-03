@@ -16,7 +16,7 @@ if "api_key" in st.session_state and "endpoint_id" in st.session_state:
     bar_chart_placeholder = st.empty()
 
     pred_counts = {"Facing Camera": 0, "Facing Away": 0}
-    with Webcam(fps=1) as video_src:
+    with Webcam(fps=0.5) as video_src:
         for frame in video_src:
             frame.run_predict(model).overlay_predictions()
             if len(frame.frames) > 0:
