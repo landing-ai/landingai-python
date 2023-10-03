@@ -136,6 +136,8 @@ def test_od_predictions_filter_label():
 def test_frame_dot_frames_returns_all_available_frames(frame_getter):
     # TODO: This test should be deprecated together with Frame.frames property
     frame = frame_getter()
+    assert isinstance(frame.frames, list)
+    assert len(frame.frames) == 1
     assert isinstance(frame.frames[0].image.size, tuple)
 
 
