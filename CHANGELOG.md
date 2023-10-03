@@ -11,7 +11,7 @@ and this project (v1.0.0 and above) adheres to [Semantic Versioning](https://sem
 
 ### Major changes
 
-- [Image source iterators yielding single Frame](https://github.com/xxxxxx)
+- [Image source iterators yielding single Frame](https://github.com/landing-ai/landingai-python/pull/125)
 
 
 ### Migration Guide
@@ -19,7 +19,7 @@ and this project (v1.0.0 and above) adheres to [Semantic Versioning](https://sem
 Whenever you iterate over an image source (`NetworkedCamera`, `Webcam`, etc), each iteration yields a single `Frame`, and not a `FrameSet`.
 But most `FrameSet` operations were migrated to `Frame` class, so you can still use the same API to manipulate the `Frame` object with very minor changes:
 
-1. `Frame` does not contain a `.frames` attribute, nor you can get index items from that. Instead, you should just use the `Frame` object directly (to do resize, check predictions, overlay predictions, etc).
+1. On `for frame in image_source:`, don't use `frame.frames[0]` anymore. Instead, you should just use the `frame` object directly (to do resize, check predictions, overlay predictions, etc).
 2. `Frame.save_image` receives a direct file path to where the frame image should be saved (not just a prefix, as it happens with `FrameSet`).
 
 
