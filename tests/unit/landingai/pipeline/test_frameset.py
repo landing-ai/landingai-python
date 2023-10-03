@@ -133,6 +133,19 @@ def test_od_predictions_filter_label():
         get_frame_with_od_coffee_prediction,
     ],
 )
+def test_frame_dot_frames_returns_all_available_frames(frame_getter):
+    # TODO: This test should be deprecated together with Frame.frames property
+    frame = frame_getter()
+    assert isinstance(frame.frames[0].image.size, tuple)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
 def test_resize(frame_getter):
     frame = frame_getter()
     frame.resize(width=100, height=100)
