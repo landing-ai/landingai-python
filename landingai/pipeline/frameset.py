@@ -153,7 +153,11 @@ class Frame(BaseModel):
         return np.asarray(img)
 
     def show_image(
-        self, image_src: str = "", clear_nb_cell: bool = False, *, include_predictions: bool = False
+        self,
+        image_src: str = "",
+        clear_nb_cell: bool = False,
+        *,
+        include_predictions: bool = False,
     ) -> "Frame":
         """Open an a window and display all the images.
         Parameters
@@ -500,7 +504,11 @@ class FrameSet(BaseModel):
         return self
 
     def show_image(
-        self, image_src: str = "", clear_nb_cell: bool = False, *, include_predictions: bool = False
+        self,
+        image_src: str = "",
+        clear_nb_cell: bool = False,
+        *,
+        include_predictions: bool = False,
     ) -> "FrameSet":
         """Open an a window and display all the images.
         Parameters
@@ -516,7 +524,9 @@ class FrameSet(BaseModel):
                 include_predictions = True
 
         for frame in self.frames:
-            frame.show_image(clear_nb_cell=clear_nb_cell, include_predictions=include_predictions)
+            frame.show_image(
+                clear_nb_cell=clear_nb_cell, include_predictions=include_predictions
+            )
 
         # # TODO: Implement image stacking when we have multiple frames (https://answers.opencv.org/question/175912/how-to-display-multiple-images-in-one-window/)
         # """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.
