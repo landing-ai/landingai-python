@@ -40,7 +40,10 @@ nav:
     - Webcam: image-acquisition/webcam.md
     - Network Camera: image-acquisition/network-cameras.md
     - Screenshots: image-acquisition/screenshots.md
-  - Running Inferences (soon): inferences
+  - Running Inferences:
+    - Getting started: inferences/getting-started.md
+    - Working with Frames: inferences/frames-inference.md
+    - Overlaying predictions: inferences/overlaying-predictions.md
   - Image operations (soon): image-operations
   - Changelog: changelog.md
   - Contributing: contributing.md
