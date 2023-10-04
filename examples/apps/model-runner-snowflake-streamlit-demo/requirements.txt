@@ -1,0 +1,6 @@
+streamlit
+landingai
+pillow
+requests
+snowflake-connector-python
+snowflake-connector-python[pandas]
