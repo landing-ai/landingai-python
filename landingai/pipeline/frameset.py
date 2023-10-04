@@ -151,15 +151,22 @@ class Frame(BaseModel):
         img = self.image if image_src == "" else self.other_images[image_src]
         return np.asarray(img)
 
-    def save_image(self, path: str, format: str = "png") -> None:
+    def save_image(
+        self, path: str, format: str = "png", *, include_predictions: bool = False
+    ) -> None:
         """Save the image to path
 
         Parameters
         ----------
         path: File path for the output image
         format: File format for the output image. Defaults to "png"
+        include_predictions: If the image has predictions, should it be overlayed on top of the image?
         """
-        self.image.save(path, format=format.upper())
+        if include_predictions:
+            img = self.other_images["overlay"]
+        else:
+            img = self.image
+        img.save(path, format=format.upper())
 
     def resize(
         self, width: Optional[int] = None, height: Optional[int] = None
@@ -325,19 +332,33 @@ class FrameSet(BaseModel):
         return self
 
     def save_image(
-        self, filename_prefix: str, image_src: str = "", format: str = "png"
+        self,
+        filename_prefix: str,
+        image_src: str = "",  # TODO: remove this parameter in next major version
+        format: str = "png",
+        *,
+        include_predictions: bool = False,
     ) -> "FrameSet":
         """Save all the images on the FrameSet to disk (as PNG)
 
         Parameters
         ----------
         filename_prefix : path and name prefix for the image file
-        image_src : if empty the source image will be saved. Otherwise the image will be selected from `other_images`
+        image_src: (deprecated) if empty the source image will be saved. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlayed on top of the image?
         """
+        if image_src:
+            warnings.warn(
+                "image_src keyword on FrameSet.save_image is deprecated. Use include_predictions instead."
+            )
+        if include_predictions:
+            image_src = "overlay"
         # If there is only one frame, save it with the given prefix without timestamp
         if len(self.frames) == 1:
             self.frames[0].save_image(
-                f"{filename_prefix}.{format.lower()}", format=format.upper()
+                f"{filename_prefix}.{format.lower()}",
+                format=format.upper(),
+                include_predictions=include_predictions,
             )
         else:
             # TODO: deprecate this behavior. Using timestamp here makes it really hard
