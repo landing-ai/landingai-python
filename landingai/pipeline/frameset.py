@@ -320,16 +320,8 @@ class FrameSet(BaseModel):
         width: The requested width in pixels.
         height: The requested width in pixels.
         """
-        if width is None and height is None:  # No resize needed
-            return self
         for frame in self.frames:
-            # Compute the final dimensions on the first image
-            if width is None:
-                width = int(height * float(frame.image.size[0] / frame.image.size[1]))  # type: ignore
-            if height is None:
-                height = int(width * float(frame.image.size[1] / frame.image.size[0]))
-            if frame.image.size[0] > width or frame.image.size[1] > height:
-                frame.image = frame.image.resize((width, height))
+            frame.downsize(width, height)
         return self
 
     def save_image(
