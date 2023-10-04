@@ -54,3 +54,11 @@ with Webcam(fps=0.5) as webcam:
         if "coffee-mug" in frame.predictions.filter_threshold(0.95):
             print(f"I'm super sure I found a coffee-mug in the frame!")
 ```
+
+## Predictor object details
+
+The `Predictor` object is the main object used to run inferences. It calls LandingLens API to execute inferences using the hosted model.
+
+Keep in mind that LandingLens has rating limit that veryes with your plan. At the moment, non-enterprise plans allows for up to 40 requests per minute. If you exceed this limit, your Predictor object will retry the request automatically after some seconds.
+
+Please, adjust your image capturing rate to avoid exceeding the limit, or contact LandingAI support to upgrade your plan for higher limits or local inferences support.
