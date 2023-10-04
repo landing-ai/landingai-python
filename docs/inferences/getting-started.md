@@ -36,4 +36,4 @@ Apart from the endpoint ID, you will need an API Key to connect the SDK to Landi
 
 ## What's next?
 
-Now that you have both the API key and the endpoint ID, go to [Running inferences / Working with frames](inferences/frames-inference.md) section to run your first inference using the SDK.
+Now that you have both the API key and the endpoint ID, go to [Running inferences / Working with frames](frames-inference.md) section to run your first inference using the SDK.
