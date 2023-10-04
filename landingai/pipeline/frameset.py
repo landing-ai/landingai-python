@@ -14,7 +14,6 @@ from pydantic import BaseModel
 
 from landingai.common import ClassificationPrediction, Prediction
 from landingai.notebook_utils import is_running_in_notebook
-from landingai.pipeline import image_source
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
 from landingai.visualize import overlay_predictions
