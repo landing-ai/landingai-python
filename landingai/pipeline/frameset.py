@@ -154,7 +154,7 @@ class Frame(BaseModel):
 
     def show_image(
         self, image_src: str = "", clear_nb_cell: bool = False, *, include_predictions: bool = False
-    ) -> "FrameSet":
+    ) -> "Frame":
         """Open an a window and display all the images.
         Parameters
         ----------
@@ -186,6 +186,7 @@ class Frame(BaseModel):
                 self.image.show()
             else:
                 self.other_images[image_src].show()
+        return self
 
     def save_image(
         self, path: str, format: str = "png", *, include_predictions: bool = False
