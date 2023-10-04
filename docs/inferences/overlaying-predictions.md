@@ -13,14 +13,22 @@ with Webcam(fps=0.5) as webcam:
     for frame in webcam: # (2)!
         frame.resize(width=512)
         frame.run_predict(predictor=predictor) # (3)!
+        frame.overlay_predictions() # (4)!
         if "coffee-mug" in frame.predictions:
             frame.save_image(
-                path="frame.png",
-                include_predictions=True, # (4)!
+                path="frame-with-overlay.png",
+                include_predictions=True, # (5)!
             )
 ```
 
 1. Creates the Predictor object with your API key and endpoint ID.
 2. Iterate over each frame in the webcam feed.
 3. Runs the inference on the frame.
-4. Saves the frame with the predictions overlaid on top of the original image.
+4. Overlays the predictions on top of the original image.
+5. Saves the frame to `frame-with-overlay.png` with the predictions overlaid on top of the original image.
+
+
+
+The resulting image should look more or less like this for object detection models:
+
+![Coffee mug with overlay](../images/coffee-mug-overlay.png)

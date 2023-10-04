@@ -79,8 +79,9 @@ with Webcam(fps=0.5) as webcam:
     for frame in webcam:
         frame.resize(width=512) # (4)!
         frame.run_predict(predictor=predictor) # (5)!
+        frame.overlay_predictions()
         if "coffee-mug" in frame.predictions:  # (6)!
-            frame.save_image("/tmp/latest-webcam-image.png", image_src="overlay") # (7)!
+            frame.save_image("/tmp/latest-webcam-image.png", include_predictions=True) # (7)!
 ```
 
 1. Creates a LandingLens predictor object
@@ -89,8 +90,8 @@ with Webcam(fps=0.5) as webcam:
 4. Resize the image to `width=512`, keeping the aspect ratio. This is useful to save some bandwidth when sending the image to LandingLens for prediction.
 5. Runs inference in the resized frame, and returns a new frame with the predictions
 6. If a class names `coffee-mug` is found in the prediction
-7. Save the image with the predictions overlayed on top of the image (the `image_src="overlay"` part)
+7. Save the image with the predictions overlayed on top of the image.
 
 That's it. Now, with just a few lines of code, you detect coffee mugs passing by your webcam.
 
-You can now check the other image sources available, and other helpers to process your images and the predictions you do on them. Check also our [Examples section](examples.md) for inspiration.
+You can now check the [other image sources available](image-acquisition/image-acquisition.md), and how to process your images and [run prediction on them](inferences/getting-started.md). Check also our [Examples section](examples.md) for inspiration.

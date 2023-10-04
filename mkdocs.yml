@@ -44,7 +44,7 @@ nav:
     - Getting started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
     - Overlaying predictions: inferences/overlaying-predictions.md
-  - Image operations (soon): image-operations
+  - Image operations (soon): image-operations.md
   - Changelog: changelog.md
   - Contributing: contributing.md
   - API docs:
