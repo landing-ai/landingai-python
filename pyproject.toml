@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.2.45"
+version = "0.3.0"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
@@ -20,7 +20,7 @@ python = ">=3.8,<4.0"
 
 opencv-python = ">=4.5,<5.0"  # about 87MB (exclude transitive dependencies)
 numpy = ">=1.21.0,<2.0.0"
-pillow = "9.*" # Version 10.0.0 had a issue on FreeTypeFont that will be fixed on the next release 
+pillow = "9.*" # Version 10.0.0 had a issue on FreeTypeFont that will be fixed on the next release
 pydantic = { version = "1.*", extras = ["dotenv"] } # Version 2 has breaking changes (in particular to seetings)
 requests = "2.*"
 # snowflake-connector-python = "3.0.*"  # about 51MB (exclude transitive dependencies)

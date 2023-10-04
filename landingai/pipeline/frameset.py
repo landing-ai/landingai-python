@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from landingai.common import ClassificationPrediction, Prediction
 from landingai.notebook_utils import is_running_in_notebook
+from landingai.pipeline import image_source
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
 from landingai.visualize import overlay_predictions
@@ -150,6 +151,41 @@ class Frame(BaseModel):
         """
         img = self.image if image_src == "" else self.other_images[image_src]
         return np.asarray(img)
+
+    def show_image(
+        self, image_src: str = "", clear_nb_cell: bool = False, *, include_predictions: bool = False
+    ) -> "FrameSet":
+        """Open an a window and display all the images.
+        Parameters
+        ----------
+        image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlayed on top of the image?
+        """
+        if image_src:
+            warnings.warn(
+                "image_src keyword on Frame.show_image is deprecated. Use include_predictions instead."
+            )
+            if image_src == "overlay":
+                include_predictions = True
+        if include_predictions:
+            image_src = "overlay"
+        # TODO: Should show be a end leaf?
+        # Check if we are on a notebook context
+        if is_running_in_notebook():
+            from IPython import display
+
+            if clear_nb_cell:
+                display.clear_output(wait=True)
+            if image_src == "":
+                display.display(self.image)
+            else:
+                display.display(self.other_images[image_src])
+        else:
+            # Use PIL's implementation
+            if image_src == "":
+                self.image.show()
+            else:
+                self.other_images[image_src].show()
 
     def save_image(
         self, path: str, format: str = "png", *, include_predictions: bool = False
@@ -463,32 +499,23 @@ class FrameSet(BaseModel):
         return self
 
     def show_image(
-        self, image_src: str = "", clear_nb_cell: bool = False
+        self, image_src: str = "", clear_nb_cell: bool = False, *, include_predictions: bool = False
     ) -> "FrameSet":
         """Open an a window and display all the images.
         Parameters
         ----------
-        image_src: if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlayed on top of the image?
         """
-        # TODO: Should show be a end leaf?
-        # Check if we are on a notebook context
-        if is_running_in_notebook():
-            from IPython import display
+        if image_src:
+            warnings.warn(
+                "image_src keyword on FrameSet.show_image is deprecated. Use include_predictions instead."
+            )
+            if image_src == "overlay":
+                include_predictions = True
 
-            for frame in self.frames:
-                if clear_nb_cell:
-                    display.clear_output(wait=True)
-                if image_src == "":
-                    display.display(frame.image)
-                else:
-                    display.display(frame.other_images[image_src])
-        else:
-            # Use PIL's implementation
-            for frame in self.frames:
-                if image_src == "":
-                    frame.image.show()
-                else:
-                    frame.other_images[image_src].show()
+        for frame in self.frames:
+            frame.show_image(clear_nb_cell=clear_nb_cell, include_predictions=include_predictions)
 
         # # TODO: Implement image stacking when we have multiple frames (https://answers.opencv.org/question/175912/how-to-display-multiple-images-in-one-window/)
         # """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.
