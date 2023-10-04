@@ -16,8 +16,8 @@ predictor = Predictor(
 )
 with Webcam(fps=0.5) as webcam:
     for frame in webcam:
-        frame = frame.resize(width=512)
-        frame = frame.run_predict(predictor=predictor)
+        frame.resize(width=512)
+        frame.run_predict(predictor=predictor)
         if "coffee-mug" in frame.predictions:
             print(frame.predictions)
 ```
@@ -33,8 +33,7 @@ You can also filter the predictions by label, for example, to count only the pre
 ```py
 with Webcam(fps=0.5) as webcam:
     for frame in webcam:
-        frame = frame.resize(width=512)
-        frame = frame.run_predict(predictor=predictor)
+        frame.run_predict(predictor=predictor)
         total_coffee_mugs = len(frame.predictions.filter_label("coffee-mug"))
         if len(total_coffee_mugs):
             print(
@@ -51,8 +50,7 @@ filter the predictions by confidence score, for example, to count only the predi
 ```py
 with Webcam(fps=0.5) as webcam:
     for frame in webcam:
-        frame = frame.resize(width=512)
-        frame = frame.run_predict(predictor=predictor)
+        frame.run_predict(predictor=predictor)
         if "coffee-mug" in frame.predictions.filter_threshold(0.95):
             print(f"I'm super sure I found a coffee-mug in the frame!")
 ```
