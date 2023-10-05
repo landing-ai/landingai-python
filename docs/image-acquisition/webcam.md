@@ -24,3 +24,19 @@ frameset.save_video("/tmp/resized-video.mp4") # (6)!
 5. Append the resized frame to the `FrameSet`
 6. Save the resized video to `/tmp/resized-video.mp4`.
 
+## Webcam on Collab and Remote Jupyter Notebooks
+
+If you want to use your webcam while running a remote Jupyter Notebook or Google Collab, you might want to
+capture images from your local webcam (the one in the computer running the web UI, not the
+machine running the kernel).
+
+In this case, `landingai.pipeline.image_source.Webcam` will not work. Instead, you should
+capture the images from your webcam using `take_photo_from_webcam()` function, from `landingai.image_source_ops` package:
+
+```py
+from landingai.image_source_ops import take_photo_from_webcam
+from landingai.pipeline.frameset import Frame
+
+frame = Frame(image=take_photo_from_webcam())
+frame.resize(width=256)
+```
