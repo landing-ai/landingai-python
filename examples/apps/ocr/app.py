@@ -27,7 +27,7 @@ Image.MAX_IMAGE_PIXELS = None
 
 class DetModel(str, Enum):
     AUTO_DETECT = "multi-text"
-    MANUAL_ROI = "single-text"
+    MANUAL_ROI = "multi-text_roi"
 
 
 # Streamlit app code
@@ -99,6 +99,8 @@ def main():
             key="th_slider",
         )
         mode = DetModel[detection_mode].value
+        if mode.startswith("multi-text"):
+            mode = "multi-text"
         key = get_api_key_or_use_default()
         # Run ocr on the whole image
         if input_images is not None and st.button("Run"):
