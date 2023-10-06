@@ -14,7 +14,7 @@ def draw_region_of_interests(image: PIL.Image.Image) -> Dict[str, Any]:
         st.sidebar.color_picker("Annotation color: ", "#EA1010") + "77"
     )  # for alpha from 00 to FF
     st.sidebar.write(
-        "To draw 4 point polygon left click and draw 3 edges (must in **clockwise order**) and then right click for the 4th point to close the polygon"
+        "To draw 4 point polygon left click and draw 3 edges (must be in **clockwise order**) and then right click for the 4th point to close the polygon"
     )
     mode = (
         "polygon"
