@@ -51,7 +51,7 @@ def extract_frames(video):
     )
     frames = []
     with st.spinner(text="Extracting frames from video file..."):
-        frames.extend(frame_info.frames[0].image for frame_info in video_source)
+        frames.extend(frame_info.image for frame_info in video_source)
     st.success("Frame Extraction Finished!")
     with st.expander("Preview extracted frames"):
         selected_img = image_select(

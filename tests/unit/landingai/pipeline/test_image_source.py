@@ -9,7 +9,7 @@ import PIL.Image
 import pytest
 
 import landingai.pipeline as pl
-from landingai.pipeline.frameset import FrameSet
+from landingai.pipeline.frameset import Frame
 from landingai.pipeline.image_source import (
     ImageFolder,
     NetworkedCamera,
@@ -24,20 +24,20 @@ def test_image_folder_for_loop(input_image_folder):
     expected_files.sort()
     with ImageFolder(input_image_folder) as folder:
         assert len(list(folder)) == 8
-        for i, frames in enumerate(folder):
-            assert isinstance(frames, FrameSet)
-            assert frames[0].image.size == (20, 20)
-            assert frames[0].metadata["image_path"] == expected_files[i]
+        for i, frame in enumerate(folder):
+            assert isinstance(frame, Frame)
+            assert frame.image.size == (20, 20)
+            assert frame.metadata["image_path"] == expected_files[i]
         assert len(list(folder)) == 8
 
 
 def test_image_folder_with_input_files(input_image_files):
     with ImageFolder(input_image_files) as folder:
         assert len(list(folder)) == 8
-        for i, frames in enumerate(folder):
-            assert isinstance(frames, FrameSet)
-            assert frames[0].image.size == (20, 20)
-            assert frames[0].metadata["image_path"] == input_image_files[i]
+        for i, frame in enumerate(folder):
+            assert isinstance(frame, Frame)
+            assert frame.image.size == (20, 20)
+            assert frame.metadata["image_path"] == input_image_files[i]
 
 
 def test_image_folder_with_glob_patterns(input_image_folder):
@@ -111,14 +111,12 @@ def test_networked_camera():
         while True:
             # if we cannot get any motion detection (e.g. Threshold 100%), next() will throw an exception and fail the test
             frame2 = next(i)
-            if not frame2.is_empty():
+            if frame2 is not None:
                 break
         # frame1.show_image()
         # frame2.show_image()
         image_distance = np.sum(
-            cv2.absdiff(
-                src1=frame1[0].to_numpy_array(), src2=frame2[0].to_numpy_array()
-            )
+            cv2.absdiff(src1=frame1.to_numpy_array(), src2=frame2.to_numpy_array())
         )
 
         # Compute the diff by summing the delta between each pixel across the two images
@@ -142,9 +140,9 @@ def test_webcam(mock_cv2):
 def test_screenshot(mock_img_grab):
     with Screenshot() as screenshot:
         frame = next(screenshot)
-        assert isinstance(frame, FrameSet)
+        assert isinstance(frame, Frame)
         expected_img = PIL.Image.open("tests/data/images/cereal1.jpeg")
-        assert (np.asarray(frame[0].image) == np.asarray(expected_img)).all()
+        assert (np.asarray(frame.image) == np.asarray(expected_img)).all()
 
 
 def test_videofile_properties():

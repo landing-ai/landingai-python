@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union, cast
+import warnings
 
 import cv2
 import imageio
@@ -65,7 +66,7 @@ class PredictionList(List[ClassificationPrediction]):
 
 
 class Frame(BaseModel):
-    """A Frame stores a main image, its metadata and potentially other derived images. This class will be mostly used internally by the FrameSet clase. A pipeline will `FrameSet` since it is more general and a can also keep new `Frames` extracted from existing ones"""
+    """A Frame stores a main image, its metadata and potentially other derived images."""
 
     image: Image.Image
     """Main image generated typically at the beginning of a pipeline"""
@@ -79,6 +80,52 @@ class Frame(BaseModel):
     metadata: Dict[str, Any] = {}
     """An optional collection of metadata"""
 
+    @property
+    def frames(self) -> List["Frame"]:
+        """Returns a list with a single frame"""
+        warnings.warn(
+            "frame.frames[x].<method> is deprecated and will be removed in future versions. "
+            "Use frame.<method> instead"
+        )
+        return [self]
+
+    @classmethod
+    def from_image(cls, uri: str, metadata: Optional[Dict[str, Any]] = {}) -> "Frame":
+        """Creates a Frame from an image file
+
+        Parameters
+        ----------
+        uri : URI to file (local or remote)
+
+        Returns
+        -------
+        Frame : New Frame enclosing the image
+        """
+
+        image = Image.open(str(fetch_from_uri(uri)))
+        return cls(image=image, metadata=metadata)
+
+    @classmethod
+    def from_array(cls, array: np.ndarray, is_bgr: bool = True) -> "Frame":
+        """Creates a Frame from a image encode as ndarray
+
+        Parameters
+        ----------
+        array : np.ndarray
+            Image
+        is_bgr : bool, optional
+            Assume OpenCV's BGR channel ordering? Defaults to True
+
+        Returns
+        -------
+        Frame
+        """
+        # TODO: Make is_bgr an enum and support grayscale, rgba (what can PIL autodetect?)
+        if is_bgr:
+            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+        im = Image.fromarray(array)
+        return cls(image=im)
+
     def run_predict(self, predictor: Predictor) -> "Frame":
         """Run a cloud inference model
         Parameters
@@ -86,6 +133,12 @@ class Frame(BaseModel):
         predictor: the model to be invoked.
         """
         self.predictions = PredictionList(predictor.predict(np.asarray(self.image)))  # type: ignore
+        return self
+
+    def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
+        self.other_images["overlay"] = overlay_predictions(
+            cast(List[Prediction], self.predictions), self.image, options
+        )
         return self
 
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
@@ -97,6 +150,102 @@ class Frame(BaseModel):
         """
         img = self.image if image_src == "" else self.other_images[image_src]
         return np.asarray(img)
+
+    def show_image(
+        self,
+        image_src: str = "",
+        clear_nb_cell: bool = False,
+        *,
+        include_predictions: bool = False,
+    ) -> "Frame":
+        """Open a window and display all the images.
+        Parameters
+        ----------
+        image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
+        """
+        if image_src:
+            warnings.warn(
+                "image_src keyword on Frame.show_image is deprecated. Use include_predictions instead."
+            )
+            if image_src == "overlay":
+                include_predictions = True
+        if include_predictions:
+            image_src = "overlay"
+        # TODO: Should show be a end leaf?
+        # Check if we are on a notebook context
+        if is_running_in_notebook():
+            from IPython import display
+
+            if clear_nb_cell:
+                display.clear_output(wait=True)
+            if image_src == "":
+                display.display(self.image)
+            else:
+                display.display(self.other_images[image_src])
+        else:
+            # Use PIL's implementation
+            if image_src == "":
+                self.image.show()
+            else:
+                self.other_images[image_src].show()
+        return self
+
+    def save_image(
+        self, path: str, format: str = "png", *, include_predictions: bool = False
+    ) -> None:
+        """Save the image to path
+
+        Parameters
+        ----------
+        path: File path for the output image
+        format: File format for the output image. Defaults to "png"
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
+        """
+        if include_predictions:
+            img = self.other_images["overlay"]
+        else:
+            img = self.image
+        img.save(path, format=format.upper())
+
+    def resize(
+        self, width: Optional[int] = None, height: Optional[int] = None
+    ) -> "Frame":
+        """Resizes the frame to the given dimensions. If width or height is missing the resize will preserve the aspect ratio.
+        Parameters
+        ----------
+        width: The requested width in pixels.
+        height: The requested width in pixels.
+        """
+        if width is None and height is None:  # No resize needed
+            return self
+
+        if width is None:
+            width = int(height * float(self.image.size[0] / self.image.size[1]))  # type: ignore
+        if height is None:
+            height = int(width * float(self.image.size[1] / self.image.size[0]))
+        self.image = self.image.resize((width, height))
+        return self
+
+    def downsize(
+        self, width: Optional[int] = None, height: Optional[int] = None
+    ) -> "Frame":
+        """Resize only if the image is larger than the expected dimensions,
+        Parameters
+        ----------
+        width: The requested width in pixels.
+        height: The requested width in pixels.
+        """
+        if width is None and height is None:  # No resize needed
+            return self
+        # Compute the final dimensions on the first image
+        if width is None:
+            width = int(height * float(self.image.size[0] / self.image.size[1]))  # type: ignore
+        if height is None:
+            height = int(width * float(self.image.size[1] / self.image.size[0]))
+        if self.image.size[0] > width or self.image.size[1] > height:
+            self.image = self.image.resize((width, height))
+        return self
 
     class Config:
         arbitrary_types_allowed = True
@@ -125,9 +274,7 @@ class FrameSet(BaseModel):
         -------
         FrameSet : New FrameSet containing a single image
         """
-
-        im = Image.open(str(fetch_from_uri(uri)))
-        return cls(frames=[Frame(image=im, metadata=metadata)])
+        return cls(frames=[Frame.from_image(uri=uri, metadata=metadata)])
 
     @classmethod
     def from_array(cls, array: np.ndarray, is_bgr: bool = True) -> "FrameSet":
@@ -144,11 +291,7 @@ class FrameSet(BaseModel):
         -------
         FrameSet
         """
-        # TODO: Make is_bgr and enum and support grayscale, rgba (what can PIL autodetect?)
-        if is_bgr:
-            array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-        im = Image.fromarray(array)
-        return cls(frames=[Frame(image=im)])
+        return cls(frames=[Frame.from_array(array=array, is_bgr=is_bgr)])
 
     # TODO: Is it worth to emulate a full container? - https://docs.python.org/3/reference/datamodel.html#emulating-container-types
     def __getitem__(self, key: int) -> Frame:
@@ -197,9 +340,7 @@ class FrameSet(BaseModel):
         self, options: Optional[Dict[str, Any]] = None
     ) -> "FrameSet":  # TODO: Optional where to store
         for frame in self.frames:
-            frame.other_images["overlay"] = overlay_predictions(
-                cast(List[Prediction], frame.predictions), frame.image, options
-            )
+            frame.overlay_predictions(options)
         return self
 
     def resize(
@@ -214,12 +355,7 @@ class FrameSet(BaseModel):
         if width is None and height is None:  # No resize needed
             return self
         for frame in self.frames:
-            # Compute the final dimensions on the first image
-            if width is None:
-                width = int(height * float(frame.image.size[0] / frame.image.size[1]))  # type: ignore
-            if height is None:
-                height = int(width * float(frame.image.size[1] / frame.image.size[0]))
-            frame.image = frame.image.resize((width, height))
+            frame.resize(width, height)
         return self
 
     def downsize(
@@ -231,34 +367,53 @@ class FrameSet(BaseModel):
         width: The requested width in pixels.
         height: The requested width in pixels.
         """
-        if width is None and height is None:  # No resize needed
-            return self
         for frame in self.frames:
-            # Compute the final dimensions on the first image
-            if width is None:
-                width = int(height * float(frame.image.size[0] / frame.image.size[1]))  # type: ignore
-            if height is None:
-                height = int(width * float(frame.image.size[1] / frame.image.size[0]))
-            if frame.image.size[0] > width or frame.image.size[1] > height:
-                frame.image = frame.image.resize((width, height))
+            frame.downsize(width, height)
         return self
 
-    def save_image(self, filename_prefix: str, image_src: str = "") -> "FrameSet":
+    def save_image(
+        self,
+        filename_prefix: str,
+        image_src: str = "",  # TODO: remove this parameter in next major version
+        format: str = "png",
+        *,
+        include_predictions: bool = False,
+    ) -> "FrameSet":
         """Save all the images on the FrameSet to disk (as PNG)
 
         Parameters
         ----------
         filename_prefix : path and name prefix for the image file
-        image_src : if empty the source image will be saved. Otherwise the image will be selected from `other_images`
+        image_src: (deprecated) if empty the source image will be saved. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
-        timestamp = datetime.now().strftime(
-            "%Y%m%d-%H%M%S"
-        )  # TODO saving faster than 1 sec will cause image overwrite
-        c = 0
-        for frame in self.frames:
-            img = frame.image if image_src == "" else frame.other_images[image_src]
-            img.save(f"{filename_prefix}_{timestamp}_{image_src}_{c}.png", format="PNG")
-            c += 1
+        if image_src:
+            warnings.warn(
+                "image_src keyword on FrameSet.save_image is deprecated. Use include_predictions instead."
+            )
+        if include_predictions:
+            image_src = "overlay"
+        # If there is only one frame, save it with the given prefix without timestamp
+        if len(self.frames) == 1:
+            self.frames[0].save_image(
+                f"{filename_prefix}.{format.lower()}",
+                format=format.upper(),
+                include_predictions=include_predictions,
+            )
+        else:
+            # TODO: deprecate this behavior. Using timestamp here makes it really hard
+            # to find the images later. We should probably use a counter instead (like "prefix_{i}.png")
+            timestamp = datetime.now().strftime(
+                "%Y%m%d-%H%M%S"
+            )  # TODO saving faster than 1 sec will cause image overwrite
+            c = 0
+            for frame in self.frames:
+                img = frame.image if image_src == "" else frame.other_images[image_src]
+                img.save(
+                    f"{filename_prefix}_{timestamp}_{image_src}_{c}.{format.lower()}",
+                    format=format.upper(),
+                )
+                c += 1
         return self
 
     def save_video(
@@ -348,32 +503,29 @@ class FrameSet(BaseModel):
         return self
 
     def show_image(
-        self, image_src: str = "", clear_nb_cell: bool = False
+        self,
+        image_src: str = "",
+        clear_nb_cell: bool = False,
+        *,
+        include_predictions: bool = False,
     ) -> "FrameSet":
-        """Open an a window and display all the images.
+        """Open a window and display all the images.
         Parameters
         ----------
-        image_src: if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
-        # TODO: Should show be a end leaf?
-        # Check if we are on a notebook context
-        if is_running_in_notebook():
-            from IPython import display
+        if image_src:
+            warnings.warn(
+                "image_src keyword on FrameSet.show_image is deprecated. Use include_predictions instead."
+            )
+            if image_src == "overlay":
+                include_predictions = True
 
-            for frame in self.frames:
-                if clear_nb_cell:
-                    display.clear_output(wait=True)
-                if image_src == "":
-                    display.display(frame.image)
-                else:
-                    display.display(frame.other_images[image_src])
-        else:
-            # Use PIL's implementation
-            for frame in self.frames:
-                if image_src == "":
-                    frame.image.show()
-                else:
-                    frame.other_images[image_src].show()
+        for frame in self.frames:
+            frame.show_image(
+                clear_nb_cell=clear_nb_cell, include_predictions=include_predictions
+            )
 
         # # TODO: Implement image stacking when we have multiple frames (https://answers.opencv.org/question/175912/how-to-display-multiple-images-in-one-window/)
         # """Open an OpenCV window and display all the images. This call will stop the execution until a key is pressed.
@@ -411,6 +563,20 @@ class FrameSet(BaseModel):
         """
         self.frames.extend(frs.frames)
         return self
+
+    def append(self, fr: Frame) -> None:
+        """Add a Frame into this FrameSet
+
+        Parameters
+        ----------
+        fr : Frame
+            Frame to be added at the end of the current one
+
+        Returns
+        -------
+        FrameSet
+        """
+        self.frames.append(fr)
 
     def apply(self, function: Callable[[Frame], Frame] = lambda f: f) -> "FrameSet":
         """Apply a function to all frames
