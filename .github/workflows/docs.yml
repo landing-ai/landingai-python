@@ -29,7 +29,8 @@ jobs:
 
       - run: poetry install --all-extras
       - run: mkdir -p docs-build
-      - run: poetry run pdoc -t docs/templates --docformat=numpy -o docs-build landingai
+      #- run: poetry run pdoc -t pdocs/templates --docformat=numpy -o docs-build landingai
+      - run: poetry run mkdocs build -f mkdocs.yml -d docs-build/
 
       - uses: actions/upload-pages-artifact@v1
         with:

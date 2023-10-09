@@ -49,6 +49,9 @@ types-aiofiles = "^23.1.0.4"
 types-tqdm = "^4.65.0.1"
 aioresponses = "^0.7.4"
 setuptools = "^68.0.0"
+mkdocs = "^1.5.3"
+mkdocstrings = {extras = ["python"], version = "^0.23.0"}
+mkdocs-material = "^9.4.2"
 
 
 [tool.poetry.group.examples.dependencies]

@@ -1,0 +1,65 @@
+site_name: Landing.ai SDK Documentation
+site_url: https://landing-ai.github.io/
+repo_url: https://github.com/landing-ai/landingai-python
+edit_uri: edit/main/docs/
+
+
+theme:
+  name: "material"
+  custom_dir: docs/_overrides
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+
+plugins:
+  - mkdocstrings
+  - search
+
+markdown_extensions:
+  # Syntax highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+  # Multiline note/warning/etc blocks (https://squidfunk.github.io/mkdocs-material/reference/admonitions)
+  - admonition
+  - pymdownx.details
+
+nav:
+  - Quick start: index.md
+  - Examples: examples.md
+  - Image acquisition:
+    - Image acquisition: image-acquisition/image-acquisition.md
+    - Image files: image-acquisition/image-file.md
+    - Video files: image-acquisition/video-file.md
+    - Webcam: image-acquisition/webcam.md
+    - Network Camera: image-acquisition/network-cameras.md
+    - Screenshots: image-acquisition/screenshots.md
+  - Running Inferences:
+    - Getting started: inferences/getting-started.md
+    - Working with Frames: inferences/frames-inference.md
+    - Overlaying predictions: inferences/overlaying-predictions.md
+  - Image operations (soon): image-operations.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
+  - API docs:
+    - landingai.common: api/common.md
+    - landingai.data_management: api/data_management.md
+    - landingai.exceptions: api/exceptions.md
+    - landingai.image_source_ops: api/image_source_ops.md
+    - landingai.notebook_utils: api/notebook_utils.md
+    - landingai.pipeline: api/pipeline.md
+    - landingai.postprocess: api/postprocess.md
+    - landingai.predict: api/predict.md
+    - landingai.st_utils: api/st_utils.md
+    - landingai.storage: api/storage.md
+    - landingai.telemetry: api/telemetry.md
+    - landingai.timer: api/timer.md
+    - landingai.transform: api/transform.md
+    - landingai.utils: api/utils.md
+    - landingai.visualize: api/visualize.md

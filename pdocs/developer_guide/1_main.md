@@ -65,7 +65,7 @@ Every git commit will trigger a release to `PyPi` at https://pypi.org/project/la
 
 ### Versioning
 
-When we release a new library version, we version it using [Sematic Versioning 2.0.0](https://semver.org/)(`MAJOR.MINOR.PATCH`). The version number is defined in the `pyproject.toml` file in the `version` field.
+When we release a new library version, we version it using [Semantic Versioning 2.0.0](https://semver.org/)(`MAJOR.MINOR.PATCH`). The version number is defined in the `pyproject.toml` file in the `version` field.
 
 As a general rule of thumb, given a version number `MAJOR.MINOR.PATCH`, increment the:
 
