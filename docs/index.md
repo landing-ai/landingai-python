@@ -16,7 +16,7 @@ The SDK includes helper features to acquire, process and detect things in your i
 First, install the SDK:
 
 ```bash
-pip install landingai
+pip install landingai~=0.3.0
 ```
 
 ### Acquiring your first images
