@@ -1,4 +1,4 @@
-Just like [video files](image-acquisition/video-file.md), you can extract frames from your local webcam using `landingai.image_source.Webcam`.
+Just like [video files](image-acquisition/video-file.md), you can extract frames from your local webcam using `landingai.pipeline.image_source.Webcam`.
 
 The example below iterates over the first 100 frames captured by the webcam, resizes it and saves it to
 a new video file.

@@ -7,12 +7,12 @@ To run inferences using LandingLens, you must first build a model. If you didn't
 
 Long story short, after creating a project in LandingLens you will need to:
 
-1. Upload example images
+1. Upload some images with the thing you want to detect
 2. Label those images
 3. Train a model by clicking the "Train" button
 4. Once the model is trained, you will need to click the "Deploy" button to deploy the model to an endpoint provided by LandingLens
 
-The image below ilustrate LandingLens painel with some example images already labeled, and the "Train" and "Deploy" buttons.
+The image below ilustrate LandingLens panel with some example images already labeled, and the "Train" and "Deploy" buttons.
 
 ![LandingLens dashboard, with train and deploy buttons](../images/landing-console-train-deploy.png)
 

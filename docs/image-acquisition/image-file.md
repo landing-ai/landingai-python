@@ -2,14 +2,14 @@ Creating a frame out of an image file is pretty straightforward:
 ```py
 from landingai.pipeline.frameset import Frame
 
-frame = Frame.from_image("/path/to/your/image.jpg")
-frame.resize(width=512, height=512)
-frame.save_image("/tmp/resized-image.png")
+frame = Frame.from_image("/path/to/your/image.jpg")  # (1)!
+frame.resize(width=512, height=512)  # (2)!
+frame.save_image("/tmp/resized-image.png")  # (3)!
 ```
 
 1. Open `/path/to/your/image.jpg` image file.
-2. Resize the frame to `width=512px` (keeping aspect ratio)
-3. Save the resized image to `/tmp/resized-image-<index>.png`.
+2. Resize the frame to `width=512px` and `height=512px`.
+3. Save the resized image to `/tmp/resized-image.png`.
 
 
 Alternatively, if you have a folder with multiple images, you can iterate over that

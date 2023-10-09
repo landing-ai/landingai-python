@@ -4,7 +4,7 @@ Now that you have the API key and an endpoint ID (if you don't, see [Running inf
 
 The SDK provides a variety of image sources helpers that can be used to acquire images (see [Image acquisition](image-acquisition/image-acquisition.md) section), and all those image sources yields `Frame` objects, that can be used to run inferences.
 
-The process is prety straightforward. To run inferences in frames extracted from the webcam, for example, you will just use the `Webcam` and the `Predictor` classes:
+The process is pretty straightforward. To run inferences in frames extracted from the webcam, for example, you will just use the `Webcam` and the `Predictor` classes:
 
 ```py
 from landingai.pipeline.image_source import Webcam
@@ -59,6 +59,6 @@ with Webcam(fps=0.5) as webcam:
 
 The `Predictor` object is the main object used to run inferences. It calls LandingLens API to execute inferences using the hosted model.
 
-Keep in mind that LandingLens has rating limit that veryes with your plan. At the moment, non-enterprise plans allows for up to 40 requests per minute. If you exceed this limit, your Predictor object will retry the request automatically after some seconds.
+Keep in mind that LandingLens has rating limit that varies with your plan. At the moment, non-enterprise plans allows for up to 40 requests per minute. If you exceed this limit, your Predictor object will retry the request automatically after some seconds.
 
 Please, adjust your image capturing rate to avoid exceeding the limit, or contact LandingAI team ([sales@landing.ai](sales@landing.ai)) to upgrade your plan for higher limits or local inferences support.

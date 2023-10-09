@@ -50,7 +50,7 @@ with Webcam(fps=0.5) as webcam:  # (1)!
 
 1. Capture images from the webcam at 0.5 frames per second (1 frame every 2 seconds), closing the camera at the end of the `with` block
 2. Resize the frame to 512x512 pixels
-3. Save the images as `/tmp/webcam-image-<timestamp>.png`
+3. Save the images as `/tmp/webcam-image.png`
 
 
 For more image sources, check the [Image aquisition section](image-acquisition/image-acquisition.md).
@@ -88,7 +88,7 @@ with Webcam(fps=0.5) as webcam:
 2. Here, you should set the endpoint_id you've got from the platform: <br/>![How to get endpoint ID](images/copy-endpoint-id.png "How to get endpoint ID").
 3. Here, you should set the API key you've got from the platform: <br/> ![How to get the API key](images/menu-api-key.png "How to get the API key").
 4. Resize the image to `width=512`, keeping the aspect ratio. This is useful to save some bandwidth when sending the image to LandingLens for prediction.
-5. Runs inference in the resized frame, and returns a new frame with the predictions
+5. Runs inference in the resized frame, and adds the predictions to the `Frame`.
 6. If a class names `coffee-mug` is found in the prediction
 7. Save the image with the predictions overlayed on top of the image.
 
