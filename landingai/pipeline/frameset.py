@@ -120,7 +120,7 @@ class Frame(BaseModel):
         -------
         Frame
         """
-        # TODO: Make is_bgr and enum and support grayscale, rgba (what can PIL autodetect?)
+        # TODO: Make is_bgr an enum and support grayscale, rgba (what can PIL autodetect?)
         if is_bgr:
             array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
         im = Image.fromarray(array)
@@ -158,11 +158,11 @@ class Frame(BaseModel):
         *,
         include_predictions: bool = False,
     ) -> "Frame":
-        """Open an a window and display all the images.
+        """Open a window and display all the images.
         Parameters
         ----------
         image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
-        include_predictions: If the image has predictions, should it be overlayed on top of the image?
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
         if image_src:
             warnings.warn(
@@ -200,7 +200,7 @@ class Frame(BaseModel):
         ----------
         path: File path for the output image
         format: File format for the output image. Defaults to "png"
-        include_predictions: If the image has predictions, should it be overlayed on top of the image?
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
         if include_predictions:
             img = self.other_images["overlay"]
@@ -385,7 +385,7 @@ class FrameSet(BaseModel):
         ----------
         filename_prefix : path and name prefix for the image file
         image_src: (deprecated) if empty the source image will be saved. Otherwise the image will be selected from `other_images`
-        include_predictions: If the image has predictions, should it be overlayed on top of the image?
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
         if image_src:
             warnings.warn(
@@ -509,11 +509,11 @@ class FrameSet(BaseModel):
         *,
         include_predictions: bool = False,
     ) -> "FrameSet":
-        """Open an a window and display all the images.
+        """Open a window and display all the images.
         Parameters
         ----------
         image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
-        include_predictions: If the image has predictions, should it be overlayed on top of the image?
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
         if image_src:
             warnings.warn(
