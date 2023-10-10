@@ -4,13 +4,11 @@
 
 # Welcome to the Landing AI Python SDK Documentation
 
-The Landing AI Python SDK is a set of tools to help you build computer vision applications, including
-integrations with [LandingLens](https://app.landing.ai/).
+The Landing AI Python SDK is a set of tools to help you build computer vision applications. While some of the functionality is specific to [LandingLens](https://app.landing.ai/), the computer vision platform from Landing AI, other features can be used for managing images in general.
 
 The SDK includes features to acquire, process, and detect objects in your images and videos, with the least amount of code as possible.
 
 ## Quick Start
-After you have trained and deployed a computer vision model in LandingLens, you can start detecting objects in your images using the Landing AI Python SDK.
 
 ### Install
 First, install the Landing AI Python library:
@@ -19,12 +17,6 @@ First, install the Landing AI Python library:
 pip install landingai~=0.3.0
 ```
 
-???+ note
-
-    Or to get the latest version, run:
-```bash
-pip install landingai
-```
     
 ### Acquire Your First Images
 
@@ -66,10 +58,13 @@ To learn how to acquire images from more sources, go to [Image Acquisition](imag
 
 ### Run Inference
 
-Now that you've learned the basics about how to acquire images, now let's look at how to run inference on those images.
+If you have deployed a computer vision model in LandingLens, you can use this library to send images to that model for inference.
 
 For example, let's say we've created and deployed a model in LandingLens that detects coffee mugs. Now, we'll use the code below to extract images (frames) from a webcam and run inference on those images.
 
+???+ note
+
+    If you don't have a LandingLens account, create one [here](https://app.landing.ai/). Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2). Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
 
 ```py
 from landingai.pipeline.image_source import Webcam
@@ -99,7 +94,3 @@ with Webcam(fps=0.5) as webcam:
 That's it! Now, with just a few lines of code, you can detect coffee mugs in front of your webcam.
 
 Now, learn about the other ways to [acquire images](image-acquisition/image-acquisition.md), and how to process your images and [run inference on them](inferences/getting-started.md). For inspiration, check out our [Examples](examples.md).
-
-???+ note
-
-    If you don't have a LandingLens account, create one [here](https://app.landing.ai/). Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2). Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
