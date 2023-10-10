@@ -25,9 +25,9 @@ After installing the Landing AI Python library, you can start acquiring images f
 For example, from a single image file:
 
 ```py
-from landingai.pipeline.frameset import FrameSet
+from landingai.pipeline.frameset import Frame
 
-frame = FrameSet.from_image("/path/to/your/image.jpg") # (1)!
+frame = Frame.from_image("/path/to/your/image.jpg") # (1)!
 frame.resize(width=512, height=512) # (2)!
 frame.save_image("/tmp/resized-image.png") # (3)!
 ```
