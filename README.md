@@ -28,10 +28,9 @@ We've provided some examples in Jupyter Notebooks to focus on ease of use, and s
 
 ## Documentation
 
--  [Landing AI Python Library User Guide](https://landing-ai.github.io/landingai-python/landingai.html#user-guide)
--  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/landingai.html)
--  [Landing AI Python Library Release Notes](https://landing-ai.github.io/landingai-python/landingai.html#changelog)
--  [Landing AI Python Library Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide)
+-  [Landing AI Python Library Quick Start Guide](https://landing-ai.github.io/landingai-python/)
+-  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/api/common/)
+-  [Landing AI Python Library Changelog](https://landing-ai.github.io/landingai-python/changelog/)
 -  [Landing AI Support Center](https://support.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
 
@@ -46,7 +45,7 @@ pip install landingai
 
 ### Prerequisites
 
-This library needs to communicate with the LandingLens platform to perform certain functions. (For example, the `Predictor` API calls the HTTP endpoint of your deployed model). To enable communication with LandingLens, you will need the following information:
+This library needs to communicate with the LandingLens platform to perform certain functions. For example, the `Predictor` API calls the HTTP endpoint of your deployed model. To enable communication with LandingLens, you will need the following information:
 
 1. The **Endpoint ID** of your deployed model in LandingLens. You can find this on the Deploy page in LandingLens.
 2. The **API Key** for the LandingLens organization that has the model you want to deploy. To learn how to generate these credentials, go [here](https://support.landing.ai/docs/api-key-and-api-secret).
@@ -55,9 +54,9 @@ This library needs to communicate with the LandingLens platform to perform certa
 Run inference using the endpoint you created in LandingLens:
 
 1. Install the Python library.
-2. Create a `Predictor` class with your Endpoint ID, API Key, and API Secret.
-3. Load your image into a NumPy array (below the image is "image.png")
-4. Call the `predict()` function with an image (using the NumPy array format).
+2. Create a `Predictor` class with your Endpoint ID and API Key.
+3. Load your image into a PIL Image (below the image is "image.png")
+4. Call the `predict()` function with an Image.
 
 ```python
 from PIL import Image
@@ -72,7 +71,7 @@ predictor = Predictor(endpoint_id, api_key=api_key)
 predictions = predictor.predict(image)
 ```
 
-See a **working example** [here](https://github.com/landing-ai/landingai-python/blob/main/tests/integration/landingai/test_predict_e2e.py).
+See an end to end **working example** [here](https://colab.research.google.com/github/landing-ai/landingai-python/blob/main/examples/webcam-collab-notebook/webcam-collab-notebook.ipynb).
 
 ### Visualize and Save Predictions
 Visualize your inference results by overlaying the predictions on the input image and saving the updated image:
@@ -86,7 +85,7 @@ image_with_preds.save("image.jpg")
 ```
 ### Create a Vision Pipeline
 
-All the modules shown above and others can be chained together using the `landingai.pipeline` abstraction. At its core, a pipeline is a sequence of chained calls that operate on a `landingai.pipeline.FrameSet`.
+All the modules shown above and others can be chained together using the `landingai.pipeline` abstraction. At its core, a pipeline is a sequence of chained calls that operate on a `landingai.pipeline.Frame`.
 
 The following example shows how the previous sections come together on a pipeline. For more details, go to the [*Vision Pipelines User Guide*](https://landing-ai.github.io/landingai-python/landingai.html#vision-pipelines) 
 ```python
@@ -110,7 +109,7 @@ for frame in Camera:
 
 All the examples in this repo can be run locally.
 
-To give you some guidance, here's how you can run the `rtsp-capture` example locally in a shell environment:
+To give you some guidance, here's how you can run the [`rtsp-capture`](https://github.com/landing-ai/landingai-python/tree/main/examples/capture-service) example locally in a shell environment:
 
 1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python.git`
 2. Install the library: `poetry install --with examples` (See the [Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide) for how to install `poetry`)
