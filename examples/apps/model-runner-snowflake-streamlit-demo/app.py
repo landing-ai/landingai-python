@@ -4,7 +4,6 @@ from datetime import datetime
 
 import streamlit as st
 import requests
-import pandas as pd
 
 import snowflake.connector
 import textwrap
@@ -12,18 +11,19 @@ import pandas as pd
 from PIL import Image
 from snowflake.connector.pandas_tools import write_pandas
 from landingai.predict import EdgePredictor
+from landingai.visualize import overlay_bboxes
 
 '''
 ## Model Runner Snowflake Container Demo
 '''
 snowflake_config = {
-	"user": os.environ.get('SNOWFLAKE_USER'),
-	"password": os.environ.get('SNOWFLAKE_PASSWORD'),
+    "user": os.environ.get('SNOWFLAKE_USER'),
+    "password": os.environ.get('SNOWFLAKE_PASSWORD'),
     "database": os.environ.get('SNOWFLAKE_DATABASE'),
-	"account": os.environ.get('SNOWFLAKE_ACCOUNT'),
+    "account": os.environ.get('SNOWFLAKE_ACCOUNT'),
     "schema": os.environ.get('SNOWFLAKE_SCHEMA'),
-	"role": os.environ.get('SNOWFLAKE_ROLE'),
-	"warehouse": os.environ.get('SNOWFLAKE_WAREHOUSE'),
+    "role": os.environ.get('SNOWFLAKE_ROLE'),
+    "warehouse": os.environ.get('SNOWFLAKE_WAREHOUSE'),
 }
 
 MR_HOST = st.text_input('Model Runner hostname', os.environ.get('MODEL_RUNNER_HOST', 'localhost'))
@@ -76,36 +76,48 @@ test_images_df = load_test_image()
 
 landing_predictor = EdgePredictor(host=MR_HOST, port=int(MR_PORT))
 
-progress_text = "Inference in progress. Please wait."
+progress_text = "Inference in progress. Please wait..."
 progress_bar = st.progress(0, text=progress_text)
 progress_bar.empty()
 
 def inference():
+    result_vis_images = []
     job_id = uuid.uuid4()
-    images = test_images_df.head(10)
+    images = test_images_df
     count = len(images)
     image_paths = images['path']
+    defects = [0] * count
     scores = [0] * count
     labels = [''] * count
     timestamps = [''] * count
     for index, s3_path in image_paths.items():
-        predict_result = landing_predictor.predict(fetch_image(get_image_url(s3_path)))
-        if not predict_result:
+        progress_text = f"Inference on {index} of {count} images in progress. Please wait."
+        image = fetch_image(get_image_url(s3_path))
+        predict = landing_predictor.predict(image)
+        if not predict:
+            timestamps[index] = datetime.now().isoformat()
             logging.error(f"failed to run inference on image {s3_path}")
             continue
-        labels[index] = predict_result[0].label_name
-        scores[index] = predict_result[0].score
+        labels[index] = predict[0].label_name
+        scores[index] = predict[0].score
+        defects[index] = len(predict)
         timestamps[index] = datetime.now().isoformat()
         progress_bar.progress(1.0*index/count, text=progress_text)
+        if (index < 22):
+            vis_image = overlay_bboxes(predict, image)
+            result_vis_images.append(vis_image)
+        # st.write(predict)
     # create result dataframe
     result_df = pd.DataFrame({
         'JOB_ID': [str(job_id)]*count,
         'FILE_PATH': list(image_paths),
+        'DEFECT_COUNT': defects,
         'INFERENCE_CLASS': labels,
         'INFERENCE_SCORE': scores,
         'TIMESTAMP': timestamps,
     })
-    st.dataframe(result_df)
     write_pandas(conn, result_df, 'INFERENCE_RESULTS')
+    st.dataframe(result_df)
+    st.image(result_vis_images)
 
 bt = st.button('Run Inference on testing images', on_click=inference)
