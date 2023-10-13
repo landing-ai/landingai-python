@@ -1,6 +1,6 @@
 We've provided some examples in Jupyter Notebooks to focus on ease of use, and some examples in Python apps to provide a more robust and complete experience.
 
-If you have a cool app using Landing.ai SDK and you would like to have it featured here, please [let us know](https://github.com/landing-ai/landingai-python/issues/new).
+If you have a cool app that uses the Landing AI SDK and you would like to have it featured here, please [let us know](https://github.com/landing-ai/landingai-python/issues/new).
 
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 
@@ -18,7 +18,19 @@ All the examples in this repo can be run locally.
 
 To give you some guidance, here's how you can run the `rtsp-capture` example locally in a shell environment:
 
-1. Clone the repo to local: `git clone https://github.com/landing-ai/landingai-python.git`
-2. Install the library: `poetry install --with examples` (See the [Developer Guide](https://landing-ai.github.io/landingai-python/landingai.html#developer-guide) for how to install `poetry`)
-3. Activate the virtual environment: `poetry shell`
-4. Run: `python landingai-python/examples/capture-service/run.py`
+1. Clone the repo to local:
+```
+git clone https://github.com/landing-ai/landingai-python.git
+```
+2. Install the library (to see how to install `poetry`, go [here](https://python-poetry.org/docs/)):
+```
+poetry install --with examples
+```
+3. Activate the virtual environment:
+```
+poetry shell
+```
+4. Run: python landingai-python/examples/capture-service/run.py
+```
+python landingai-python/examples/capture-service/run.py
+```
