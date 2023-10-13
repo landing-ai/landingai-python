@@ -20,7 +20,7 @@ Use the `landingai.data_management.metadata.Metadata` API to manage metadata.
 
 The following screenshot shows how to acess the Manage Metadata module.
 
-![the Metadata Management UI](images/Metadata_Management_UI.png)
+![the Metadata Management UI](images/metadata-management-ui.png)
 
 ### Code Example of Metadata Management
 The following code snippet shows how to assign values to the Timestamp, Country, and Labeler metadata keys. 
