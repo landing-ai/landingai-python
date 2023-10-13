@@ -33,7 +33,6 @@ markdown_extensions:
 nav:
   - Quick start: index.md
   - Examples: examples.md
-  - Data Management: metadata.md
   - Image Acquisition:
     - Image Acquisition: image-acquisition/image-acquisition.md
     - Image Files: image-acquisition/image-file.md
@@ -45,6 +44,7 @@ nav:
     - Getting Started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
     - Overlaying Predictions: inferences/overlaying-predictions.md
+  - Data Management: metadata.md
   #- Image operations (soon): image-operations.md
   - APIs:
     - landingai.common: api/common.md
