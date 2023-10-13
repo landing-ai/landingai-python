@@ -33,7 +33,6 @@ markdown_extensions:
 nav:
   - Quick start: index.md
   - Examples: examples.md
-  - Concepts: concepts.md
   - Data Management: metadata.md
   - Image Acquisition:
     - Image Acquisition: image-acquisition/image-acquisition.md
