@@ -33,21 +33,24 @@ markdown_extensions:
 nav:
   - Quick start: index.md
   - Examples: examples.md
-  - Image acquisition:
-    - Image acquisition: image-acquisition/image-acquisition.md
-    - Image files: image-acquisition/image-file.md
-    - Video files: image-acquisition/video-file.md
+  - Concepts: concepts.md
+  - API Credentials: credentials.md
+  - Data Management: metadata.md
+  - Image Acquisition:
+    - Image Acquisition: image-acquisition/image-acquisition.md
+    - Image Files: image-acquisition/image-file.md
+    - Video Files: image-acquisition/video-file.md
     - Webcam: image-acquisition/webcam.md
     - Network Camera: image-acquisition/network-cameras.md
     - Screenshots: image-acquisition/screenshots.md
   - Running Inferences:
-    - Getting started: inferences/getting-started.md
+    - Getting Started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
-    - Overlaying predictions: inferences/overlaying-predictions.md
+    - Overlaying Predictions: inferences/overlaying-predictions.md
   #- Image operations (soon): image-operations.md
-  - Changelog: changelog.md
-  - Contributing: contributing.md
-  - API docs:
+  - Pipelines: pipelines.md 
+  - Post-Processing: post-processing.md
+  - APIs:
     - landingai.common: api/common.md
     - landingai.data_management: api/data_management.md
     - landingai.exceptions: api/exceptions.md
@@ -63,3 +66,5 @@ nav:
     - landingai.transform: api/transform.md
     - landingai.utils: api/utils.md
     - landingai.visualize: api/visualize.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
