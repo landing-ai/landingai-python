@@ -34,7 +34,6 @@ nav:
   - Quick start: index.md
   - Examples: examples.md
   - Concepts: concepts.md
-  - API Credentials: credentials.md
   - Data Management: metadata.md
   - Image Acquisition:
     - Image Acquisition: image-acquisition/image-acquisition.md
@@ -48,8 +47,6 @@ nav:
     - Working with Frames: inferences/frames-inference.md
     - Overlaying Predictions: inferences/overlaying-predictions.md
   #- Image operations (soon): image-operations.md
-  - Pipelines: pipelines.md 
-  - Post-Processing: post-processing.md
   - APIs:
     - landingai.common: api/common.md
     - landingai.data_management: api/data_management.md
