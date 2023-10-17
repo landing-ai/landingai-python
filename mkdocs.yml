@@ -44,12 +44,7 @@ nav:
     - Getting Started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
     - Overlaying Predictions: inferences/overlaying-predictions.md
-    - Running Inferences Locally:
-      - Model Runner: inferences/model-runner.md
-      - Requirements: inferences/model-runner/requirements.md
-      - Executing Model Runner: inferences/model-runner/spinning-up.md
-      - Running Inferences: infereces/model-runner/running-inferences.md
-      - GPU Support: inferences/model-runner/gpu-support.md
+    - Running Inferences Locally: inferences/model-runner.md
   - Data Management: metadata.md
   #- Image operations (soon): image-operations.md
   - APIs:
