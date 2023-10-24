@@ -13,6 +13,7 @@ from landingai.pipeline.frameset import FrameSet, Frame, PredictionList
 def get_frameset() -> FrameSet:
     return FrameSet.from_image("tests/data/images/cereal1.jpeg")
 
+
 def get_frame() -> Frame:
     return Frame.from_image("tests/data/images/cereal1.jpeg")
 
