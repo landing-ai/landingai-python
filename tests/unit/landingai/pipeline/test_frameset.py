@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from unittest import mock
 
 from PIL import Image
 import pytest
@@ -9,8 +10,15 @@ from landingai.storage.data_access import fetch_from_uri
 from landingai.pipeline.frameset import FrameSet, Frame, PredictionList
 
 
+def get_frameset() -> FrameSet:
+    return FrameSet.from_image("tests/data/images/cereal1.jpeg")
+
+def get_frame() -> Frame:
+    return Frame.from_image("tests/data/images/cereal1.jpeg")
+
+
 def get_frameset_with_od_coffee_prediction() -> FrameSet:
-    frameset = FrameSet.from_image("tests/data/images/cereal1.jpeg")
+    frameset = get_frameset()
     frameset.frames[0].predictions = [
         ObjectDetectionPrediction(
             score=0.6,
@@ -24,7 +32,7 @@ def get_frameset_with_od_coffee_prediction() -> FrameSet:
 
 
 def get_frame_with_od_coffee_prediction() -> Frame:
-    frame = Frame.from_image("tests/data/images/cereal1.jpeg")
+    frame = get_frame()
     frame.predictions = [
         ObjectDetectionPrediction(
             score=0.6,
@@ -181,6 +189,27 @@ def test_frameset_downsize_bigger_than_original(frame_getter):
     width, height = image.size
     frame.downsize(width=width + 10, height=height + 10)
     assert get_image_from_frame_or_frameset(frame).size == (width, height)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset,
+        get_frame,
+    ],
+)
+def test_predict_uses_raw_pil_image(frame_getter):
+    """Test that the predict method uses the raw PIL image, not the array-converted image.
+
+    This is to ensure that the image preserves its particularities when sent to predictor.
+    When sending the array-converted image, RGBA images will raise convertion errors, for example.
+    """
+    frame = frame_getter()
+    predictor = mock.Mock()
+    predictor.predict.return_value = []
+    frame.run_predict(predictor)
+    assert predictor.predict.call_count == 1
+    assert predictor.predict.call_args[0][0] is get_image_from_frame_or_frameset(frame)
 
 
 def get_image_from_frame_or_frameset(frame_or_frameset) -> Image:
