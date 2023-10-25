@@ -38,6 +38,8 @@ class PredictionList(List[ClassificationPrediction]):
         if not len(self):
             return False
         if isinstance(key, str):
+            # TODO: This is a hack to support OCR predictions. We should probably have different PredictionList
+            #  classes for each type of prediction, so we don't have to do this kind of checks and "type: ignore"
             if all(isinstance(p, OcrPrediction) for p in self):
                 # For OCR predictions, check if the key is in the full text
                 full_text = " ".join([p.text for p in self])  # type: ignore
