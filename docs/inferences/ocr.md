@@ -23,7 +23,7 @@ for prediction in frame.predictions:  # (4)!
     print(f"{prediction.text} (Confidence: {prediction.score})")  # (5)!
 ```
 
-1. Create an `OcrPredictor` instance with your API key.
+1. Create an `OcrPredictor` instance with your API key. Visit [https://app.landing.ai/](https://app.landing.ai/) and see [Getting the API Key](../getting-started#getting-the-api-key) for more details on how to get your API key.
 2. Create a `Frame` instance from an image file. You could use any image source, such as a webcam, video file, screenshots, etc. See [Image Acquisition](../image-acquisition/image-acquisition.md) for more details.
 3. Run inference on the frame to extract the text.
 4. Iterate over the predictions.
