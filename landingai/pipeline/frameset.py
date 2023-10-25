@@ -40,7 +40,7 @@ class PredictionList(List[ClassificationPrediction]):
         if isinstance(key, str):
             if all(isinstance(p, OcrPrediction) for p in self):
                 # For OCR predictions, check if the key is in the full text
-                full_text = " ".join([p.text for p in self])
+                full_text = " ".join([p.text for p in self])  # type: ignore
                 return key in full_text
             else:
                 return any([p.label_name == key for p in self])
