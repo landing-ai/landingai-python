@@ -1,6 +1,6 @@
 A common task for computer vision is extracting text from images, also known as OCR (Optical Character Recognition).
 
-LandingLens has OCR models available out-of-the-box, without the need to train your own model. The models are pre-trained on a variety of fonts types, and are optimized for accuracy and speed.
+The LandingLens Python SDK has OCR models available out-of-the-box, without the need to train your own model. The models are pre-trained on a variety of fonts types, and are optimized for accuracy and speed.
 
 ## Running OCR Inference
 
@@ -8,7 +8,7 @@ In order to extract text from an image, you can use the `landingai.predict.OcrPr
 
 The model works well with several font types. Let's try with this example image, which contains handwriting:
 
-![Handwriting "Hi from Landing-AI"](../images/handwriting-hello.png)
+![Handwritten note that reads "Hi From Landing.AI"](../images/handwriting-hello.png)
 
 ```python
 from landingai.predict import OcrPredictor
@@ -24,19 +24,19 @@ for prediction in frame.predictions:  # (4)!
 ```
 
 1. Create an `OcrPredictor` instance with your API key.
-2. Create a `Frame` instance from an image file. You could use any image source, such as a webcam, video file, screenshots, etc. See [Image acquisition](../image-acquisition/image-acquisition.md) for more details.
-3. Run inference on the frame to extract the texts
-4. Iterate over the predictions
-5. Print the text and confidence score
+2. Create a `Frame` instance from an image file. You could use any image source, such as a webcam, video file, screenshots, etc. See [Image Acquisition](../image-acquisition/image-acquisition.md) for more details.
+3. Run inference on the frame to extract the text.
+4. Iterate over the predictions.
+5. Print the text and confidence score.
 
 In the example above, the output should look like this:
 
 ```text
 Hi From (Confidence: 0.9179285764694214)
-Landing-AI (Confidence: 0.7755413055419922)
+Landing.AI (Confidence: 0.7755413055419922)
 ```
 
-You can also use the `in` operator to check if a certain text is present in the predictions:
+You can also use the `in` operator to check if a certain set of characters is present in the predictions:
 
 ```python
 if "Landing" in frame.predictions:
