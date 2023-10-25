@@ -44,6 +44,7 @@ nav:
     - Getting Started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
     - Overlaying Predictions: inferences/overlaying-predictions.md
+    - Extracting Text (OCR) [beta]: inferences/ocr.md
   - Data Management: metadata.md
   #- Image operations (soon): image-operations.md
   - APIs:

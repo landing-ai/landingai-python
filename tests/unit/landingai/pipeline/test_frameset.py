@@ -5,7 +5,7 @@ from unittest import mock
 from PIL import Image
 import pytest
 
-from landingai.common import ObjectDetectionPrediction
+from landingai.common import ObjectDetectionPrediction, OcrPrediction
 from landingai.storage.data_access import fetch_from_uri
 from landingai.pipeline.frameset import FrameSet, Frame, PredictionList
 
@@ -20,29 +20,71 @@ def get_frame() -> Frame:
 
 def get_frameset_with_od_coffee_prediction() -> FrameSet:
     frameset = get_frameset()
-    frameset.frames[0].predictions = [
-        ObjectDetectionPrediction(
-            score=0.6,
-            label_name="coffee",
-            label_index=1,
-            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            bboxes=(352, 147, 463, 248),
-        )
-    ]
+    frameset.frames[0].predictions = PredictionList(
+        [
+            ObjectDetectionPrediction(
+                score=0.6,
+                label_name="coffee",
+                label_index=1,
+                id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                bboxes=(352, 147, 463, 248),
+            )
+        ]
+    )
     return frameset
 
 
 def get_frame_with_od_coffee_prediction() -> Frame:
     frame = get_frame()
-    frame.predictions = [
-        ObjectDetectionPrediction(
-            score=0.6,
-            label_name="coffee",
-            label_index=1,
-            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            bboxes=(352, 147, 463, 248),
-        )
-    ]
+    frame.predictions = PredictionList(
+        [
+            ObjectDetectionPrediction(
+                score=0.6,
+                label_name="coffee",
+                label_index=1,
+                id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                bboxes=(352, 147, 463, 248),
+            )
+        ]
+    )
+    return frame
+
+
+def get_frame_with_ocr_predictions() -> Frame:
+    frame = get_frame()
+    frame.predictions = PredictionList(
+        [
+            OcrPrediction(
+                score=0.6,
+                text="there is some text",
+                location=[(19, 23), (289, 45), (284, 113), (14, 91)],
+            ),
+            OcrPrediction(
+                score=0.7,
+                text="in this image",
+                location=[(13, 105), (308, 108), (308, 190), (12, 188)],
+            ),
+        ]
+    )
+    return frame
+
+
+def get_frameset_with_ocr_predictions() -> Frame:
+    frame = get_frameset()
+    frame.frames[0].predictions = PredictionList(
+        [
+            OcrPrediction(
+                score=0.6,
+                text="there is some text",
+                location=[(19, 23), (289, 45), (284, 113), (14, 91)],
+            ),
+            OcrPrediction(
+                score=0.7,
+                text="in this image",
+                location=[(13, 105), (308, 108), (308, 190), (12, 188)],
+            ),
+        ]
+    )
     return frame
 
 
@@ -211,6 +253,20 @@ def test_predict_uses_raw_pil_image(frame_getter):
     frame.run_predict(predictor)
     assert predictor.predict.call_count == 1
     assert predictor.predict.call_args[0][0] is get_image_from_frame_or_frameset(frame)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_ocr_predictions,
+        get_frame_with_ocr_predictions,
+    ],
+)
+def test_ocr_predictions_contains_message(frame_getter):
+    frame = frame_getter()
+    assert "some text" in frame.predictions
+    assert "some text in" in frame.predictions
+    assert "not-present text" not in frame.predictions
 
 
 def get_image_from_frame_or_frameset(frame_or_frameset) -> Image:
