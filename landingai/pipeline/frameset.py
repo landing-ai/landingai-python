@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 from pydantic import BaseModel
 
-from landingai.common import ClassificationPrediction, Prediction
+from landingai.common import ClassificationPrediction, OcrPrediction, Prediction
 from landingai.notebook_utils import is_running_in_notebook
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
@@ -35,8 +35,15 @@ class PredictionList(List[ClassificationPrediction]):
     """
 
     def __contains__(self, key: object) -> bool:
+        if not len(self):
+            return False
         if isinstance(key, str):
-            return any([p.label_name == key for p in self])
+            if all(isinstance(p, OcrPrediction) for p in self):
+                # For OCR predictions, check if the key is in the full text
+                full_text = " ".join([p.text for p in self])
+                return key in full_text
+            else:
+                return any([p.label_name == key for p in self])
         return super().__contains__(key)
 
     def filter_threshold(self, min_score: float) -> "PredictionList":
