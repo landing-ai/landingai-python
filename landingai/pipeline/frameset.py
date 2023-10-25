@@ -132,7 +132,7 @@ class Frame(BaseModel):
         ----------
         predictor: the model to be invoked.
         """
-        self.predictions = PredictionList(predictor.predict(np.asarray(self.image)))  # type: ignore
+        self.predictions = PredictionList(predictor.predict(self.image))  # type: ignore
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
@@ -333,7 +333,7 @@ class FrameSet(BaseModel):
         """
 
         for frame in self.frames:
-            frame.predictions = predictor.predict(np.asarray(frame.image))  # type: ignore
+            frame.run_predict(predictor)
         return self
 
     def overlay_predictions(
