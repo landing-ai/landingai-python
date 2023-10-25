@@ -45,6 +45,7 @@ def get_frame_with_od_coffee_prediction() -> Frame:
     ])
     return frame
 
+
 def get_frame_with_ocr_predictions() -> Frame:
     frame = get_frame()
     frame.predictions = PredictionList([
