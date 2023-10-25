@@ -20,63 +20,71 @@ def get_frame() -> Frame:
 
 def get_frameset_with_od_coffee_prediction() -> FrameSet:
     frameset = get_frameset()
-    frameset.frames[0].predictions = PredictionList([
-        ObjectDetectionPrediction(
-            score=0.6,
-            label_name="coffee",
-            label_index=1,
-            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            bboxes=(352, 147, 463, 248),
-        )
-    ])
+    frameset.frames[0].predictions = PredictionList(
+        [
+            ObjectDetectionPrediction(
+                score=0.6,
+                label_name="coffee",
+                label_index=1,
+                id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                bboxes=(352, 147, 463, 248),
+            )
+        ]
+    )
     return frameset
 
 
 def get_frame_with_od_coffee_prediction() -> Frame:
     frame = get_frame()
-    frame.predictions = PredictionList([
-        ObjectDetectionPrediction(
-            score=0.6,
-            label_name="coffee",
-            label_index=1,
-            id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            bboxes=(352, 147, 463, 248),
-        )
-    ])
+    frame.predictions = PredictionList(
+        [
+            ObjectDetectionPrediction(
+                score=0.6,
+                label_name="coffee",
+                label_index=1,
+                id="aaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                bboxes=(352, 147, 463, 248),
+            )
+        ]
+    )
     return frame
 
 
 def get_frame_with_ocr_predictions() -> Frame:
     frame = get_frame()
-    frame.predictions = PredictionList([
-        OcrPrediction(
-            score=0.6,
-            text="there is some text",
-            location=[(19, 23), (289, 45), (284, 113), (14, 91)],
-        ),
-        OcrPrediction(
-            score=0.7,
-            text="in this image",
-            location=[(13, 105), (308, 108), (308, 190), (12, 188)],
-        ),
-    ])
+    frame.predictions = PredictionList(
+        [
+            OcrPrediction(
+                score=0.6,
+                text="there is some text",
+                location=[(19, 23), (289, 45), (284, 113), (14, 91)],
+            ),
+            OcrPrediction(
+                score=0.7,
+                text="in this image",
+                location=[(13, 105), (308, 108), (308, 190), (12, 188)],
+            ),
+        ]
+    )
     return frame
 
 
 def get_frameset_with_ocr_predictions() -> Frame:
     frame = get_frameset()
-    frame.frames[0].predictions = PredictionList([
-        OcrPrediction(
-            score=0.6,
-            text="there is some text",
-            location=[(19, 23), (289, 45), (284, 113), (14, 91)],
-        ),
-        OcrPrediction(
-            score=0.7,
-            text="in this image",
-            location=[(13, 105), (308, 108), (308, 190), (12, 188)],
-        ),
-    ])
+    frame.frames[0].predictions = PredictionList(
+        [
+            OcrPrediction(
+                score=0.6,
+                text="there is some text",
+                location=[(19, 23), (289, 45), (284, 113), (14, 91)],
+            ),
+            OcrPrediction(
+                score=0.7,
+                text="in this image",
+                location=[(13, 105), (308, 108), (308, 190), (12, 188)],
+            ),
+        ]
+    )
     return frame
 
 
