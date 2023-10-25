@@ -33,3 +33,10 @@ def test_set_metadata_for_multiple_media():
     response_metadata = resp["metadata"]
     assert len(response_metadata) == 1
     assert response_metadata["creator"] == "tom"
+
+
+def test_get_metadata_by_media_id():
+    _API_KEY = "land_sk_aMemWbpd41yXnQ0tXvZMh59ISgRuKNRKjJEIUHnkiH32NBJAwf"
+    metadata_client = Metadata(_PROJECT_ID, api_key=_API_KEY)
+    result = metadata_client.get(10304143)
+    assert result["creator"] == "123"

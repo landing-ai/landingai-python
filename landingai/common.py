@@ -189,7 +189,7 @@ class InferenceMetadata(BaseModel):
     )
 
 
-def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
+def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int] = None) -> List[int]:
     """
     Decode bitmap string to NumPy array.
 
@@ -198,12 +198,15 @@ def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
     bitmap:
         Single run-length encoded bitmap string. For example: "5Z3N2Z".
     encoding_map:
-        Dictionary with the enconding used to generate the bitmap. For example: {'Z':0, 'N':1}.
+        Dictionary with the enconding used to generate the bitmap.
+        If none, {'Z':0, 'N':1} will be used.
 
     Return
     -----
     A flattened segmentation mask (with 0s and 1s) for a single class.
     """
+    if not encoding_map:
+        encoding_map = {"Z": 0, "N": 1}
     flat_mask = []
     bitmap_list = re.split("(Z|N)", bitmap)
     for num, map_letter in zip(*[iter(bitmap_list)] * 2):

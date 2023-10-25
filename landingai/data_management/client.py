@@ -2,6 +2,7 @@ import io
 import json
 import logging
 import posixpath
+from functools import lru_cache
 from importlib.metadata import version
 from typing import Any, Dict, Optional, Tuple, cast
 
@@ -14,13 +15,17 @@ from landingai.utils import load_api_credential
 
 METADATA_ITEMS = "metadata_items"
 METADATA_UPDATE = "metadata_update"
+METADATA_GET = "metadata_get"
 MEDIA_LIST = "media_list"
 MEDIA_REGISTER = "media_register"
 MEDIA_SIGN = "media_sign"
+MEDIA_DETAILS = "media_details"
 MEDIA_UPDATE_SPLIT = "media_update_split"
 GET_PROJECT_SPLIT = "get_project_split"
 GET_PROJECT = "get_project"
 GET_DEFECTS = "get_defects"
+GET_PROJECT_MODEL_INFO = "get_project_model_info"
+GET_FAST_TRAINING_EXPORT = "get_fast_training_export"
 
 
 ROUTES = {
@@ -33,6 +38,16 @@ ROUTES = {
         "root_url": "LANDING_API",
         "endpoint": "api/dataset/update_media_split",
         "method": requests.post,
+    },
+    GET_PROJECT_MODEL_INFO: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/registered_model/get_project_model_info",
+        "method": requests.get,
+    },
+    GET_FAST_TRAINING_EXPORT: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/dataset/export/fast_training_export",
+        "method": requests.get,
     },
     GET_DEFECTS: {
         "root_url": "LANDING_API",
@@ -49,6 +64,11 @@ ROUTES = {
         "endpoint": "api/{version}/object/medias_metadata",
         "method": requests.post,
     },
+    METADATA_GET: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/{version}/object/metadata",
+        "method": requests.get,
+    },
     MEDIA_REGISTER: {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/medias/new",
@@ -64,6 +84,11 @@ ROUTES = {
         "endpoint": "api/{version}/dataset/medias",
         "method": requests.get,
     },
+    MEDIA_DETAILS: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/dataset/media_details",
+        "method": requests.get,
+    },
     GET_PROJECT: {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/project/with_users",
@@ -76,6 +101,7 @@ _URL_ROOTS = {
 }
 _API_VERSION = "v1"
 _LOGGER = logging.getLogger(__name__)
+_LRU_CACHE_SIZE = 1000
 
 
 # Backward incompatible changes compared to LandingLens CLI:
@@ -186,8 +212,7 @@ class LandingLens:
             headers=headers,
             verify=True,
         )
-        _LOGGER.debug("Request URL: ", resp.request.url)
-        _LOGGER.debug("Request Body: ", resp.request.body)
+        _LOGGER.info(f"Request URL: {resp.request.url}")
         _LOGGER.debug("Response Code: ", resp.status_code)
         _LOGGER.debug("Response Reason: ", resp.reason)
         _LOGGER.debug("Response Content (500 chars): ", resp.content[:500])
@@ -197,7 +222,8 @@ class LandingLens:
                     "message"
                 ]
             except Exception as e:
-                error_message = e
+                _LOGGER.warning(f"Failed to parse error message into json: {e}")
+                error_message = resp.text
             raise HttpError(
                 "HTTP request to LandingLens server failed with "
                 f"code {resp.status_code}-{resp.reason} and error message: \n"
@@ -255,6 +281,7 @@ class LandingLens:
             raise HttpError(f"{property} Id not found")
         return property_value
 
+    @lru_cache(maxsize=_LRU_CACHE_SIZE)
     def get_metadata_mappings(
         self, project_id: int
     ) -> Tuple[Dict[str, Any], Dict[int, str]]:
