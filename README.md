@@ -66,7 +66,9 @@ If you have deployed a computer vision model in LandingLens, you can use this li
 For example, let's say we've created and deployed a model in LandingLens that detects coffee mugs. Now, we'll use the code below to extract images (frames) from a webcam and run inference on those images.
 
 > [!NOTE]
-> If you don't have a LandingLens account, create one [here](https://app.landing.ai/). Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2). Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
+> If you don't have a LandingLens account, create one [here](https://app.landing.ai/). You will need to get an "endpoint ID" and "API key" from LandingLens in order to run inferences. Check our [Running Inferences / Getting Started](https://landing-ai.github.io/landingai-python/inferences/getting-started/).
+> Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2).
+> Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
 
 
 ```py
