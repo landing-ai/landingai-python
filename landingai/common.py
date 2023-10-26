@@ -1,7 +1,7 @@
 import math
 import re
 from functools import cached_property
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -122,10 +122,7 @@ class SegmentationPrediction(ClassificationPrediction):
         1 means the pixel is the predicted class, 0 means the pixel is not.
         """
         flattened_bitmap = decode_bitmap_rle(self.encoded_mask, self.encoding_map)
-        seg_mask_channel = np.array(flattened_bitmap, dtype=np.uint8).reshape(
-            self.mask_shape
-        )
-        return seg_mask_channel
+        return np.array(flattened_bitmap, dtype=np.uint8).reshape(self.mask_shape)
 
     @cached_property
     def decoded_index_mask(self) -> np.ndarray:
@@ -189,7 +186,9 @@ class InferenceMetadata(BaseModel):
     )
 
 
-def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int] = None) -> List[int]:
+def decode_bitmap_rle(
+    bitmap: str, encoding_map: Optional[Dict[str, int]] = None
+) -> List[int]:
     """
     Decode bitmap string to NumPy array.
 
