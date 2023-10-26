@@ -13,13 +13,9 @@
 # LandingLens Python SDK
 The LandingLens Python SDK contains the LandingLens development library and examples that show how to integrate your app with LandingLens in a variety of scenarios. The examples cover different model types, image acquisition sources, and post-procesing techniques.
 
-We've provided some examples in Jupyter Notebooks to focus on ease of use, and some examples in Python apps to provide a more robust and complete experience.
-
 ## Documentation
 
--  [Landing AI Python Library Quick Start Guide](https://landing-ai.github.io/landingai-python/)
--  [Landing AI Python Library API Reference](https://landing-ai.github.io/landingai-python/api/common/)
--  [Landing AI Python Library Changelog](https://landing-ai.github.io/landingai-python/changelog/)
+-  [Landing AI Python SDK Docs](https://landing-ai.github.io/landingai-python/)
 -  [Landing AI Support Center](https://support.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
 
@@ -92,6 +88,8 @@ with Webcam(fps=0.5) as webcam:
 
 
 ## Examples
+
+We've provided some examples in Jupyter Notebooks to focus on ease of use, and some examples in Python apps to provide a more robust and complete experience.
 
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 
