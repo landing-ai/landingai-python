@@ -178,6 +178,66 @@ def test_od_predictions_filter_label():
     assert "tea" not in filtered_preds
 
 
+def test_ocr_predictions_crop_predictions():
+    frame = get_frame()
+    frame.predictions = PredictionList(
+        [
+            OcrPrediction(
+                score=0.6,
+                text="there is some text",
+                # This should yield bounding box (65, 19, 133, 33); shape (68, 14)
+                location=[(65, 19), (133, 19), (133, 33), (65, 33)],
+            ),
+            OcrPrediction(
+                score=0.7,
+                text="in this image",
+                # The location for OCR might come a bit inclined. The returned bbox should account for that.
+                # This should yield bounding box (80, 54, 136, 72); shape (56, 18)
+                location=[(81, 54), (136, 58), (135, 72), (80, 69)],
+            ),
+        ]
+    )
+    pred_frames = frame.crop_predictions()
+    assert len(pred_frames) == 2
+    assert pred_frames[0][0] == "there is some text"
+    assert pred_frames[0][1].image.size == (68, 14)
+
+    assert pred_frames[1][0] == "in this image"
+    assert pred_frames[1][1].image.size == (56, 18)
+
+
+def test_od_predictions_crop_predictions():
+    frame = get_frame()
+    frame.predictions = PredictionList(
+        [
+            ObjectDetectionPrediction(
+                score=0.8,
+                label_name="coffee",
+                label_index=1,
+                id="bbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbbb",
+                # Shape: (111, 101)
+                bboxes=(352, 147, 463, 248),
+            ),
+            ObjectDetectionPrediction(
+                score=0.8,
+                label_name="coffee",
+                label_index=1,
+                id="bbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbbb",
+                # Shape: (66, 221)
+                bboxes=(33, 1, 99, 222),
+            ),
+        ]
+    )
+
+    pred_frames = frame.crop_predictions()
+    assert len(pred_frames) == 2
+    assert pred_frames[0][0] == "coffee"
+    assert pred_frames[0][1].image.size == (111, 101)
+
+    assert pred_frames[1][0] == "coffee"
+    assert pred_frames[1][1].image.size == (66, 221)
+
+
 @pytest.mark.parametrize(
     "frame_getter",
     [

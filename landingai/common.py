@@ -1,3 +1,4 @@
+from abc import abstractproperty
 import math
 import re
 from functools import cached_property
@@ -8,6 +9,10 @@ import numpy as np
 from pydantic import BaseModel, BaseSettings, Field, validator
 
 from landingai.exceptions import InvalidApiKeyError
+
+
+# A tuple of (xmin, ymin, xmax, ymax) representing a bounding box.
+BoundingBox = Tuple[int, int, int, int]
 
 
 class APIKey(BaseSettings):
@@ -66,7 +71,21 @@ class ClassificationPrediction(Prediction):
     """
 
 
-class OcrPrediction(Prediction):
+class BoundingBoxPrediction:
+    @property
+    @abstractproperty
+    def label(self) -> str:
+        """The text associated with this bounding box"""
+        ...
+
+    @property
+    @abstractproperty
+    def bounding_box(self) -> BoundingBox:
+        """ "A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box"""
+        ...
+
+
+class OcrPrediction(Prediction, BoundingBoxPrediction):
     """A single OCR prediction for an image."""
 
     text: str
@@ -75,8 +94,34 @@ class OcrPrediction(Prediction):
     location: List[Tuple[int, int]]
     """A quadrilateral polygon that represents the location of the text. It is a list of four (x, y) coordinates."""
 
+    # Compatibility with BoundingBoxPrediction class
 
-class ObjectDetectionPrediction(ClassificationPrediction):
+    @property
+    def label(self) -> str:
+        return self.text
+
+    @label.setter
+    def label(self, value: str) -> None:
+        self.text = value
+
+    @property
+    def bounding_box(self) -> BoundingBox:
+        x_list = [x for x, _ in self.location]
+        y_list = [y for _, y in self.location]
+        return (
+            min(x_list),
+            min(y_list),
+            max(x_list),
+            max(y_list),
+        )
+
+    @bounding_box.setter
+    def bounding_box(self, value: BoundingBox) -> None:
+        xmin, ymin, xmax, ymax = value
+        self.location = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
+
+
+class ObjectDetectionPrediction(ClassificationPrediction, BoundingBoxPrediction):
     """A single bounding box prediction for an image.
     It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score, and the predicted label.
     """
@@ -84,8 +129,27 @@ class ObjectDetectionPrediction(ClassificationPrediction):
     id: str
     """A unique string identifier (UUID) for the prediction."""
 
-    bboxes: Tuple[int, int, int, int]
+    # TODO: Deprecate this attribute, and use bounding_box (singular) instead.
+    bboxes: BoundingBox
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
+
+    # Compatibility with BoundingBoxPrediction class
+
+    @property
+    def label(self) -> str:
+        return self.label_name
+
+    @label.setter
+    def label(self, value: str) -> None:
+        self.label_name = value
+
+    @property
+    def bounding_box(self) -> BoundingBox:
+        return self.bboxes
+
+    @bounding_box.setter
+    def bounding_box(self, value: BoundingBox) -> None:
+        self.bboxes = value
 
     @cached_property
     def num_predicted_pixels(self) -> int:

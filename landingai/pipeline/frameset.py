@@ -12,7 +12,14 @@ import numpy as np
 from PIL import Image, ImageEnhance
 from pydantic import BaseModel
 
-from landingai.common import ClassificationPrediction, OcrPrediction, Prediction
+from landingai.common import (
+    BoundingBox,
+    BoundingBoxPrediction,
+    ClassificationPrediction,
+    ObjectDetectionPrediction,
+    OcrPrediction,
+    Prediction,
+)
 from landingai.notebook_utils import is_running_in_notebook
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
@@ -150,6 +157,16 @@ class Frame(BaseModel):
         )
         return self
 
+    def crop_predictions(self) -> List[Tuple[str, "Frame"]]:
+        """Returns a list of predicted classes/texts and the cropped images as regions of the original image"""
+        pred_frames = []
+        for pred in self.predictions:
+            if isinstance(pred, BoundingBoxPrediction):
+                new_frame = self.copy()
+                new_frame.crop(pred.bounding_box)
+                pred_frames.append((pred.label, new_frame))
+        return pred_frames
+
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
         """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
 
@@ -256,7 +273,7 @@ class Frame(BaseModel):
             self.image = self.image.resize((width, height))
         return self
 
-    def crop(self, bbox: Tuple[int, int, int, int]) -> "Frame":
+    def crop(self, bbox: BoundingBox) -> "Frame":
         """Crop the image based on the bounding box
 
         Parameters
@@ -433,7 +450,7 @@ class FrameSet(BaseModel):
             frame.downsize(width, height)
         return self
 
-    def crop(self, bbox: Tuple[int, int, int, int]) -> "FrameSet":
+    def crop(self, bbox: BoundingBox) -> "FrameSet":
         """Crop the images based on the bounding box
 
         Parameters
