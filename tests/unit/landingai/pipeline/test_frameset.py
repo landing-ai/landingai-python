@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from unittest import mock
 
+from numpy.testing import assert_array_equal, assert_raises
 from PIL import Image
 import pytest
 
@@ -232,6 +233,103 @@ def test_frameset_downsize_bigger_than_original(frame_getter):
     width, height = image.size
     frame.downsize(width=width + 10, height=height + 10)
     assert get_image_from_frame_or_frameset(frame).size == (width, height)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+def test_crop(frame_getter):
+    frame = frame_getter()
+    image = get_image_from_frame_or_frameset(frame)
+    width, height = image.size
+    # Crop 5px from each side
+    frame.crop((5, 5, width - 5, height - 5))
+    assert get_image_from_frame_or_frameset(frame).size == (width - 10, height - 10)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+@pytest.mark.parametrize(
+    "enhancement",
+    [
+        ("adjust_sharpness", 1.0),
+        ("adjust_brightness", 1.0),
+        ("adjust_contrast", 1.0),
+        ("adjust_color", 1.0),
+    ]
+)
+def test_enhancements_no_op(enhancement, frame_getter):
+    """Checks each enhancement method with it's no-op factor, making sure the frame
+    wil be exactly the same after the operation"""
+    enhancement_method, enhancement_factor = enhancement
+    frame = frame_getter()
+    original_frame = frame.copy()
+    getattr(frame, enhancement_method)(enhancement_factor)
+
+    original_image = get_image_from_frame_or_frameset(original_frame)
+    image = get_image_from_frame_or_frameset(frame)
+    assert original_image is not image
+    assert_array_equal(original_image, image)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+@pytest.mark.parametrize(
+    "enhancement",
+    [
+        ("adjust_sharpness", 1.5),
+        ("adjust_brightness", 1.5),
+        ("adjust_contrast", 1.5),
+        ("adjust_color", 1.5),
+    ]
+)
+def test_enhancements(enhancement, frame_getter):
+    """Checks each enhancement method with it's factor, making sure the frame
+    wil be changed after the operation"""
+    enhancement_method, enhancement_factor = enhancement
+    frame = frame_getter()
+    original_frame = frame.copy()
+    getattr(frame, enhancement_method)(enhancement_factor)
+
+    original_image = get_image_from_frame_or_frameset(original_frame)
+    image = get_image_from_frame_or_frameset(frame)
+    assert original_image is not image
+    assert_raises(AssertionError, assert_array_equal, original_image, image)
+
+
+@pytest.mark.parametrize(
+    "frame_getter",
+    [
+        get_frameset_with_od_coffee_prediction,
+        get_frame_with_od_coffee_prediction,
+    ],
+)
+def test_copy_operation(frame_getter):
+    frame = frame_getter()
+    width, height = get_image_from_frame_or_frameset(frame).size
+    new_frame = frame.copy()
+    # Do any operation on the new frame, so we can test if the original frame is preserved
+    new_frame.crop((0, 0, 1, 1))
+
+    original_image = get_image_from_frame_or_frameset(frame)
+    new_image = get_image_from_frame_or_frameset(new_frame)
+    assert frame.predictions == new_frame.predictions
+    assert original_image is not new_image
+    assert original_image.size == (width, height)
 
 
 @pytest.mark.parametrize(
