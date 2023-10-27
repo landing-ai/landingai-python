@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
 import warnings
 
 import cv2
@@ -302,8 +302,11 @@ class Frame(BaseModel):
         """
         return self._apply_enhancement(ImageEnhance.Color, factor)
 
-    def _apply_enhancement(self, enhancement: ImageEnhance._Enhance, factor: float):
-        self.image = enhancement(self.image).enhance(factor)
+    def _apply_enhancement(
+        self, enhancement: Type[ImageEnhance._Enhance], factor: float
+    ) -> "Frame":
+        enhancer = enhancement(self.image)  # type: ignore
+        self.image = enhancer.enhance(factor)
         return self
 
     class Config:
@@ -441,7 +444,7 @@ class FrameSet(BaseModel):
             frame.crop(bbox)
         return self
 
-    def adjust_sharpness(self, factor: float) -> "Frame":
+    def adjust_sharpness(self, factor: float) -> "FrameSet":
         """Adjust the sharpness of the image
 
         Parameters
@@ -450,8 +453,9 @@ class FrameSet(BaseModel):
         """
         for f in self.frames:
             f.adjust_sharpness(factor)
+        return self
 
-    def adjust_brightness(self, factor: float) -> "Frame":
+    def adjust_brightness(self, factor: float) -> "FrameSet":
         """Adjust the brightness of the image
 
         Parameters
@@ -460,8 +464,9 @@ class FrameSet(BaseModel):
         """
         for f in self.frames:
             f.adjust_brightness(factor)
+        return self
 
-    def adjust_contrast(self, factor: float) -> "Frame":
+    def adjust_contrast(self, factor: float) -> "FrameSet":
         """Adjust the contrast of the image
 
         Parameters
@@ -470,8 +475,9 @@ class FrameSet(BaseModel):
         """
         for f in self.frames:
             f.adjust_contrast(factor)
+        return self
 
-    def adjust_color(self, factor: float) -> "Frame":
+    def adjust_color(self, factor: float) -> "FrameSet":
         """Adjust the color of the image
 
         Parameters
@@ -480,10 +486,11 @@ class FrameSet(BaseModel):
         """
         for f in self.frames:
             f.adjust_color(factor)
+        return self
 
-    def copy(self) -> "FrameSet":
+    def copy(self, *args: Any, **kwargs: Any) -> "FrameSet":
         """Returns a copy of this FrameSet, with all the frames copied"""
-        frameset = super().copy()
+        frameset = super().copy(*args, **kwargs)
         frameset.frames = [frame.copy() for frame in self.frames]
         return frameset
 

@@ -265,7 +265,7 @@ def test_crop(frame_getter):
         ("adjust_brightness", 1.0),
         ("adjust_contrast", 1.0),
         ("adjust_color", 1.0),
-    ]
+    ],
 )
 def test_enhancements_no_op(enhancement, frame_getter):
     """Checks each enhancement method with it's no-op factor, making sure the frame
@@ -295,7 +295,7 @@ def test_enhancements_no_op(enhancement, frame_getter):
         ("adjust_brightness", 1.5),
         ("adjust_contrast", 1.5),
         ("adjust_color", 1.5),
-    ]
+    ],
 )
 def test_enhancements(enhancement, frame_getter):
     """Checks each enhancement method with it's factor, making sure the frame
