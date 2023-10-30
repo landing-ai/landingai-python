@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from unittest import mock
 
-from numpy.testing import assert_array_equal, assert_raises
+from numpy.testing import assert_array_equal
 from PIL import Image
 import pytest
 
@@ -11,16 +11,18 @@ from landingai.storage.data_access import fetch_from_uri
 from landingai.pipeline.frameset import FrameSet, Frame, PredictionList
 
 
-def get_frameset() -> FrameSet:
-    return FrameSet.from_image("tests/data/images/cereal1.jpeg")
+def get_frameset(image_path: str = "tests/data/images/cereal1.jpeg") -> FrameSet:
+    return FrameSet.from_image(image_path)
 
 
-def get_frame() -> Frame:
-    return Frame.from_image("tests/data/images/cereal1.jpeg")
+def get_frame(image_path: str = "tests/data/images/cereal1.jpeg") -> Frame:
+    return Frame.from_image(image_path)
 
 
-def get_frameset_with_od_coffee_prediction() -> FrameSet:
-    frameset = get_frameset()
+def get_frameset_with_od_coffee_prediction(
+    image_path: str = "tests/data/images/cereal1.jpeg",
+) -> FrameSet:
+    frameset = get_frameset(image_path)
     frameset.frames[0].predictions = PredictionList(
         [
             ObjectDetectionPrediction(
@@ -35,8 +37,10 @@ def get_frameset_with_od_coffee_prediction() -> FrameSet:
     return frameset
 
 
-def get_frame_with_od_coffee_prediction() -> Frame:
-    frame = get_frame()
+def get_frame_with_od_coffee_prediction(
+    image_path: str = "tests/data/images/cereal1.jpeg",
+) -> Frame:
+    frame = get_frame(image_path)
     frame.predictions = PredictionList(
         [
             ObjectDetectionPrediction(
@@ -329,7 +333,7 @@ def test_crop(frame_getter):
 )
 def test_enhancements_no_op(enhancement, frame_getter):
     """Checks each enhancement method with it's no-op factor, making sure the frame
-    wil be exactly the same after the operation"""
+    will be exactly the same after the operation"""
     enhancement_method, enhancement_factor = enhancement
     frame = frame_getter()
     original_frame = frame.copy()
@@ -351,24 +355,27 @@ def test_enhancements_no_op(enhancement, frame_getter):
 @pytest.mark.parametrize(
     "enhancement",
     [
-        ("adjust_sharpness", 1.5),
-        ("adjust_brightness", 1.5),
-        ("adjust_contrast", 1.5),
-        ("adjust_color", 1.5),
+        ("adjust_sharpness", 1.5, "sharpness-1.5.jpeg"),
+        ("adjust_brightness", 1.5, "brightness-1.5.jpeg"),
+        ("adjust_contrast", 1.5, "contrast-1.5.jpeg"),
+        ("adjust_color", 1.5, "color-1.5.jpeg"),
     ],
 )
 def test_enhancements(enhancement, frame_getter):
     """Checks each enhancement method with it's factor, making sure the frame
     wil be changed after the operation"""
-    enhancement_method, enhancement_factor = enhancement
-    frame = frame_getter()
+    enhancement_method, enhancement_factor, expected_img_file = enhancement
+    img_folder = "tests/data/images/cereal-tiny/"
+    frame = frame_getter(image_path=f"{img_folder}/original.jpeg")
     original_frame = frame.copy()
     getattr(frame, enhancement_method)(enhancement_factor)
 
     original_image = get_image_from_frame_or_frameset(original_frame)
     image = get_image_from_frame_or_frameset(frame)
     assert original_image is not image
-    assert_raises(AssertionError, assert_array_equal, original_image, image)
+
+    expected_content = Image.open(f"{img_folder}/{expected_img_file}")
+    assert_array_equal(image, expected_content)
 
 
 @pytest.mark.parametrize(
