@@ -16,7 +16,6 @@ from landingai.common import (
     BoundingBox,
     BoundingBoxPrediction,
     ClassificationPrediction,
-    ObjectDetectionPrediction,
     OcrPrediction,
     Prediction,
 )
