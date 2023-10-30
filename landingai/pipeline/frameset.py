@@ -3,13 +3,13 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
 import warnings
 
 import cv2
 import imageio
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageEnhance
 from pydantic import BaseModel
 
 from landingai.common import ClassificationPrediction, OcrPrediction, Prediction
@@ -256,6 +256,59 @@ class Frame(BaseModel):
             self.image = self.image.resize((width, height))
         return self
 
+    def crop(self, bbox: Tuple[int, int, int, int]) -> "Frame":
+        """Crop the image based on the bounding box
+
+        Parameters
+        ----------
+        bbox: A tuple with the bounding box coordinates (xmin, ymin, xmax, ymax)
+        """
+        self.image = self.image.crop(bbox)
+        return self
+
+    def adjust_sharpness(self, factor: float) -> "Frame":
+        """Adjust the sharpness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Sharpness, factor)
+
+    def adjust_brightness(self, factor: float) -> "Frame":
+        """Adjust the brightness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Brightness, factor)
+
+    def adjust_contrast(self, factor: float) -> "Frame":
+        """Adjust the contrast of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Contrast, factor)
+
+    def adjust_color(self, factor: float) -> "Frame":
+        """Adjust the color of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Color, factor)
+
+    def _apply_enhancement(
+        self, enhancement: Type[ImageEnhance._Enhance], factor: float
+    ) -> "Frame":
+        enhancer = enhancement(self.image)  # type: ignore
+        self.image = enhancer.enhance(factor)
+        return self
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -379,6 +432,67 @@ class FrameSet(BaseModel):
         for frame in self.frames:
             frame.downsize(width, height)
         return self
+
+    def crop(self, bbox: Tuple[int, int, int, int]) -> "FrameSet":
+        """Crop the images based on the bounding box
+
+        Parameters
+        ----------
+        bbox: A tuple with the bounding box coordinates (xmin, ymin, xmax, ymax)
+        """
+        for frame in self.frames:
+            frame.crop(bbox)
+        return self
+
+    def adjust_sharpness(self, factor: float) -> "FrameSet":
+        """Adjust the sharpness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_sharpness(factor)
+        return self
+
+    def adjust_brightness(self, factor: float) -> "FrameSet":
+        """Adjust the brightness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_brightness(factor)
+        return self
+
+    def adjust_contrast(self, factor: float) -> "FrameSet":
+        """Adjust the contrast of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_contrast(factor)
+        return self
+
+    def adjust_color(self, factor: float) -> "FrameSet":
+        """Adjust the color of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_color(factor)
+        return self
+
+    def copy(self, *args: Any, **kwargs: Any) -> "FrameSet":
+        """Returns a copy of this FrameSet, with all the frames copied"""
+        frameset = super().copy(*args, **kwargs)
+        frameset.frames = [frame.copy() for frame in self.frames]
+        return frameset
 
     def save_image(
         self,
