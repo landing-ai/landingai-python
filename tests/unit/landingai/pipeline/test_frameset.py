@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from unittest import mock
 
-from numpy.testing import assert_array_equal, assert_raises
+from numpy.testing import assert_array_equal
 from PIL import Image
 import pytest
 
