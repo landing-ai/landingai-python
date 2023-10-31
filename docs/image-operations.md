@@ -1,4 +1,4 @@
-After [acquiring your images](image-acquisition/image-acquisition.md) as `Frame` objects in the previous section, you can perform a variety of operations on them.
+After [acquiring your images](image-acquisition/image-acquisition.md) as `Frame` objects in the [previous section](image-acquisition/image-acquisition.md), you can perform a variety of operations on them.
 
 These operations are useful for pre-processing the images before [running inferences](inferences/getting-started.md) on them, especially if your model was trained with images acquired in slightly different conditions from what you have when running inference.
 
