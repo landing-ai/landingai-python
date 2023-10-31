@@ -103,7 +103,7 @@ class Predictor:
         """Build the HTTP headers for the request to the Cloud inference endpoint(s)."""
         tracked_properties = get_runtime_environment_info()
         if extra_x_event:
-            tracked_properties |= extra_x_event
+            tracked_properties.update(extra_x_event)
         tracking_data = {
             "event": "inference",
             "action": "POST",
