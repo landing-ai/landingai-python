@@ -5,4 +5,4 @@ responses:
     content_type: text/plain
     method: POST
     status: 422
-    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=12345&device_type=pylib&runtime=pytest
+    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=12345
