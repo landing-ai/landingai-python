@@ -40,6 +40,7 @@ nav:
     - Webcam: image-acquisition/webcam.md
     - Network Camera: image-acquisition/network-cameras.md
     - Screenshots: image-acquisition/screenshots.md
+  - Image Operations: image-operations.md
   - Running Inferences:
     - Getting Started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
