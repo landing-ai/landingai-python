@@ -2,13 +2,13 @@ After [acquiring your image](image-acquisition/image-acquisition.md) as `Frame` 
 
 Those operations are specially useful for pre-processing before [running inferences](inferences/getting-started.md) on them, specially if you are using a model that was trained with images acquired in slightly different conditions from what you have when running inferences.
 
-For example, if your train dataset was taken on a lighter room, you might want to adjust a bit brightness and contrast before running inferences on your frames.
+For example, if your train dataset images were taken in a room with more light, you might want to adjust the brightness and contrast before running inference on your frames.
 
 Below, you can see the list of useful operations that can be performed on a `Frame` object.
 
 ## Cropping
 
-Cropping is the operation to extract regions of interest from an image.
+Cropping is the operation of extracting regions of interest from an image.
 
 ```python
 from landingai.pipeline.frameset import Frame
@@ -40,7 +40,7 @@ frame.save_image("docs/images/cereal-ops/cereal-resized-both.jpeg")
 ![Cereal image](../images/cereal-ops/cereal.jpeg)
 ![Cereal resized both dimentions](../images/cereal-ops/cereal-resized-both.jpeg)
 
-Or keeping the original aspect ratio by passing only one of the dimensions.
+You can also keep the original aspect ratio by passing only one of the dimensions:
 
 ```python
 from landingai.pipeline.frameset import Frame
@@ -53,11 +53,17 @@ frame.save_image("docs/images/cereal-ops/cereal-resized-width.jpeg")
 ![Cereal image](../images/cereal-ops/cereal.jpeg)
 ![Cereal resized only one dimention](../images/cereal-ops/cereal-resized-width.jpeg)
 
-When running inferences, resizing images can help reduce the traffic and achieve faster inferences. But don't downscale it too much, or you might lose important image details.
+Resizing images before running inference can speed up the inference process. But don't downscale too much, or you might lose important image details.
 
 ## Color
 
-You can adjust color intensity. The factor parameter must be 1.0 for no change, less than 1.0 for less intensity and greater than 1.0 for more intensity.
+You can adjust color intensity:
+
+- No change: 1.0
+- Less intensity: Less than 1.0
+- More intensity: Greater than 1.0
+
+See the following examples.
 
 ```python
 from landingai.pipeline.frameset import Frame
@@ -79,7 +85,13 @@ frame.save_image("docs/images/cereal-ops/cereal-color-2.0.jpeg")
 
 ## Contrast
 
-Similar to color, you can adjust the contrast. The factor parameter must be 1.0 for no change, less than 1.0 for less intensity and greater than 1.0 for more intensity.
+You can adjust the contrast intensity:
+
+- No change: 1.0
+- Less intensity: Less than 1.0
+- More intensity: Greater than 1.0
+
+See the following examples.
 
 ```python
 from landingai.pipeline.frameset import Frame
@@ -102,7 +114,13 @@ frame.save_image("docs/images/cereal-ops/cereal-contrast-2.0.jpeg")
 
 ## Brightness
 
-To adjust brightness, use the same factor parameter: 1.0 for no change, less than 1.0 for less intensity and greater than 1.0 for more intensity.
+You can adjust the brightness intensity:
+
+- No change: 1.0
+- Less intensity: Less than 1.0
+- More intensity: Greater than 1.0
+
+See the following examples.
 
 ```python
 from landingai.pipeline.frameset import Frame
@@ -125,7 +143,13 @@ frame.save_image("docs/images/cereal-ops/cereal-brightness-2.0.jpeg")
 
 ## Sharpness
 
-Adjusting sharpness follows the same pattern as color, brightness and contrast: 1.0 for no change, less than 1.0 for less intensity and greater than 1.0 for more intensity.
+You can adjust the sharpness intensity:
+
+- No change: 1.0
+- Less intensity: Less than 1.0
+- More intensity: Greater than 1.0
+
+See the following examples.
 
 ```python
 from landingai.pipeline.frameset import Frame
