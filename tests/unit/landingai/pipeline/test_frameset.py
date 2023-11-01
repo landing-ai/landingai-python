@@ -202,12 +202,13 @@ def test_ocr_predictions_crop_predictions():
         ]
     )
     pred_frames = frame.crop_predictions()
+    assert isinstance(pred_frames, FrameSet)
     assert len(pred_frames) == 2
-    assert pred_frames[0][0] == frame.predictions[0]
-    assert pred_frames[0][1].image.size == (68, 14)
+    assert pred_frames[0].predictions == [frame.predictions[0]]
+    assert pred_frames[0].image.size == (68, 14)
 
-    assert pred_frames[1][0] == frame.predictions[1]
-    assert pred_frames[1][1].image.size == (56, 18)
+    assert pred_frames[1].predictions == [frame.predictions[1]]
+    assert pred_frames[1].image.size == (56, 18)
 
 
 def test_od_predictions_crop_predictions():
@@ -234,12 +235,13 @@ def test_od_predictions_crop_predictions():
     )
 
     pred_frames = frame.crop_predictions()
+    assert isinstance(pred_frames, FrameSet)
     assert len(pred_frames) == 2
-    assert pred_frames[0][0] == frame.predictions[0]
-    assert pred_frames[0][1].image.size == (111, 101)
+    assert pred_frames[0].predictions == [frame.predictions[0]]
+    assert pred_frames[0].image.size == (111, 101)
 
-    assert pred_frames[1][0] == frame.predictions[1]
-    assert pred_frames[1][1].image.size == (66, 221)
+    assert pred_frames[1].predictions == [frame.predictions[1]]
+    assert pred_frames[1].image.size == (66, 221)
 
 
 @pytest.mark.parametrize(

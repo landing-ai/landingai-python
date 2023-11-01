@@ -156,7 +156,7 @@ class Frame(BaseModel):
         )
         return self
 
-    def crop_predictions(self) -> List[Tuple[Prediction, "Frame"]]:
+    def crop_predictions(self) -> "FrameSet":
         """Returns a list of predicted classes/texts and the cropped images as regions of the original image"""
         pred_frames = []
         for pred in self.predictions:
@@ -164,11 +164,10 @@ class Frame(BaseModel):
             if bounding_box is None:
                 continue
             new_frame = self.copy()
+            new_frame.predictions = PredictionList([pred])
             new_frame.crop(bounding_box)
-            # TODO: Remove the cast when self.predictions is fixed to be a List[Prediction],
-            # instead of List[ClassificationPredictions].
-            pred_frames.append((cast(Prediction, pred), new_frame))
-        return pred_frames
+            pred_frames.append(new_frame)
+        return FrameSet(frames=pred_frames)
 
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
         """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
@@ -378,6 +377,9 @@ class FrameSet(BaseModel):
     # TODO: Is it worth to emulate a full container? - https://docs.python.org/3/reference/datamodel.html#emulating-container-types
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
+
+    def __len__(self) -> int:
+        return len(self.frames)
 
     def _repr_pretty_(self, pp, cycle) -> str:  # type: ignore
         # Enable a pretty output on Jupiter notebooks `Display()` function
