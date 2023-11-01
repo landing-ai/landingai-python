@@ -229,7 +229,7 @@ def test_predict_matching_expected_request_body():
     img = Image.open(img_path)
     expected_request_files = {"file": _read_image_as_jpeg_bytes(img_path)}
     responses.post(
-        url="https://predict.app.landing.ai/inference/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43&device_type=pylib&runtime=pytest",
+        url="https://predict.app.landing.ai/inference/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43",
         match=[multipart_matcher(expected_request_files)],
         json={
             "backbonetype": None,

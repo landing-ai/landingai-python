@@ -24,7 +24,7 @@ from landingai.common import (
     SegmentationPrediction,
 )
 from landingai.exceptions import HttpResponse, RateLimitExceededError
-from landingai.telemetry import get_runtime_environment_info, is_running_in_pytest
+from landingai.telemetry import get_runtime_environment_info
 from landingai.timer import Timer
 from landingai.utils import load_api_credential, serialize_image
 
@@ -68,7 +68,11 @@ class Predictor:
 
         self._endpoint_id = endpoint_id
         self._api_credential = load_api_credential(api_key)
-        headers = self._build_default_headers(self._api_credential)
+        extra_x_event = {
+            "endpoint_id": self._endpoint_id,
+            "model_type": "fast_and_easy",
+        }
+        headers = self._build_default_headers(self._api_credential, extra_x_event)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
     def _check_connectivity(
@@ -93,11 +97,22 @@ class Predictor:
         sock.close()
         return result == 0
 
-    def _build_default_headers(self, api_key: APIKey) -> Dict[str, str]:
+    def _build_default_headers(
+        self, api_key: APIKey, extra_x_event: Optional[Dict[str, str]] = None
+    ) -> Dict[str, str]:
         """Build the HTTP headers for the request to the Cloud inference endpoint(s)."""
+        tracked_properties = get_runtime_environment_info()
+        if extra_x_event:
+            tracked_properties.update(extra_x_event)
+        tracking_data = {
+            "event": "inference",
+            "action": "POST",
+            "properties": tracked_properties,
+        }
         return {
             "contentType": "multipart/form-data",
             "apikey": api_key.api_key,
+            "X-event": json.dumps(tracking_data),
         }
 
     @retry(
@@ -133,17 +148,15 @@ class Predictor:
         """
         buffer_bytes = serialize_image(image)
         files = {"file": buffer_bytes}
-        payload = {
+        query_params = {
             "endpoint_id": self._endpoint_id,
-            "device_type": "pylib",
         }
-        _add_default_query_params(payload)
         data = {"metadata": metadata.json()} if metadata else None
         return _do_inference(
             self._session,
             Predictor._url,
             files,
-            payload,
+            query_params,
             _CloudExtractor,
             data=data,
         )
@@ -173,7 +186,10 @@ class OcrPredictor(Predictor):
         """
         self._threshold = threshold
         self._api_credential = load_api_credential(api_key)
-        headers = self._build_default_headers(self._api_credential)
+        extra_x_event = {
+            "model_type": "ocr",
+        }
+        headers = self._build_default_headers(self._api_credential, extra_x_event)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
 
     @retry(
@@ -223,13 +239,11 @@ class OcrPredictor(Predictor):
         if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
 
-        payload: Dict[str, Any] = {"device_type": "pylib"}
-        _add_default_query_params(payload)
         preds = _do_inference(
             self._session,
             OcrPredictor._url,
             files,
-            payload,
+            {},
             _OcrExtractor,
             data=data,
         )
@@ -802,13 +816,3 @@ def _do_inference(
     response.raise_for_status()
     json_dict = response.json()
     return extractor_class.extract_prediction(json_dict)
-
-
-def _add_default_query_params(payload: Dict[str, Any]) -> None:
-    """Add default query params to the payload for tracking and analytics purpose."""
-    env_info = get_runtime_environment_info()
-    payload["runtime"] = env_info["runtime"]
-    if is_running_in_pytest():
-        # Don't add extra query params if pytest is running, otherwise it will fail some unit tests
-        return
-    payload["lib_version"] = env_info["lib_version"]

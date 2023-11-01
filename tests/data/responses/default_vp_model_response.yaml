@@ -25,4 +25,4 @@ responses:
     content_type: text/plain
     method: POST
     status: 200
-    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=63035608-9d24-4342-8042-e4b08e084fde&device_type=pylib&runtime=pytest
+    url: https://predict.app.landing.ai/inference/v1/predict?endpoint_id=63035608-9d24-4342-8042-e4b08e084fde
