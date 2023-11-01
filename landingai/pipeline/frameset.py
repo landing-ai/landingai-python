@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 import warnings
 
 import cv2
@@ -157,7 +157,7 @@ class Frame(BaseModel):
         return self
 
     def crop_predictions(self) -> "FrameSet":
-        """Returns a list of predicted classes/texts and the cropped images as regions of the original image"""
+        """Crops from this frame regions with predictions and returns a FrameSet with the the cropped Frames"""
         pred_frames = []
         for pred in self.predictions:
             bounding_box = get_prediction_bounding_box(pred)
