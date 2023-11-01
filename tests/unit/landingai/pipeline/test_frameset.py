@@ -203,10 +203,10 @@ def test_ocr_predictions_crop_predictions():
     )
     pred_frames = frame.crop_predictions()
     assert len(pred_frames) == 2
-    assert pred_frames[0][0] == "there is some text"
+    assert pred_frames[0][0] == frame.predictions[0]
     assert pred_frames[0][1].image.size == (68, 14)
 
-    assert pred_frames[1][0] == "in this image"
+    assert pred_frames[1][0] == frame.predictions[1]
     assert pred_frames[1][1].image.size == (56, 18)
 
 
@@ -235,10 +235,10 @@ def test_od_predictions_crop_predictions():
 
     pred_frames = frame.crop_predictions()
     assert len(pred_frames) == 2
-    assert pred_frames[0][0] == "coffee"
+    assert pred_frames[0][0] == frame.predictions[0]
     assert pred_frames[0][1].image.size == (111, 101)
 
-    assert pred_frames[1][0] == "coffee"
+    assert pred_frames[1][0] == frame.predictions[1]
     assert pred_frames[1][1].image.size == (66, 221)
 
 

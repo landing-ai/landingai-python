@@ -14,10 +14,10 @@ from pydantic import BaseModel
 
 from landingai.common import (
     BoundingBox,
-    BoundingBoxPrediction,
     ClassificationPrediction,
     OcrPrediction,
     Prediction,
+    get_prediction_bounding_box,
 )
 from landingai.notebook_utils import is_running_in_notebook
 from landingai.predict import Predictor
@@ -156,14 +156,18 @@ class Frame(BaseModel):
         )
         return self
 
-    def crop_predictions(self) -> List[Tuple[str, "Frame"]]:
+    def crop_predictions(self) -> List[Tuple[Prediction, "Frame"]]:
         """Returns a list of predicted classes/texts and the cropped images as regions of the original image"""
         pred_frames = []
         for pred in self.predictions:
-            if isinstance(pred, BoundingBoxPrediction):
-                new_frame = self.copy()
-                new_frame.crop(pred.bounding_box)
-                pred_frames.append((pred.label, new_frame))
+            bounding_box = get_prediction_bounding_box(pred)
+            if bounding_box is None:
+                continue
+            new_frame = self.copy()
+            new_frame.crop(bounding_box)
+            # TODO: Remove the cast when self.predictions is fixed to be a List[Prediction],
+            # instead of List[ClassificationPredictions].
+            pred_frames.append((cast(Prediction, pred), new_frame))
         return pred_frames
 
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:

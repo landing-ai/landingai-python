@@ -71,21 +71,7 @@ class ClassificationPrediction(Prediction):
     """
 
 
-class BoundingBoxPrediction:
-    @property
-    @abstractproperty
-    def label(self) -> str:
-        """The text associated with this bounding box"""
-        ...
-
-    @property
-    @abstractproperty
-    def bounding_box(self) -> BoundingBox:
-        """ "A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box"""
-        ...
-
-
-class OcrPrediction(Prediction, BoundingBoxPrediction):
+class OcrPrediction(Prediction):
     """A single OCR prediction for an image."""
 
     text: str
@@ -94,34 +80,8 @@ class OcrPrediction(Prediction, BoundingBoxPrediction):
     location: List[Tuple[int, int]]
     """A quadrilateral polygon that represents the location of the text. It is a list of four (x, y) coordinates."""
 
-    # Compatibility with BoundingBoxPrediction class
 
-    @property
-    def label(self) -> str:
-        return self.text
-
-    @label.setter
-    def label(self, value: str) -> None:
-        self.text = value
-
-    @property
-    def bounding_box(self) -> BoundingBox:
-        x_list = [x for x, _ in self.location]
-        y_list = [y for _, y in self.location]
-        return (
-            min(x_list),
-            min(y_list),
-            max(x_list),
-            max(y_list),
-        )
-
-    @bounding_box.setter
-    def bounding_box(self, value: BoundingBox) -> None:
-        xmin, ymin, xmax, ymax = value
-        self.location = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
-
-
-class ObjectDetectionPrediction(ClassificationPrediction, BoundingBoxPrediction):
+class ObjectDetectionPrediction(ClassificationPrediction):
     """A single bounding box prediction for an image.
     It includes a predicted bounding box (xmin, ymin, xmax, ymax), confidence score, and the predicted label.
     """
@@ -132,24 +92,6 @@ class ObjectDetectionPrediction(ClassificationPrediction, BoundingBoxPrediction)
     # TODO: Deprecate this attribute, and use bounding_box (singular) instead.
     bboxes: BoundingBox
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
-
-    # Compatibility with BoundingBoxPrediction class
-
-    @property
-    def label(self) -> str:
-        return self.label_name
-
-    @label.setter
-    def label(self, value: str) -> None:
-        self.label_name = value
-
-    @property
-    def bounding_box(self) -> BoundingBox:
-        return self.bboxes
-
-    @bounding_box.setter
-    def bounding_box(self, value: BoundingBox) -> None:
-        self.bboxes = value
 
     @cached_property
     def num_predicted_pixels(self) -> int:
@@ -276,3 +218,23 @@ def decode_bitmap_rle(
         map_number = encoding_map[map_letter]
         flat_mask.extend([int(map_number)] * int(num))
     return flat_mask
+
+
+def get_prediction_bounding_box(prediction: Prediction) -> Optional[BoundingBox]:
+    """
+    Returns the prediction bounding box coordinates for compatible Predictions.
+    If prediction is not compatible with BoundingBox extraction, returns None.
+    """
+    if isinstance(prediction, ObjectDetectionPrediction):
+        return prediction.bboxes
+    elif isinstance(prediction, OcrPrediction):
+        x_list = [x for x, _ in prediction.location]
+        y_list = [y for _, y in prediction.location]
+        return (
+            min(x_list),
+            min(y_list),
+            max(x_list),
+            max(y_list),
+        )
+    else:
+        return None
