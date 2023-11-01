@@ -43,7 +43,7 @@ for i, cropped_frame in enumerate(frame.crop_predictions()):  # (3)!
     cropped_frame.save_image(f"docs/images/cereal-ops/cereal-crop-predictions-{i}.png") # (5)!
 ```
 
-1. Creates a predictor to run inferences using a LandingLens model. See the [Running Inferences](inferences/getting-started.md) section for more details on how to build and deploy a computer vision model.
+1. Creates a predictor to run inference using a LandingLens model. See the [Running Inferences](inferences/getting-started.md) section for more details on how to build and deploy a computer vision model.
 2. Runs inference on the frame.
 3. Iterate over the objects detected in the image. Each iteration will yield a new `Frame` object with just the detected object in it.
 4. Resizes the cropped frame to 64 pixels width, keeping original aspect ratio.
