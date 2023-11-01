@@ -24,6 +24,39 @@ frame.save_image("docs/images/cereal-ops/cereal-cropped.jpeg")
 ![Cereal cropped image](../images/cereal-ops/cereal-cropped.jpeg)
 
 
+## Crop predictions
+
+Appart from cropping arbitrary regions of a `Frame`, you can also automatically crop detected objects from a Frame.
+
+```python
+from landingai.pipeline.frameset import Frame
+from landingai.predict import Predictor
+
+frame = Frame.from_image("docs/images/cereal-ops/cereal.jpeg")
+predictor = Predictor(  # (1)!
+    endpoint_id=ENDPOINT_ID,
+    api_key=API_KEY,
+)
+frame.run_predict(predictor) # (2)!
+for i, cropped_frame in enumerate(frame.crop_predictions()):  # (3)!
+    cropped_frame.resize(width=64)  # (4) !
+    cropped_frame.save_image(f"docs/images/cereal-ops/cereal-crop-predictions-{i}.png") # (5)!
+```
+
+1. Creates a predictor to run inferences using a LandingLens model. See the [Running Inferences](inferences/getting-started.md) section for more details on how to build and deploy a computer vision model.
+2. Runs inference on the frame.
+3. Iterate over the objects detected in the image. Each iteration will yield a new `Frame` object with just the detected object in it.
+4. Resizes the cropped frame to 64 pixels width, keeping original aspect ratio.
+5. Save the cropped frame to a file.
+
+
+![Cereal image](../images/cereal-ops/cereal.jpeg)
+![Cereal screw 1](../images/cereal-ops/cereal-crop-predictions-0.png)
+![Cereal screw 2](../images/cereal-ops/cereal-crop-predictions-1.png)
+![Cereal screw 3](../images/cereal-ops/cereal-crop-predictions-2.png)
+
+For more details about running inferences, see the [Running Inferences](inferences/getting-started.md) section.
+
 ## Resizing
 
 You can resize your image to any aspect ratio by passing both width and height:
