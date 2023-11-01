@@ -1,4 +1,3 @@
-from abc import abstractproperty
 import math
 import re
 from functools import cached_property
