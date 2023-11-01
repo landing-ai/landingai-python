@@ -223,6 +223,9 @@ def get_prediction_bounding_box(prediction: Prediction) -> Optional[BoundingBox]
     """
     Returns the prediction bounding box coordinates for compatible Predictions.
     If prediction is not compatible with BoundingBox extraction, returns None.
+
+    Note that some prediction types might have precision loss when converting to BoundingBox.
+    OCR predictions, for example, are not guaranteed to be rectangular, alghough BoundingBoxes are.
     """
     if isinstance(prediction, ObjectDetectionPrediction):
         return prediction.bboxes
