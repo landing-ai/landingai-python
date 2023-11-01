@@ -39,7 +39,7 @@ predictor = Predictor(  # (1)!
 )
 frame.run_predict(predictor) # (2)!
 for i, cropped_frame in enumerate(frame.crop_predictions()):  # (3)!
-    cropped_frame.resize(width=64)  # (4) !
+    cropped_frame.resize(width=64)  # (4)!
     cropped_frame.save_image(f"docs/images/cereal-ops/cereal-crop-predictions-{i}.png") # (5)!
 ```
 
