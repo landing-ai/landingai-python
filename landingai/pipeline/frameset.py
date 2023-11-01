@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
 import warnings
 
 import cv2
@@ -378,8 +378,9 @@ class FrameSet(BaseModel):
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
 
-    def __iter__(self):
-        return iter(self.frames)
+    def __iter__(self) -> Iterable[Frame]:  # type: ignore
+        for f in self.frames:
+            yield f
 
     def __len__(self) -> int:
         return len(self.frames)
