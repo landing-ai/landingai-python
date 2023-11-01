@@ -378,6 +378,9 @@ class FrameSet(BaseModel):
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
 
+    def __iter__(self):
+        return iter(self.frames)
+
     def __len__(self) -> int:
         return len(self.frames)
 
