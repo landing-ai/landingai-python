@@ -10,6 +10,10 @@ from pydantic import BaseModel, BaseSettings, Field, validator
 from landingai.exceptions import InvalidApiKeyError
 
 
+# A tuple of (xmin, ymin, xmax, ymax) representing a bounding box.
+BoundingBox = Tuple[int, int, int, int]
+
+
 class APIKey(BaseSettings):
     """The API key of a user in a particular organization in LandingLens.
     It's also known as the "API Key v2" in LandingLens.
@@ -84,7 +88,8 @@ class ObjectDetectionPrediction(ClassificationPrediction):
     id: str
     """A unique string identifier (UUID) for the prediction."""
 
-    bboxes: Tuple[int, int, int, int]
+    # TODO: Deprecate this attribute, and use bounding_box (singular) instead.
+    bboxes: BoundingBox
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
 
     @cached_property
@@ -212,3 +217,26 @@ def decode_bitmap_rle(
         map_number = encoding_map[map_letter]
         flat_mask.extend([int(map_number)] * int(num))
     return flat_mask
+
+
+def get_prediction_bounding_box(prediction: Prediction) -> Optional[BoundingBox]:
+    """
+    Returns the prediction bounding box coordinates for compatible Predictions.
+    If prediction is not compatible with BoundingBox extraction, returns None.
+
+    Note that some prediction types might have precision loss when converting to BoundingBox.
+    OCR predictions, for example, are not guaranteed to be rectangular, alghough BoundingBoxes are.
+    """
+    if isinstance(prediction, ObjectDetectionPrediction):
+        return prediction.bboxes
+    elif isinstance(prediction, OcrPrediction):
+        x_list = [x for x, _ in prediction.location]
+        y_list = [y for _, y in prediction.location]
+        return (
+            min(x_list),
+            min(y_list),
+            max(x_list),
+            max(y_list),
+        )
+    else:
+        return None

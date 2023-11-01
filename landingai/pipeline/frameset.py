@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
 import warnings
 
 import cv2
@@ -12,7 +12,13 @@ import numpy as np
 from PIL import Image, ImageEnhance
 from pydantic import BaseModel
 
-from landingai.common import ClassificationPrediction, OcrPrediction, Prediction
+from landingai.common import (
+    BoundingBox,
+    ClassificationPrediction,
+    OcrPrediction,
+    Prediction,
+    get_prediction_bounding_box,
+)
 from landingai.notebook_utils import is_running_in_notebook
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
@@ -150,6 +156,19 @@ class Frame(BaseModel):
         )
         return self
 
+    def crop_predictions(self) -> "FrameSet":
+        """Crops from this frame regions with predictions and returns a FrameSet with the the cropped Frames"""
+        pred_frames = []
+        for pred in self.predictions:
+            bounding_box = get_prediction_bounding_box(pred)
+            if bounding_box is None:
+                continue
+            new_frame = self.copy()
+            new_frame.predictions = PredictionList([pred])
+            new_frame.crop(bounding_box)
+            pred_frames.append(new_frame)
+        return FrameSet(frames=pred_frames)
+
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
         """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
 
@@ -256,7 +275,7 @@ class Frame(BaseModel):
             self.image = self.image.resize((width, height))
         return self
 
-    def crop(self, bbox: Tuple[int, int, int, int]) -> "Frame":
+    def crop(self, bbox: BoundingBox) -> "Frame":
         """Crop the image based on the bounding box
 
         Parameters
@@ -359,6 +378,13 @@ class FrameSet(BaseModel):
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
 
+    def __iter__(self) -> Iterable[Frame]:  # type: ignore
+        for f in self.frames:
+            yield f
+
+    def __len__(self) -> int:
+        return len(self.frames)
+
     def _repr_pretty_(self, pp, cycle) -> str:  # type: ignore
         # Enable a pretty output on Jupiter notebooks `Display()` function
         return str(
@@ -433,7 +459,7 @@ class FrameSet(BaseModel):
             frame.downsize(width, height)
         return self
 
-    def crop(self, bbox: Tuple[int, int, int, int]) -> "FrameSet":
+    def crop(self, bbox: BoundingBox) -> "FrameSet":
         """Crop the images based on the bounding box
 
         Parameters
