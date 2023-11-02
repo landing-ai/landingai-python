@@ -83,7 +83,7 @@ progress_bar.empty()
 def inference():
     result_vis_images = []
     job_id = uuid.uuid4()
-    images = test_images_df
+    images = test_images_df[0:100]
     count = len(images)
     image_paths = images['path']
     defects = [0] * count
