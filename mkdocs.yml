@@ -40,11 +40,13 @@ nav:
     - Webcam: image-acquisition/webcam.md
     - Network Camera: image-acquisition/network-cameras.md
     - Screenshots: image-acquisition/screenshots.md
+  - Image Operations: image-operations.md
   - Running Inferences:
     - Getting Started: inferences/getting-started.md
     - Working with Frames: inferences/frames-inference.md
     - Overlaying Predictions: inferences/overlaying-predictions.md
     - Running Inferences Locally: inferences/docker-deployment.md
+    - Extracting Text (OCR) [beta]: inferences/ocr.md
   - Data Management: metadata.md
   #- Image operations (soon): image-operations.md
   - APIs:

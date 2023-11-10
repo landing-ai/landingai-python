@@ -3,16 +3,22 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
 import warnings
 
 import cv2
 import imageio
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageEnhance
 from pydantic import BaseModel
 
-from landingai.common import ClassificationPrediction, Prediction
+from landingai.common import (
+    BoundingBox,
+    ClassificationPrediction,
+    OcrPrediction,
+    Prediction,
+    get_prediction_bounding_box,
+)
 from landingai.notebook_utils import is_running_in_notebook
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
@@ -35,8 +41,17 @@ class PredictionList(List[ClassificationPrediction]):
     """
 
     def __contains__(self, key: object) -> bool:
+        if not len(self):
+            return False
         if isinstance(key, str):
-            return any([p.label_name == key for p in self])
+            # TODO: This is a hack to support OCR predictions. We should probably have different PredictionList
+            #  classes for each type of prediction, so we don't have to do this kind of checks and "type: ignore"
+            if all(isinstance(p, OcrPrediction) for p in self):
+                # For OCR predictions, check if the key is in the full text
+                full_text = " ".join([p.text for p in self])  # type: ignore
+                return key in full_text
+            else:
+                return any([p.label_name == key for p in self])
         return super().__contains__(key)
 
     def filter_threshold(self, min_score: float) -> "PredictionList":
@@ -132,7 +147,7 @@ class Frame(BaseModel):
         ----------
         predictor: the model to be invoked.
         """
-        self.predictions = PredictionList(predictor.predict(np.asarray(self.image)))  # type: ignore
+        self.predictions = PredictionList(predictor.predict(self.image))  # type: ignore
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
@@ -140,6 +155,19 @@ class Frame(BaseModel):
             cast(List[Prediction], self.predictions), self.image, options
         )
         return self
+
+    def crop_predictions(self) -> "FrameSet":
+        """Crops from this frame regions with predictions and returns a FrameSet with the the cropped Frames"""
+        pred_frames = []
+        for pred in self.predictions:
+            bounding_box = get_prediction_bounding_box(pred)
+            if bounding_box is None:
+                continue
+            new_frame = self.copy()
+            new_frame.predictions = PredictionList([pred])
+            new_frame.crop(bounding_box)
+            pred_frames.append(new_frame)
+        return FrameSet(frames=pred_frames)
 
     def to_numpy_array(self, image_src: str = "") -> np.ndarray:
         """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
@@ -247,6 +275,59 @@ class Frame(BaseModel):
             self.image = self.image.resize((width, height))
         return self
 
+    def crop(self, bbox: BoundingBox) -> "Frame":
+        """Crop the image based on the bounding box
+
+        Parameters
+        ----------
+        bbox: A tuple with the bounding box coordinates (xmin, ymin, xmax, ymax)
+        """
+        self.image = self.image.crop(bbox)
+        return self
+
+    def adjust_sharpness(self, factor: float) -> "Frame":
+        """Adjust the sharpness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Sharpness, factor)
+
+    def adjust_brightness(self, factor: float) -> "Frame":
+        """Adjust the brightness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Brightness, factor)
+
+    def adjust_contrast(self, factor: float) -> "Frame":
+        """Adjust the contrast of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Contrast, factor)
+
+    def adjust_color(self, factor: float) -> "Frame":
+        """Adjust the color of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        return self._apply_enhancement(ImageEnhance.Color, factor)
+
+    def _apply_enhancement(
+        self, enhancement: Type[ImageEnhance._Enhance], factor: float
+    ) -> "Frame":
+        enhancer = enhancement(self.image)  # type: ignore
+        self.image = enhancer.enhance(factor)
+        return self
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -297,6 +378,13 @@ class FrameSet(BaseModel):
     def __getitem__(self, key: int) -> Frame:
         return self.frames[key]
 
+    def __iter__(self) -> Iterable[Frame]:  # type: ignore
+        for f in self.frames:
+            yield f
+
+    def __len__(self) -> int:
+        return len(self.frames)
+
     def _repr_pretty_(self, pp, cycle) -> str:  # type: ignore
         # Enable a pretty output on Jupiter notebooks `Display()` function
         return str(
@@ -333,7 +421,7 @@ class FrameSet(BaseModel):
         """
 
         for frame in self.frames:
-            frame.predictions = predictor.predict(np.asarray(frame.image))  # type: ignore
+            frame.run_predict(predictor)
         return self
 
     def overlay_predictions(
@@ -370,6 +458,67 @@ class FrameSet(BaseModel):
         for frame in self.frames:
             frame.downsize(width, height)
         return self
+
+    def crop(self, bbox: BoundingBox) -> "FrameSet":
+        """Crop the images based on the bounding box
+
+        Parameters
+        ----------
+        bbox: A tuple with the bounding box coordinates (xmin, ymin, xmax, ymax)
+        """
+        for frame in self.frames:
+            frame.crop(bbox)
+        return self
+
+    def adjust_sharpness(self, factor: float) -> "FrameSet":
+        """Adjust the sharpness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_sharpness(factor)
+        return self
+
+    def adjust_brightness(self, factor: float) -> "FrameSet":
+        """Adjust the brightness of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_brightness(factor)
+        return self
+
+    def adjust_contrast(self, factor: float) -> "FrameSet":
+        """Adjust the contrast of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_contrast(factor)
+        return self
+
+    def adjust_color(self, factor: float) -> "FrameSet":
+        """Adjust the color of the image
+
+        Parameters
+        ----------
+        factor: The enhancement factor
+        """
+        for f in self.frames:
+            f.adjust_color(factor)
+        return self
+
+    def copy(self, *args: Any, **kwargs: Any) -> "FrameSet":
+        """Returns a copy of this FrameSet, with all the frames copied"""
+        frameset = super().copy(*args, **kwargs)
+        frameset.frames = [frame.copy() for frame in self.frames]
+        return frameset
 
     def save_image(
         self,

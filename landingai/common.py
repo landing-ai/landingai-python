@@ -1,13 +1,17 @@
 import math
 import re
 from functools import cached_property
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
 from pydantic import BaseModel, BaseSettings, Field, validator
 
 from landingai.exceptions import InvalidApiKeyError
+
+
+# A tuple of (xmin, ymin, xmax, ymax) representing a bounding box.
+BoundingBox = Tuple[int, int, int, int]
 
 
 class APIKey(BaseSettings):
@@ -84,7 +88,8 @@ class ObjectDetectionPrediction(ClassificationPrediction):
     id: str
     """A unique string identifier (UUID) for the prediction."""
 
-    bboxes: Tuple[int, int, int, int]
+    # TODO: Deprecate this attribute, and use bounding_box (singular) instead.
+    bboxes: BoundingBox
     """A tuple of (xmin, ymin, xmax, ymax) of the predicted bounding box."""
 
     @cached_property
@@ -122,10 +127,7 @@ class SegmentationPrediction(ClassificationPrediction):
         1 means the pixel is the predicted class, 0 means the pixel is not.
         """
         flattened_bitmap = decode_bitmap_rle(self.encoded_mask, self.encoding_map)
-        seg_mask_channel = np.array(flattened_bitmap, dtype=np.uint8).reshape(
-            self.mask_shape
-        )
-        return seg_mask_channel
+        return np.array(flattened_bitmap, dtype=np.uint8).reshape(self.mask_shape)
 
     @cached_property
     def decoded_index_mask(self) -> np.ndarray:
@@ -189,7 +191,9 @@ class InferenceMetadata(BaseModel):
     )
 
 
-def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
+def decode_bitmap_rle(
+    bitmap: str, encoding_map: Optional[Dict[str, int]] = None
+) -> List[int]:
     """
     Decode bitmap string to NumPy array.
 
@@ -198,15 +202,41 @@ def decode_bitmap_rle(bitmap: str, encoding_map: Dict[str, int]) -> List[int]:
     bitmap:
         Single run-length encoded bitmap string. For example: "5Z3N2Z".
     encoding_map:
-        Dictionary with the enconding used to generate the bitmap. For example: {'Z':0, 'N':1}.
+        Dictionary with the enconding used to generate the bitmap.
+        If none, {'Z':0, 'N':1} will be used.
 
     Return
     -----
     A flattened segmentation mask (with 0s and 1s) for a single class.
     """
+    if not encoding_map:
+        encoding_map = {"Z": 0, "N": 1}
     flat_mask = []
     bitmap_list = re.split("(Z|N)", bitmap)
     for num, map_letter in zip(*[iter(bitmap_list)] * 2):
         map_number = encoding_map[map_letter]
         flat_mask.extend([int(map_number)] * int(num))
     return flat_mask
+
+
+def get_prediction_bounding_box(prediction: Prediction) -> Optional[BoundingBox]:
+    """
+    Returns the prediction bounding box coordinates for compatible Predictions.
+    If prediction is not compatible with BoundingBox extraction, returns None.
+
+    Note that some prediction types might have precision loss when converting to BoundingBox.
+    OCR predictions, for example, are not guaranteed to be rectangular, alghough BoundingBoxes are.
+    """
+    if isinstance(prediction, ObjectDetectionPrediction):
+        return prediction.bboxes
+    elif isinstance(prediction, OcrPrediction):
+        x_list = [x for x, _ in prediction.location]
+        y_list = [y for _, y in prediction.location]
+        return (
+            min(x_list),
+            min(y_list),
+            max(x_list),
+            max(y_list),
+        )
+    else:
+        return None

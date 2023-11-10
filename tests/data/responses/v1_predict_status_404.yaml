@@ -7,4 +7,4 @@ responses:
     content_type: text/plain
     method: POST
     status: 404
-    url: https://predict.app.landing.ai/v0/foo?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43&device_type=pylib&runtime=pytest
+    url: https://predict.app.landing.ai/v0/foo?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43

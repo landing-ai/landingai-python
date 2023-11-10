@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.3.10"
+version = "0.3.20"
 description = "Helper library for interacting with Landing AI LandingLens"
 authors = ["Landing AI <dev@landing.ai>"]
 readme = "README.md"
@@ -31,6 +31,7 @@ aiohttp = { version = ">=3.7.3,<4.0.0", extras = ["speedups"] }
 aiofiles = ">=0.7.0,<1.0.0"
 tqdm = ">=4.64.0,<5.0.0"
 tenacity = "^8.2.3"
+pandas = "2.0"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "1.*"
