@@ -285,7 +285,7 @@ class LegacyTrainingDataset:
         )
         if not data:
             raise ValueError(
-                f"Failed to find a classic flow job by job id: {job_id} in project {self._project_id}. Please check the error log for more details and act accordingly.."
+                f"Failed to find a classic flow job by job id: {job_id} in project {self._project_id}. Please check the error log for more details and act accordingly."
             )
         dataset_type = data["type"]
         rows: List[Dict[str, Any]] = [
@@ -342,15 +342,13 @@ def _fetch_gt_and_predictions(
                 f"Could not find a classic flow job by job id: {job_id} in project {project_id}. Please double check your job id and project id is correct, and it's a classic flow job."
             )
         error_message = resp.text
-        _LOGGER.warning(
-            f"Failed to fetch legacy training dataset predictions: {resp.status_code}, {error_message}"
-        )
         _LOGGER.error(
+            f"Failed to fetch legacy training dataset: project_id {project_id}, job_id {job_id}, offset {offset}.\n"
             "HTTP request to LandingLens server failed with "
             f"code {resp.status_code}-{resp.reason} and error message: \n"
             f"{error_message}"
         )
-        return None
+        return {}
     return cast(Dict[str, Any], resp.json()["data"])
 
 
