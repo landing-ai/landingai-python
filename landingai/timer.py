@@ -5,6 +5,7 @@ import math
 import pprint
 import statistics
 import time
+import threading
 from collections import defaultdict, deque
 from contextlib import ContextDecorator
 from dataclasses import dataclass, field
@@ -148,23 +149,31 @@ class Timer(ContextDecorator):
     )
     log_fn: Callable[[str], None] = logging.getLogger(__name__).info
     _elapsed_time: float = field(default=math.nan, init=False, repr=False)
-    _start_time: Optional[float] = field(default=None, init=False, repr=False)
+    # Keep track of the start time for each thread and each timer (i.e. each function)
+    _thread_local_data: threading.local = field(
+        default=threading.local(), init=False, repr=False
+    )
 
     def start(self) -> None:
         """Start a new timer."""
-        if self._start_time is not None:
+        if not hasattr(self._thread_local_data, "_start_time"):
+            self._thread_local_data._start_time = {}
+        if self.name in self._thread_local_data._start_time:
             raise ValueError("Timer is running. Use .stop() to stop it")
-
-        self._start_time = time.perf_counter()
+        self._thread_local_data._start_time[self.name] = time.perf_counter()
 
     def stop(self) -> float:
         """Stop the timer, and report the elapsed time."""
-        if self._start_time is None:
+        if (
+            not hasattr(self._thread_local_data, "_start_time")
+            or self.name not in self._thread_local_data._start_time
+        ):
             raise ValueError("Timer is not running. Use .start() to start it")
 
         # Calculate elapsed time
-        self._elapsed_time = time.perf_counter() - self._start_time
-
+        self._elapsed_time = (
+            time.perf_counter() - self._thread_local_data._start_time[self.name]
+        )
         # Report elapsed time
         attributes = {
             "name": self.name,
@@ -179,7 +188,8 @@ class Timer(ContextDecorator):
         # Save stats
         Timer.stats.add(self.name, self._elapsed_time)
 
-        self._start_time = None
+        del self._thread_local_data._start_time[self.name]
+
         return self._elapsed_time
 
     def __enter__(self) -> "Timer":

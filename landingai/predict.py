@@ -116,7 +116,7 @@ class Predictor:
         }
 
     @retry(
-        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry.
+        # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry. Note that we will retry forever on 429s which is ok since the rate limiter will eventually allow the request to go through.
         retry=retry_if_exception_type(RateLimitExceededError),
         wait=wait_fixed(60),
         before_sleep=before_sleep_log(_LOGGER, logging.WARNING),
@@ -301,6 +301,7 @@ class EdgePredictor(Predictor):
         self,
         image: Union[np.ndarray, PIL.Image.Image],
         metadata: Optional[InferenceMetadata] = None,
+        reuse_session: bool = True,
         **kwargs: Any,
     ) -> List[Prediction]:
         """Run Edge inference on the input image and return the prediction result.
@@ -315,7 +316,8 @@ class EdgePredictor(Predictor):
             Note: The metadata is not reported back to LandingLens by default unless the edge inference server (i.e. ModelRunner) enables the feature of reporting historical inference results.
 
             See `landingai.common.InferenceMetadata` for more details.
-
+        reuse_session
+            Whether to reuse the session for sending multiple inference requests. By default, the session is reused to improve the performance. If you want to send multiple requests in parallel, set this to False.
         Returns
         -------
         List[Prediction]
@@ -324,9 +326,17 @@ class EdgePredictor(Predictor):
         buffer_bytes = serialize_image(image)
         files = {"file": buffer_bytes}
         data = {"metadata": metadata.json()} if metadata else None
-        return _do_inference(
-            self._session, self._url, files, {}, _EdgeExtractor, data=data
-        )
+        if reuse_session:
+            session = self._session
+        else:
+            session = _create_session(
+                self._url,
+                0,
+                {
+                    "contentType": "multipart/form-data"
+                },  # No retries for the inference service
+            )
+        return _do_inference(session, self._url, files, {}, _EdgeExtractor, data=data)
 
 
 class _Extractor:

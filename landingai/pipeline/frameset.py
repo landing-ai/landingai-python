@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
+from concurrent.futures import ThreadPoolExecutor, wait
 import warnings
 
 import cv2
@@ -141,13 +142,16 @@ class Frame(BaseModel):
         im = Image.fromarray(array)
         return cls(image=im)
 
-    def run_predict(self, predictor: Predictor) -> "Frame":
+    def run_predict(self, predictor: Predictor, reuse_session: bool = False) -> "Frame":
         """Run a cloud inference model
         Parameters
         ----------
         predictor: the model to be invoked.
+        reuse_session
+            Whether to reuse the session for sending multiple inference requests. By default, the session is reused to improve the performance. If you want to send multiple requests in parallel, set this to False.
+
         """
-        self.predictions = PredictionList(predictor.predict(self.image))  # type: ignore
+        self.predictions = PredictionList(predictor.predict(self.image, reuse_session=reuse_session))  # type: ignore
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
@@ -413,15 +417,27 @@ class FrameSet(BaseModel):
         """
         return not self.frames  # True if the list is empty
 
-    def run_predict(self, predictor: Predictor) -> "FrameSet":
+    def run_predict(self, predictor: Predictor, pipelining: bool = False) -> "FrameSet":
         """Run a cloud inference model
         Parameters
         ----------
         predictor: the model to be invoked.
+        pipelining: whether to request predictions in parallel or sequentially. Parallel requests will help reduce the impact of fixed costs (e.g. network latency, transfer time, etc) but will consume more resources on the client and server side.
         """
 
-        for frame in self.frames:
-            frame.run_predict(predictor)
+        if pipelining:
+            # Remember that run_predict will retry indefinitely on 429 (with a 60 second delay). This logic is still ok for a multi-threaded context.
+            with ThreadPoolExecutor(
+                max_workers=5
+            ) as executor:  # TODO: make this configurable
+                futures = [
+                    executor.submit(frame.run_predict, predictor, reuse_session=False)
+                    for frame in self.frames
+                ]
+                wait(futures)
+        else:
+            for frame in self.frames:
+                frame.run_predict(predictor)
         return self
 
     def overlay_predictions(
