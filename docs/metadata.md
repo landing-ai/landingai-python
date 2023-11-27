@@ -76,7 +76,7 @@ Use the `landingai.data_management.media.Media` API to upload images to a specif
 
 In addition to uploading images, the upload API supports the following features:
 1. Assign a split ('train'/'dev'/'test') to images. An empty string '' represents Unassigned and is the default.
-2. Upload labels along with images. The suported label files are:
+2. Upload labels along with images. The supported label files are:
     * [Pascal VOC XML files](https://support.landing.ai/docs/upload-labeled-images-od) for Object Detection projects.
     * [Segmentation mask files](https://support.landing.ai/docs/upload-labeled-images-seg) for Segmentation projects.
     * A classification name (string) for Classification projects.
