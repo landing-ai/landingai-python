@@ -23,7 +23,7 @@ The following screenshot shows how to acess the Manage Metadata module.
 ![the Metadata Management UI](assets/Metadata_Management_UI.png)
 
 ### Code Example of Metadata Management
-The following code snippet shows how to assign values to the Timestamp, Country, and Labeler metadata keys. 
+The following code snippet shows how to assign values to the Timestamp, Country, and Labeler metadata keys.
 
 ```python
 from landingai.data_management import Metadata
@@ -32,7 +32,7 @@ from landingai.data_management import Metadata
 YOUR_API_KEY = "land_sk_12345"
 YOUR_PROJECT_ID = 1190
 metadata_client = Metadata(YOUR_PROJECT_ID, YOUR_API_KEY)
-# Set three metadata values ('timestamp', 'country' and 'labeler') for images with IDs 123 and 124 
+# Set three metadata values ('timestamp', 'country' and 'labeler') for images with IDs 123 and 124
 metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", labeler="tom")
 # Output:
 # {
@@ -76,10 +76,10 @@ Use the `landingai.data_management.media.Media` API to upload images to a specif
 
 In addition to uploading images, the upload API supports the following features:
 1. Assign a split ('train'/'dev'/'test') to images. An empty string '' represents Unassigned and is the default.
-2. Upload labels along with images. The suported label files are:
+2. Upload labels along with images. The supported label files are:
     * [Pascal VOC XML files](https://support.landing.ai/docs/upload-labeled-images-od) for Object Detection projects.
     * [Segmentation mask files](https://support.landing.ai/docs/upload-labeled-images-seg) for Segmentation projects.
-    * A classification name (string) for Classificaiton projects.
+    * A classification name (string) for Classification projects.
 3. Attach additional metadata (key-value pairs) to images.
 
 for more information, go [here](https://support.landing.ai/landinglens/docs/uploading#upload-images-with-split-and-label-information).
@@ -87,9 +87,9 @@ for more information, go [here](https://support.landing.ai/landinglens/docs/uplo
 
 ### Upload Segmentation Masks
 
-Use the `upload()` function to upload an image and its segmentation mask (labels) together. When you upload a segmentation mask, the function requires a `seg_defect_map` parameter. This parameter points to a JSON file that maps the pixel values to class names. To get this map, use the `landingai.data_management.label.Label` API. 
+Use the `upload()` function to upload an image and its segmentation mask (labels) together. When you upload a segmentation mask, the function requires a `seg_defect_map` parameter. This parameter points to a JSON file that maps the pixel values to class names. To get this map, use the `landingai.data_management.label.Label` API.
 
-The following code snippet shows how to upload an image and its segmentation mask. 
+The following code snippet shows how to upload an image and its segmentation mask.
 
 ```python
 >>> client = Label(project_id, api_key)
@@ -107,7 +107,7 @@ Additionally, the Python `upload()` API supports uploading `tiff` image files. H
 
 ### Code Example of Image Management
 
-The following code snippet shows how to list images currently in a project, upload a single image, and upload a folder of images. 
+The following code snippet shows how to list images currently in a project, upload a single image, and upload a folder of images.
 
 ```python
 from landingai.data_management import Media
