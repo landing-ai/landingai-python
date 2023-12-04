@@ -24,6 +24,7 @@ from landingai.exceptions import (
 )
 from landingai.predict import EdgePredictor, Predictor
 from landingai.visualize import overlay_predictions
+from landingai.pipeline.frameset import FrameSet, Frame
 
 
 def test_predict_with_none():
@@ -275,6 +276,39 @@ def test_edge_class_predict(connect_mock):
     logging.info(preds)
     img_with_masks = overlay_predictions(preds, img)
     img_with_masks.save("tests/output/test_edge_class.jpg")
+
+
+@patch("socket.socket")
+@responses.activate
+def test_edge_batch_predict(connect_mock):
+    # Fake a successful connection
+    sock_instance = connect_mock.return_value
+    sock_instance.connect_ex.return_value = 0
+    Path("tests/output").mkdir(parents=True, exist_ok=True)
+    responses._add_from_file(
+        file_path="tests/data/responses/test_edge_class_predict.yaml"
+    )
+    # Project: https://app.landing.ai/app/376/pr/26119078438913/deployment?device=tiger-team-integration-tests
+    # run LandingEdge.CLI with cmdline parameters: run-online -k "your_api_key" -s "your_secret_key" -r 26119078438913 \
+    #                                            -m "59eff733-1dcd-4ace-b104-9041c745f1da" -n test_edge_cli --port 8123
+    predictor = EdgePredictor("localhost", 8123)
+    test_image = "tests/data/images/wildfire1.jpeg"
+    frs = FrameSet.from_image(test_image)
+    for i in range(9):
+        frs.append(Frame.from_image(test_image))
+    assert frs is not None
+    frs.run_predict(predictor=predictor, pipelining=True)
+
+    for frame in frs:
+        assert len(frame.predictions) == 1, "Result should not be empty or None"
+        assert frame.predictions[0].label_name == "HasFire"
+        assert frame.predictions[0].label_index == 0
+        np.testing.assert_almost_equal(
+            frame.predictions[0].score,
+            0.99565023,
+            decimal=3,
+            err_msg="class score mismatch",
+        )
 
 
 @responses.activate
