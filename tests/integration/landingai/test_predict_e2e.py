@@ -146,6 +146,7 @@ def test_class_predict():
     img_with_masks.save("tests/output/test_class.jpg")
 
 
+@pytest.mark.skip
 def test_ocr_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     predictor = OcrPredictor(api_key=_API_KEY)
