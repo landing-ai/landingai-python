@@ -297,7 +297,7 @@ def test_edge_batch_predict(connect_mock):
     for i in range(9):
         frs.append(Frame.from_image(test_image))
     assert frs is not None
-    frs.run_predict(predictor=predictor, pipelining=True)
+    frs.run_predict(predictor=predictor, no_workers=5)
 
     for frame in frs:
         assert len(frame.predictions) == 1, "Result should not be empty or None"

@@ -148,7 +148,7 @@ class Frame(BaseModel):
         ----------
         predictor: the model to be invoked.
         reuse_session
-            Whether to reuse the session for sending multiple inference requests. By default, the session is reused to improve the performance. If you want to send multiple requests in parallel, set this to False.
+            Whether to reuse the HTTPS session for sending multiple inference requests. By default, the session is reused to improve the performance on high latency networks (e.g. fewer SSL negotiations). If you are sending requests from multiple threads, set this to False.
 
         """
         self.predictions = PredictionList(predictor.predict(self.image, reuse_session=reuse_session))  # type: ignore
@@ -417,15 +417,15 @@ class FrameSet(BaseModel):
         """
         return not self.frames  # True if the list is empty
 
-    def run_predict(self, predictor: Predictor, pipelining: bool = False) -> "FrameSet":
+    def run_predict(self, predictor: Predictor, no_workers: int = 1) -> "FrameSet":
         """Run a cloud inference model
         Parameters
         ----------
         predictor: the model to be invoked.
-        pipelining: whether to request predictions in parallel or sequentially. Parallel requests will help reduce the impact of fixed costs (e.g. network latency, transfer time, etc) but will consume more resources on the client and server side.
+        no_workers: By default a single worker will request predictions sequentially. Parallel requests can help reduce the impact of fixed costs (e.g. network latency, transfer time, etc) but will consume more resources on the client and server side. The number of workers should typically be under 5. A large number of workers when using cloud inference will be rate limited and produce no improvement.
         """
 
-        if pipelining:
+        if no_workers > 1:
             # Remember that run_predict will retry indefinitely on 429 (with a 60 second delay). This logic is still ok for a multi-threaded context.
             with ThreadPoolExecutor(
                 max_workers=5
