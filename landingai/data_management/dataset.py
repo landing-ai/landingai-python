@@ -38,13 +38,13 @@ class TrainingDataset:
 
         Example output of the returned dataframe:
         ```
-                id    split  classes  seg_mask_prediction_path  okng_threshold  media_level_predicted_score    label_id     seg_mask_label_path media_level_label             metadata
-        0   11229595   None       []  images/11229595_pred.npy             NaN                          NaN  11301603.0  images/11229595_gt.npy                OK                   {}
-        1   11229597   None       []  images/11229597_pred.npy             NaN                          NaN         NaN                    None              None                   {}
-        2    9918918  train  [screw]   images/9918918_pred.npy            0.99                     0.954456   8792257.0   images/9918918_gt.npy                NG                   {}
-        3    9918924    dev  [screw]   images/9918924_pred.npy            0.99                     0.843393   8792265.0   images/9918924_gt.npy                NG   {'creator': 'bob'}
-        4    9918921  train  [screw]   images/9918921_pred.npy            0.99                     0.956114   8792260.0   images/9918921_gt.npy                NG                   {}
-        5    9918923  train  [screw]   images/9918923_pred.npy            0.99                     0.943873   8792262.0   images/9918923_gt.npy                NG   {'creator': 'foo'}
+                id    split  classes  seg_mask_prediction_path  media_level_predicted_score    label_id     seg_mask_label_path media_level_label             metadata
+        0   11229595   None       []  images/11229595_pred.npy                          NaN  11301603.0  images/11229595_gt.npy                OK                   {}
+        1   11229597   None       []  images/11229597_pred.npy                          NaN         NaN                    None              None                   {}
+        2    9918918  train  [screw]   images/9918918_pred.npy                     0.954456   8792257.0   images/9918918_gt.npy                NG                   {}
+        3    9918924    dev  [screw]   images/9918924_pred.npy                     0.843393   8792265.0   images/9918924_gt.npy                NG   {'creator': 'bob'}
+        4    9918921  train  [screw]   images/9918921_pred.npy                     0.956114   8792260.0   images/9918921_gt.npy                NG                   {}
+        5    9918923  train  [screw]   images/9918923_pred.npy                     0.943873   8792262.0   images/9918923_gt.npy                NG   {'creator': 'foo'}
         ```
 
         NOTE:
@@ -173,14 +173,12 @@ class TrainingDataset:
                     )
 
         # Get prediction data
-        seg_mask_prediction_path, media_level_predicted_score, okng_threshold = (
-            None,
+        seg_mask_prediction_path, media_level_predicted_score = (
             None,
             None,
         )
         if data.get("predictionLabel"):
             try:
-                okng_threshold = data["predictionLabel"]["okngThreshold"]
                 media_level_predicted_score = data["predictionLabel"]["mediaLevelScore"]
                 seg_mask_prediction_path = output_dir / f"{media_id}_pred.npy"
                 pred_mask = np.asarray(
@@ -214,7 +212,6 @@ class TrainingDataset:
             "seg_mask_prediction_path": seg_mask_prediction_path.absolute().as_posix()
             if seg_mask_prediction_path
             else None,
-            "okng_threshold": okng_threshold,
             "media_level_predicted_score": media_level_predicted_score,
             # label data
             "label_id": label_id,
