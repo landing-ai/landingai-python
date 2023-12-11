@@ -317,7 +317,7 @@ class EdgePredictor(Predictor):
 
             See `landingai.common.InferenceMetadata` for more details.
         reuse_session
-            Whether to reuse the session for sending multiple inference requests. By default, the session is reused to improve the performance. If you want to send multiple requests in parallel, set this to False.
+            Whether to reuse the HTTPS session for sending multiple inference requests. By default, the session is reused to improve the performance on high latency networks (e.g. fewer SSL negotiations). If you are sending requests from multiple threads, set this to False.
         Returns
         -------
         List[Prediction]

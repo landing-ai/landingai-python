@@ -142,7 +142,7 @@ class Frame(BaseModel):
         im = Image.fromarray(array)
         return cls(image=im)
 
-    def run_predict(self, predictor: Predictor, reuse_session: bool = False) -> "Frame":
+    def run_predict(self, predictor: Predictor, reuse_session: bool = True) -> "Frame":
         """Run a cloud inference model
         Parameters
         ----------
@@ -417,7 +417,7 @@ class FrameSet(BaseModel):
         """
         return not self.frames  # True if the list is empty
 
-    def run_predict(self, predictor: Predictor, no_workers: int = 1) -> "FrameSet":
+    def run_predict(self, predictor: Predictor, num_workers: int = 1) -> "FrameSet":
         """Run a cloud inference model
         Parameters
         ----------
@@ -425,10 +425,10 @@ class FrameSet(BaseModel):
         no_workers: By default a single worker will request predictions sequentially. Parallel requests can help reduce the impact of fixed costs (e.g. network latency, transfer time, etc) but will consume more resources on the client and server side. The number of workers should typically be under 5. A large number of workers when using cloud inference will be rate limited and produce no improvement.
         """
 
-        if no_workers > 1:
+        if num_workers > 1:
             # Remember that run_predict will retry indefinitely on 429 (with a 60 second delay). This logic is still ok for a multi-threaded context.
             with ThreadPoolExecutor(
-                max_workers=5
+                max_workers=num_workers
             ) as executor:  # TODO: make this configurable
                 futures = [
                     executor.submit(frame.run_predict, predictor, reuse_session=False)
