@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
+from concurrent.futures import ThreadPoolExecutor, wait
 import warnings
 
 import cv2
@@ -141,13 +142,16 @@ class Frame(BaseModel):
         im = Image.fromarray(array)
         return cls(image=im)
 
-    def run_predict(self, predictor: Predictor) -> "Frame":
+    def run_predict(self, predictor: Predictor, reuse_session: bool = True) -> "Frame":
         """Run a cloud inference model
         Parameters
         ----------
         predictor: the model to be invoked.
+        reuse_session
+            Whether to reuse the HTTPS session for sending multiple inference requests. By default, the session is reused to improve the performance on high latency networks (e.g. fewer SSL negotiations). If you are sending requests from multiple threads, set this to False.
+
         """
-        self.predictions = PredictionList(predictor.predict(self.image))  # type: ignore
+        self.predictions = PredictionList(predictor.predict(self.image, reuse_session=reuse_session))  # type: ignore
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
@@ -413,15 +417,27 @@ class FrameSet(BaseModel):
         """
         return not self.frames  # True if the list is empty
 
-    def run_predict(self, predictor: Predictor) -> "FrameSet":
+    def run_predict(self, predictor: Predictor, num_workers: int = 1) -> "FrameSet":
         """Run a cloud inference model
         Parameters
         ----------
         predictor: the model to be invoked.
+        num_workers: By default a single worker will request predictions sequentially. Parallel requests can help reduce the impact of fixed costs (e.g. network latency, transfer time, etc) but will consume more resources on the client and server side. The number of workers should typically be under 5. A large number of workers when using cloud inference will be rate limited and produce no improvement.
         """
 
-        for frame in self.frames:
-            frame.run_predict(predictor)
+        if num_workers > 1:
+            # Remember that run_predict will retry indefinitely on 429 (with a 60 second delay). This logic is still ok for a multi-threaded context.
+            with ThreadPoolExecutor(
+                max_workers=num_workers
+            ) as executor:  # TODO: make this configurable
+                futures = [
+                    executor.submit(frame.run_predict, predictor, reuse_session=False)
+                    for frame in self.frames
+                ]
+                wait(futures)
+        else:
+            for frame in self.frames:
+                frame.run_predict(predictor)
         return self
 
     def overlay_predictions(
