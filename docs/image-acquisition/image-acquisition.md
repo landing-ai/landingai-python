@@ -1,4 +1,4 @@
-The Landing AI SDK provides many sources for getting (acquiring images):
+The Landing AI SDK provides many sources for getting images:
 
 - [Image files](image-file.md)
 - [Video files](video-file.md)
