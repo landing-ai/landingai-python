@@ -97,14 +97,9 @@ class PredictionList(List[Union[ClassificationPrediction, OcrPrediction]]):
             raise TypeError(
                 "You can't filter by labels if type of prediction doesn't have `label_name` attribute"
             )
-
-        def helper() -> Iterable[ClassificationPrediction]:
-            for p in self:
-                p = cast(ClassificationPrediction, p)
-                if p.label_name == label:
-                    yield p
-
-        return PredictionList(helper())
+        return PredictionList(
+            (p for p in self if cast(ClassificationPrediction, p).label_name == label)
+        )
 
 
 class Frame(BaseModel):
