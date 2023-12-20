@@ -1,7 +1,6 @@
 """The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images.
 """
 
-import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -24,8 +23,6 @@ from landingai.notebook_utils import is_running_in_notebook
 from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
 from landingai.visualize import overlay_predictions
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class PredictionList(List[Union[ClassificationPrediction, OcrPrediction]]):
