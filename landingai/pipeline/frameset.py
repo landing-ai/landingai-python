@@ -151,7 +151,9 @@ class Frame(BaseModel):
             Whether to reuse the HTTPS session for sending multiple inference requests. By default, the session is reused to improve the performance on high latency networks (e.g. fewer SSL negotiations). If you are sending requests from multiple threads, set this to False.
 
         """
-        self.predictions = PredictionList(predictor.predict(self.image, reuse_session=reuse_session))  # type: ignore
+        self.predictions = PredictionList(
+            predictor.predict(self.image, reuse_session=reuse_session)
+        )  # type: ignore
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
