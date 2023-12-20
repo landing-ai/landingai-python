@@ -294,9 +294,8 @@ def test_edge_batch_predict(connect_mock):
     predictor = EdgePredictor("localhost", 8123)
     test_image = "tests/data/images/wildfire1.jpeg"
     frs = FrameSet.from_image(test_image)
-    for i in range(9):
+    for _ in range(9):
         frs.append(Frame.from_image(test_image))
-    assert frs is not None
     frs.run_predict(predictor=predictor, num_workers=5)
 
     for frame in frs:

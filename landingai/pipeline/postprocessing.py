@@ -1,7 +1,8 @@
-from typing import Dict
+from typing import Dict, Sequence, cast
 
 from landingai.pipeline.frameset import FrameSet
 from landingai.postprocess import class_counts
+from landingai.common import ClassificationPrediction
 
 
 def get_class_counts(
@@ -12,7 +13,9 @@ def get_class_counts(
     Parameters
     ----------
     add_id_to_classname : bool, optional
-        By default, detections with the same class names and different defect id will be counted as the same. Set to True if you want to count them separately
+        By default, detections with the same class names and different defect
+        id will be counted as the same. Set to True if you want to count them
+        separately
 
     Returns
     -------
@@ -27,9 +30,12 @@ def get_class_counts(
         ```
     """
     counts = {}
-    for i in range(len(frs.frames)):
+    for frame in frs.frames:
         # Here is a sample return from class_counts: {1: (3, 'Heart'), 3: (3, 'Club'), 4: (3, 'Spade'), 2: (3, 'Diamond')}
-        for k, v in class_counts(frs.frames[i].predictions).items():
+        if frame.predictions.inner_type == "OcrPrediction":
+            raise TypeError("Can't count classes for OcrPredictor")
+        predictions = cast(Sequence[ClassificationPrediction], frame.predictions)
+        for k, v in class_counts(predictions).items():
             if add_id_to_classname:  # This is useful if class names are not unique
                 class_name = f"{v[1]}_{k}"
             else:

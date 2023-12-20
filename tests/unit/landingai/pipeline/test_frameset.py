@@ -6,7 +6,11 @@ from numpy.testing import assert_array_equal
 from PIL import Image
 import pytest
 
-from landingai.common import ObjectDetectionPrediction, OcrPrediction
+from landingai.common import (
+    ObjectDetectionPrediction,
+    OcrPrediction,
+    ClassificationPrediction,
+)
 from landingai.storage.data_access import fetch_from_uri
 from landingai.pipeline.frameset import FrameSet, Frame, PredictionList
 
@@ -422,7 +426,7 @@ def test_predict_uses_raw_pil_image(frame_getter):
     assert predictor.predict.call_args[0][0] is get_image_from_frame_or_frameset(frame)
 
 
-def test_predict_forwards_kwargs():
+def test_run_predict_forwards_kwargs():
     """Test that the predict method uses the raw PIL image, not the array-converted image.
 
     This is to ensure that the image preserves its particularities when sent to predictor.
@@ -460,3 +464,13 @@ def get_image_from_frame_or_frameset(frame_or_frameset) -> Image:
         return frame_or_frameset.frames[0].image
     else:
         return frame_or_frameset.image
+
+
+def test_prediction_list_only_has_one_prediction_type():
+    with pytest.raises(ValueError):
+        PredictionList(
+            [
+                ClassificationPrediction(score=1.0, label_name="house", label_index=1),
+                OcrPrediction(score=1.0, text="LandingAI", location=[]),
+            ]
+        )

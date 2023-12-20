@@ -1,7 +1,6 @@
 """The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images.
 """
 
-import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -25,10 +24,8 @@ from landingai.predict import Predictor
 from landingai.storage.data_access import fetch_from_uri
 from landingai.visualize import overlay_predictions
 
-_LOGGER = logging.getLogger(__name__)
 
-
-class PredictionList(List[ClassificationPrediction]):
+class PredictionList(List[Union[ClassificationPrediction, OcrPrediction]]):
     """
     A list of predictions from LandingLens, with some helper methods to filter and check prediction results.
 
@@ -41,18 +38,36 @@ class PredictionList(List[ClassificationPrediction]):
     False
     """
 
+    def __init__(self, *args: Any) -> None:
+        # TODO: This is a hack to support OCR predictions. We should probably have different PredictionList
+        #  classes for each type of prediction, so we don't have to do conditional checks everywhere and `cast`
+        # or "type: ignore".
+        super().__init__(*args)
+        for p in self:
+            if not isinstance(p, type(self[0])):
+                raise ValueError("All elements should be of the same type")
+
+    @property
+    def inner_type(self) -> str:
+        return type(self[0]).__name__
+
     def __contains__(self, key: object) -> bool:
         if not len(self):
             return False
         if isinstance(key, str):
-            # TODO: This is a hack to support OCR predictions. We should probably have different PredictionList
-            #  classes for each type of prediction, so we don't have to do this kind of checks and "type: ignore"
-            if all(isinstance(p, OcrPrediction) for p in self):
+            if self.inner_type == "OcrPrediction":
                 # For OCR predictions, check if the key is in the full text
-                full_text = " ".join([p.text for p in self])  # type: ignore
+                full_text = ""
+                for p in self:
+                    p = cast(OcrPrediction, p)
+                    full_text += " " + p.text
                 return key in full_text
             else:
-                return any([p.label_name == key for p in self])
+                for p in self:
+                    p = cast(ClassificationPrediction, p)
+                    if p.label_name == key:
+                        return True
+                return False
         return super().__contains__(key)
 
     def filter_threshold(self, min_score: float) -> "PredictionList":
@@ -66,7 +81,7 @@ class PredictionList(List[ClassificationPrediction]):
         -------
         PredictionList : A new instance of PredictionList containing only predictions above min_score
         """
-        return PredictionList([p for p in self if p.score >= min_score])
+        return PredictionList((p for p in self if p.score >= min_score))
 
     def filter_label(self, label: str) -> "PredictionList":
         """Return a new PredictionList with only the predictions that have the specified label
@@ -78,7 +93,18 @@ class PredictionList(List[ClassificationPrediction]):
         -------
         PredictionList : A new instance of PredictionList containing only the filtered labels
         """
-        return PredictionList([p for p in self if p.label_name == label])
+        if self.inner_type == "OcrPrediction":
+            raise TypeError(
+                "You can't filter by labels if type of prediction doesn't have `label_name` attribute"
+            )
+
+        def helper() -> Iterable[ClassificationPrediction]:
+            for p in self:
+                p = cast(ClassificationPrediction, p)
+                if p.label_name == label:
+                    yield p
+
+        return PredictionList(helper())
 
 
 class Frame(BaseModel):
@@ -155,7 +181,7 @@ class Frame(BaseModel):
         """
         self.predictions = PredictionList(
             predictor.predict(self.image, reuse_session=reuse_session, **kwargs)
-        )  # type: ignore
+        )
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":
@@ -341,13 +367,15 @@ class Frame(BaseModel):
 
 
 class FrameSet(BaseModel):
-    """A FrameSet is a collection of frames (in order). Typically a FrameSet will include a single image but there are circumstances where other images will be extracted from the initial one. For example: we may want to identify vehicles on an initial image and then extract sub-images for each of the vehicles."""
+    """
+    A FrameSet is a collection of frames (in order). Typically a FrameSet
+    will include a single image but there are circumstances where other images
+    will be extracted from the initial one. For example: we may want to
+    identify vehicles on an initial image and then extract sub-images for
+    each of the vehicles.
+    """
 
     frames: List[Frame] = []  # Start with empty frame set
-
-    # @classmethod
-    # def from_frameset_list(cls, list: List["FrameSet"] = None) -> "FrameSet":
-    #     return cls(frames=list)
 
     @classmethod
     def from_image(
