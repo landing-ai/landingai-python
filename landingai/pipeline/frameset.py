@@ -57,17 +57,14 @@ class PredictionList(List[Union[ClassificationPrediction, OcrPrediction]]):
         if isinstance(key, str):
             if self._inner_type == "OcrPrediction":
                 # For OCR predictions, check if the key is in the full text
-                full_text = ""
-                for p in self:
-                    p = cast(OcrPrediction, p)
-                    full_text += " " + p.text
+                full_text = " ".join(cast(OcrPrediction, p).text for p in self)
                 return key in full_text
             else:
-                for p in self:
-                    p = cast(ClassificationPrediction, p)
-                    if p.label_name == key:
-                        return True
-                return False
+                return any(
+                    p
+                    for p in self
+                    if cast(ClassificationPrediction, p).label_name == key
+                )
         return super().__contains__(key)
 
     def filter_threshold(self, min_score: float) -> "PredictionList":
