@@ -217,7 +217,7 @@ class OcrPredictor(Predictor):
             In "single-text" mode, the caller must provide a list of quadrilateral(s) that cover the text in the image.
             Each quadrilateral is a list of 4 points (x, y), and it should cover a single line of text in the image.
             In "multi-text" mode, regions_of_interest is not required. If it is None, the whole image will be used as the region of interest.
-
+        language:
         Returns
         -------
         List[OcrPrediction]
@@ -238,6 +238,9 @@ class OcrPredictor(Predictor):
         data = {}
         if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
+
+        if language := kwargs.get("language", ""):
+            data["language"] = language
 
         preds = _do_inference(
             self._session,
@@ -352,7 +355,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_class_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ClassificationPrediction]:
         """Extract Classification prediction result from response
 
@@ -392,7 +395,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_od_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ObjectDetectionPrediction]:
         """Extract Object Detection prediction result from response
 
@@ -504,7 +507,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_seg_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[SegmentationPrediction]:
         """Extract Segmentation prediction result from response
 
@@ -534,7 +537,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_vp_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[SegmentationPrediction]:
         """Extract Visual Prompting result from response
 
@@ -590,7 +593,7 @@ class _EdgeExtractor(_Extractor):
 
     @staticmethod
     def _extract_edge_class_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ClassificationPrediction]:
         """Extract Edge Inference Classification prediction result from response
 
@@ -618,7 +621,7 @@ class _EdgeExtractor(_Extractor):
 
     @staticmethod
     def _extract_edge_od_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ObjectDetectionPrediction]:
         """Extract Object Detection prediction result from edge inference response
 
@@ -713,7 +716,7 @@ class _EdgeExtractor(_Extractor):
 
     @staticmethod
     def _extract_edge_seg_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[SegmentationPrediction]:
         """Extract Segmentation prediction result from response
 

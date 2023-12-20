@@ -142,16 +142,20 @@ class Frame(BaseModel):
         im = Image.fromarray(array)
         return cls(image=im)
 
-    def run_predict(self, predictor: Predictor, reuse_session: bool = True) -> "Frame":
+    def run_predict(
+        self, predictor: Predictor, reuse_session: bool = True, **kwargs: Any
+    ) -> "Frame":
         """Run a cloud inference model
         Parameters
         ----------
         predictor: the model to be invoked.
         reuse_session
             Whether to reuse the HTTPS session for sending multiple inference requests. By default, the session is reused to improve the performance on high latency networks (e.g. fewer SSL negotiations). If you are sending requests from multiple threads, set this to False.
-
+        kwargs: keyword arguments to forward to `predictor`.
         """
-        self.predictions = PredictionList(predictor.predict(self.image, reuse_session=reuse_session))  # type: ignore
+        self.predictions = PredictionList(
+            predictor.predict(self.image, reuse_session=reuse_session, **kwargs)
+        )  # type: ignore
         return self
 
     def overlay_predictions(self, options: Optional[Dict[str, Any]] = None) -> "Frame":

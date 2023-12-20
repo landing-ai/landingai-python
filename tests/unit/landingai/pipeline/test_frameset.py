@@ -422,6 +422,25 @@ def test_predict_uses_raw_pil_image(frame_getter):
     assert predictor.predict.call_args[0][0] is get_image_from_frame_or_frameset(frame)
 
 
+def test_predict_forwards_kwargs():
+    """Test that the predict method uses the raw PIL image, not the array-converted image.
+
+    This is to ensure that the image preserves its particularities when sent to predictor.
+    When sending the array-converted image, RGBA images will raise convertion errors, for example.
+    """
+    frame = get_frame()
+    predictor = mock.Mock()
+    predictor.predict.return_value = []
+    frame.run_predict(predictor, k1="a", k2="b", k3=3)
+    predictor.predict.assert_called_once_with(
+        get_image_from_frame_or_frameset(frame),
+        reuse_session=True,
+        k1="a",
+        k2="b",
+        k3=3,
+    )
+
+
 @pytest.mark.parametrize(
     "frame_getter",
     [
