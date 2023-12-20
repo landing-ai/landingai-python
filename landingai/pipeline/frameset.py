@@ -48,14 +48,14 @@ class PredictionList(List[Union[ClassificationPrediction, OcrPrediction]]):
                 raise ValueError("All elements should be of the same type")
 
     @property
-    def inner_type(self) -> str:
+    def _inner_type(self) -> str:
         return type(self[0]).__name__
 
     def __contains__(self, key: object) -> bool:
         if not len(self):
             return False
         if isinstance(key, str):
-            if self.inner_type == "OcrPrediction":
+            if self._inner_type == "OcrPrediction":
                 # For OCR predictions, check if the key is in the full text
                 full_text = ""
                 for p in self:
@@ -93,7 +93,7 @@ class PredictionList(List[Union[ClassificationPrediction, OcrPrediction]]):
         -------
         PredictionList : A new instance of PredictionList containing only the filtered labels
         """
-        if self.inner_type == "OcrPrediction":
+        if self._inner_type == "OcrPrediction":
             raise TypeError(
                 "You can't filter by labels if type of prediction doesn't have `label_name` attribute"
             )
