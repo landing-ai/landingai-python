@@ -32,7 +32,7 @@ def get_class_counts(
     counts = {}
     for frame in frs.frames:
         # Here is a sample return from class_counts: {1: (3, 'Heart'), 3: (3, 'Club'), 4: (3, 'Spade'), 2: (3, 'Diamond')}
-        if frame.predictions.inner_type == "OcrPrediction":
+        if frame.predictions._inner_type == "OcrPrediction":
             raise TypeError("Can't count classes for OcrPredictor")
         predictions = cast(Sequence[ClassificationPrediction], frame.predictions)
         for k, v in class_counts(predictions).items():
