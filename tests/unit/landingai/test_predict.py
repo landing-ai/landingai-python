@@ -450,7 +450,6 @@ def test_load_api_credential_from_env_file(tmp_path):
     [
         {"mode": "weird mode"},
         {"mode": "single-text"},
-        {"language": "-"},
     ],
 )
 def test_OcrPredictor_kwargs(kwargs):

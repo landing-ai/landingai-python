@@ -3,7 +3,7 @@
 import json
 import logging
 import socket
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type, Union, cast
 from urllib.parse import urlparse
 
 import numpy as np
@@ -171,6 +171,7 @@ class OcrPredictor(Predictor):
         self,
         threshold: float = 0.5,
         *,
+        language: Literal["en", "ch"] = "ch",
         api_key: Optional[str] = None,
     ) -> None:
         """OCR Predictor constructor
@@ -183,8 +184,12 @@ class OcrPredictor(Predictor):
             The API Key of your LandingLens organization.
             If not provided, it will try to load from the environment variable
             LANDINGAI_API_KEY or from the .env file.
+        language:
+            Specifies the character set to use. Can either be `"en"` for English
+            or `"ch"` for Chinese and English (default).
         """
         self._threshold = threshold
+        self._language = language
         self._api_credential = load_api_credential(api_key)
         extra_x_event = {
             "model_type": "ocr",
@@ -217,9 +222,6 @@ class OcrPredictor(Predictor):
             In "single-text" mode, the caller must provide a list of quadrilateral(s) that cover the text in the image.
             Each quadrilateral is a list of 4 points (x, y), and it should cover a single line of text in the image.
             In "multi-text" mode, regions_of_interest is not required. If it is None, the whole image will be used as the region of interest.
-        language:
-            Specifies the character set to use. Can either be `"en"` for English
-            or `"ch"` for Chinese and English (default).
 
         Returns
         -------
@@ -238,14 +240,9 @@ class OcrPredictor(Predictor):
             raise ValueError(
                 "regions_of_interest parameter must be provided in single-text mode."
             )
-        data = {}
+        data = {"language": self._language}
         if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
-
-        if language := kwargs.get("language", ""):
-            if language not in ["en", "ch"]:
-                raise ValueError(f"language can only be 'en' or 'ch', got {language}")
-            data["language"] = language
 
         preds = _do_inference(
             self._session,
