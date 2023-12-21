@@ -206,18 +206,21 @@ class OcrPredictor(Predictor):
 
         Parameters
         ----------
-        image
+        image:
             The input image to be predicted
         mode:
             The mode of this prediction. It can be either "multi-text" (default) or "single-text".
             In "multi-text" mode, the predictor will detect multiple lines of text in the image.
             In "single-text" mode, the predictor will detect a single line of text in the image.
-        regions_of_interest
+        regions_of_interest:
             A list of region of interest boxes/quadrilateral. Each quadrilateral is a list of 4 points (x, y).
             In "single-text" mode, the caller must provide a list of quadrilateral(s) that cover the text in the image.
             Each quadrilateral is a list of 4 points (x, y), and it should cover a single line of text in the image.
             In "multi-text" mode, regions_of_interest is not required. If it is None, the whole image will be used as the region of interest.
         language:
+            Specifies the character set to use. Can either be `"en"` for English
+            or `"ch"` for Chinese and English (default).
+
         Returns
         -------
         List[OcrPrediction]
@@ -240,6 +243,8 @@ class OcrPredictor(Predictor):
             data["rois"] = serialize_rois(rois, mode)
 
         if language := kwargs.get("language", ""):
+            if language not in ["en", "ch"]:
+                raise ValueError(f"language can only be 'en' or 'ch', got {language}")
             data["language"] = language
 
         preds = _do_inference(

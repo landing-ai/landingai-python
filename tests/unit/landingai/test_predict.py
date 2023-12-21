@@ -22,7 +22,7 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
-from landingai.predict import EdgePredictor, Predictor
+from landingai.predict import EdgePredictor, Predictor, OcrPredictor
 from landingai.visualize import overlay_predictions
 from landingai.pipeline.frameset import FrameSet, Frame
 
@@ -443,3 +443,18 @@ def test_load_api_credential_from_env_file(tmp_path):
     # reset back to the default config
     APIKey.__config__.env_file = ".env"
     env_file.unlink()
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"mode": "weird mode"},
+        {"mode": "single-text"},
+        {"language": "-"},
+    ],
+)
+def test_OcrPredictor_kwargs(kwargs):
+    predictor = OcrPredictor(api_key="land_sk_something")
+    image = np.zeros((10, 10, 3), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        predictor.predict(image, **kwargs)

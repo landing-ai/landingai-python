@@ -44,3 +44,5 @@ if "Landing" in frame.predictions:
 ```
 
 The results may vary depending on the image quality, the font, and the language. Try with your own images to see how well the model performs, and [provide us feedback about the results](https://github.com/landing-ai/landingai-python/issues/new).
+
+The `OcrPredictor` class accepts a couple of extra parameters that can help you finetune the results you get. Please check its documentation for more details.

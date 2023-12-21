@@ -427,11 +427,6 @@ def test_predict_uses_raw_pil_image(frame_getter):
 
 
 def test_run_predict_forwards_kwargs():
-    """Test that the predict method uses the raw PIL image, not the array-converted image.
-
-    This is to ensure that the image preserves its particularities when sent to predictor.
-    When sending the array-converted image, RGBA images will raise convertion errors, for example.
-    """
     frame = get_frame()
     predictor = mock.Mock()
     predictor.predict.return_value = []
