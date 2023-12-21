@@ -217,9 +217,9 @@ def main():
         new_arr = cv2.cvtColor(new_arr, cv2.COLOR_BGR2GRAY)
 
         c_array = np.zeros((len(cl.geometry.geoms), 4), dtype=float)
-        for i, l in enumerate(cl.geometry.geoms):
-            ll = list(l.coords)
-            c_array[i] = [ll[0][0], ll[0][1], ll[-1][0], ll[-1][1]]
+        for i, geom in enumerate(cl.geometry.geoms):
+            cords = list(geom.coords)
+            c_array[i] = [cords[0][0], cords[0][1], cords[-1][0], cords[-1][1]]
 
         final_img = np.zeros(image_shape, dtype=np.uint8)
         for seg in c_array:

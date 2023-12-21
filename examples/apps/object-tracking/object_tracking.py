@@ -171,7 +171,7 @@ def filter_spurious_preds(
 
 
 def get_northbound_southbound(
-    tracks: Dict[int, List[Tuple[int, ...]]]
+    tracks: Dict[int, List[Tuple[int, ...]]],
 ) -> Tuple[List[int], List[int]]:
     northbound = []
     southbound = []

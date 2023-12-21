@@ -352,7 +352,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_class_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ClassificationPrediction]:
         """Extract Classification prediction result from response
 
@@ -392,7 +392,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_od_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ObjectDetectionPrediction]:
         """Extract Object Detection prediction result from response
 
@@ -504,7 +504,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_seg_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[SegmentationPrediction]:
         """Extract Segmentation prediction result from response
 
@@ -534,7 +534,7 @@ class _CloudExtractor(_Extractor):
 
     @staticmethod
     def _extract_vp_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[SegmentationPrediction]:
         """Extract Visual Prompting result from response
 
@@ -590,7 +590,7 @@ class _EdgeExtractor(_Extractor):
 
     @staticmethod
     def _extract_edge_class_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ClassificationPrediction]:
         """Extract Edge Inference Classification prediction result from response
 
@@ -618,7 +618,7 @@ class _EdgeExtractor(_Extractor):
 
     @staticmethod
     def _extract_edge_od_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[ObjectDetectionPrediction]:
         """Extract Object Detection prediction result from edge inference response
 
@@ -713,7 +713,7 @@ class _EdgeExtractor(_Extractor):
 
     @staticmethod
     def _extract_edge_seg_prediction(
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> List[SegmentationPrediction]:
         """Extract Segmentation prediction result from response
 
