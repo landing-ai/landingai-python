@@ -240,7 +240,7 @@ class OcrPredictor(Predictor):
             raise ValueError(
                 "regions_of_interest parameter must be provided in single-text mode."
             )
-        data: dict[str, Any]
+        data: Dict[str, Any]
         data = {"language": self._language}
         if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
