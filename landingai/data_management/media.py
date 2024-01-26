@@ -23,6 +23,7 @@ from landingai.data_management.client import (
     MEDIA_REGISTER,
     MEDIA_SIGN,
     MEDIA_UPDATE_SPLIT,
+    MEDIA_UPLOAD,
     LandingLens,
 )
 from landingai.data_management.utils import (
@@ -233,16 +234,23 @@ class Media:
                     This may result in an unexpected behavior - e.g. file not showing up in data browser."""
                 )
             # Create an async task
-            file_tasks = _upload_media(
+            # file_tasks = _upload_media(
+            #     self._client,
+            #     dataset_id,
+            #     filename,
+            #     source,
+            #     project_id,
+            #     ext,
+            #     split,
+            #     initial_label,
+            #     metadata,
+            # )
+            file_tasks = _upload_media_pictor(
                 self._client,
                 dataset_id,
-                filename,
-                source,
                 project_id,
-                ext,
-                split,
-                initial_label,
-                metadata,
+                source,
+                filename,
             )
             loop = asyncio.get_event_loop()
             error_count = 0
@@ -578,14 +586,32 @@ async def _upload_media_with_semaphore(
     semaphore: asyncio.BoundedSemaphore,
 ) -> Dict[str, Any]:
     async with semaphore:
-        return await _upload_media(
+        return await _upload_media_pictor(
             client,
             dataset_id,
-            filename,
-            path,
             project_id,
-            ext,
+            filename,
         )
+
+async def _upload_media_pictor(client: LandingLens, dataset_id, project_id, source, filename: str,):
+
+    # Prepare the data for the POST request
+    formData = aiohttp.FormData()
+    formData.add_field('project_id', project_id)
+    formData.add_field('dataset_id', dataset_id)
+    formData.add_field('name', filename)
+
+    # Open the file in binary mode and add it to the form data
+    with open(source, "rb") as file:
+        formData.add_field('file', file, filename=filename)
+
+    # Make the POST request
+    resp_data = await client._api_async(
+        MEDIA_UPLOAD,
+        resp_with_content = formData
+    )
+
+    return cast(Dict[str, Any], resp_data["data"])
 
 
 async def _upload_media(

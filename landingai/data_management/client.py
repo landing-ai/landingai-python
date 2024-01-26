@@ -17,8 +17,9 @@ METADATA_ITEMS = "metadata_items"
 METADATA_UPDATE = "metadata_update"
 METADATA_GET = "metadata_get"
 MEDIA_LIST = "media_list"
-MEDIA_REGISTER = "media_register"
-MEDIA_SIGN = "media_sign"
+MEDIA_REGISTER = "media_register" #deprecated
+MEDIA_SIGN = "media_sign" #deprecated
+MEDIA_UPLOAD = "media_upload"
 MEDIA_DETAILS = "media_details"
 MEDIA_UPDATE_SPLIT = "media_update_split"
 GET_PROJECT_SPLIT = "get_project_split"
@@ -77,6 +78,11 @@ ROUTES = {
     MEDIA_SIGN: {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/medias/sign",
+        "method": requests.post,
+    },
+    MEDIA_UPLOAD: {
+        "root_url": "LANDING_API",
+        "endpoint": "pictor/{version}/upload",
         "method": requests.post,
     },
     MEDIA_LIST: {
@@ -141,6 +147,65 @@ class LandingLens:
     @property
     def _api_key(self) -> str:
         return self.api_key
+
+
+    async def _api_async_post_form(
+        self,
+        route_name: str,
+        params: Optional[Dict[str, Any]] = None,
+        resp_with_content: Optional[Dict[str, Any]] = None,
+        url_replacements: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Returns a response from the LandingLens API"""
+        assert resp_with_content is not None
+
+        if isinstance(resp_with_content, aiohttp.FormData):
+            form_data = resp_with_content
+        else:
+            json_data = resp_with_content
+
+        endpoint, headers, params, root_url, route = self._api_common_setup(
+            json_data or {}, params, route_name, url_replacements
+        )
+
+        async with aiohttp.ClientSession() as session:
+            # TODO: should be library agnostic
+            if route["method"] == requests.get:
+                method = session.get
+            elif route["method"] == requests.post:
+                method = session.post
+            else:
+                raise NotImplementedError()
+
+            async with method(
+                endpoint,
+                headers=headers,
+                json=resp_with_content,
+                params=params,
+                ssl=True,
+            ) as resp:
+                _LOGGER.debug("Request URL: ", resp.request_info.url)
+                _LOGGER.debug("Response Code: ", resp.status)
+                _LOGGER.debug("Response Reason: ", resp.reason)
+
+                if resp.status != 200:
+                    try:
+                        content = await resp.text()
+                        error_message = json.load(io.StringIO(content))["message"]
+                    except Exception as e:
+                        error_message = e
+                    raise HttpError(
+                        "HTTP request to LandingLens server failed with "
+                        f"code {resp.status}-{resp.reason} and error message: \n"
+                        f"{error_message}"
+                    )
+                resp_with_content = await resp.json()
+                _LOGGER.debug(
+                    "Response Content (500 chars): ",
+                    json.dumps(resp_with_content)[:500],
+                )
+                assert resp_with_content is not None
+                return resp_with_content
 
     async def _api_async(
         self,
