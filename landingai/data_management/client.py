@@ -152,36 +152,21 @@ class LandingLens:
     async def _api_async_post_form(
         self,
         route_name: str,
-        params: Optional[Dict[str, Any]] = None,
-        resp_with_content: Optional[Dict[str, Any]] = None,
+        form_data: Optional[Dict[str, Any]] = None,
         url_replacements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
-        assert resp_with_content is not None
-
-        if isinstance(resp_with_content, aiohttp.FormData):
-            form_data = resp_with_content
-        else:
-            json_data = resp_with_content
+        assert form_data is not None
 
         endpoint, headers, params, root_url, route = self._api_common_setup(
-            json_data or {}, params, route_name, url_replacements
+            route_name, url_replacements
         )
 
         async with aiohttp.ClientSession() as session:
-            # TODO: should be library agnostic
-            if route["method"] == requests.get:
-                method = session.get
-            elif route["method"] == requests.post:
-                method = session.post
-            else:
-                raise NotImplementedError()
-
-            async with method(
+            async with session.post(
                 endpoint,
                 headers=headers,
-                json=resp_with_content,
-                params=params,
+                files=form_data,
                 ssl=True,
             ) as resp:
                 _LOGGER.debug("Request URL: ", resp.request_info.url)
@@ -217,7 +202,7 @@ class LandingLens:
         """Returns a response from the LandingLens API"""
         assert resp_with_content is not None
         endpoint, headers, params, root_url, route = self._api_common_setup(
-            resp_with_content, params, route_name, url_replacements
+            route_name, url_replacements, resp_with_content, params
         )
 
         async with aiohttp.ClientSession() as session:
@@ -268,7 +253,7 @@ class LandingLens:
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
         endpoint, headers, params, root_url, route = self._api_common_setup(
-            data, params, route_name, url_replacements
+            route_name, url_replacements, data, params
         )
         resp = route["method"](
             endpoint,
@@ -298,10 +283,10 @@ class LandingLens:
 
     def _api_common_setup(
         self,
-        data: Optional[Dict[str, Any]],
-        params: Optional[Dict[str, Any]],
         route_name: str,
         url_replacements: Optional[Dict[str, Any]],
+        data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]]= None,
     ) -> Tuple[str, Dict[str, Any], Dict[str, Any], str, Dict[str, Any]]:
         route = ROUTES[route_name]
         headers = {

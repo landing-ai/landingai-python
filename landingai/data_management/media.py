@@ -262,6 +262,7 @@ class Media:
                     raise
                 skipped_count = 1
             except Exception as e:
+                print(e)
                 error_count = 1
                 medias_with_errors[filename] = str(e)
 
@@ -596,20 +597,22 @@ async def _upload_media_with_semaphore(
 async def _upload_media_pictor(client: LandingLens, dataset_id, project_id, source, filename: str,):
 
     # Prepare the data for the POST request
-    formData = aiohttp.FormData()
-    formData.add_field('project_id', project_id)
-    formData.add_field('dataset_id', dataset_id)
-    formData.add_field('name', filename)
+    form_data = aiohttp.FormData()
+    form_data.add_field('project_id', str(project_id))
+    form_data.add_field('dataset_id', str(dataset_id))
+    form_data.add_field('name', filename)
+    form_data.add_field('metadata', str({}))
+    form_data.add_field('tag', str([]))
 
+    print(source)
     # Open the file in binary mode and add it to the form data
     with open(source, "rb") as file:
-        formData.add_field('file', file, filename=filename)
-
-    # Make the POST request
-    resp_data = await client._api_async(
-        MEDIA_UPLOAD,
-        resp_with_content = formData
-    )
+        form_data.add_field('file', file)
+        # Make the POST request
+        resp_data = await client._api_async_post_form(
+            MEDIA_UPLOAD,
+            form_data
+        )
 
     return cast(Dict[str, Any], resp_data["data"])
 
