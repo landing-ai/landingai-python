@@ -7,6 +7,7 @@ from importlib.metadata import version
 from typing import Any, Dict, Optional, Tuple, cast
 
 import aiohttp
+import asyncio
 import requests
 
 from landingai.data_management.utils import to_camel_case
@@ -148,49 +149,83 @@ class LandingLens:
     def _api_key(self) -> str:
         return self.api_key
 
+    # async def send_multipart_form():
+    #     # Create a session
+    #     async with aiohttp.ClientSession() as session:
+    #         # Create a MultipartWriter
+    #         data = aiohttp.MultipartWriter()
+
+    #         # Add a field
+    #         data.append('field_value', headers={'Content-Disposition': 'form-data; name="field_name"'})
+
+    #         # Add a file
+    #         with open('file_path', 'rb') as f:
+    #             data.append(f, headers={'Content-Disposition': 'form-data; name="file_name"; filename="file_path"'})
+
+    #         # Send the POST request
+    #         async with session.post('http://httpbin.org/post', data=data) as resp:
+    #             print(await resp.text())
+
+    # Run the function
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(send_multipart_form())
+
 
     async def _api_async_post_form(
         self,
         route_name: str,
+        file_name: str,
+        file_path: str,
         form_data: Optional[Dict[str, Any]] = None,
         url_replacements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
-        assert form_data is not None
+        print(file_path)
+        print(file_name)
 
         endpoint, headers, params, root_url, route = self._api_common_setup(
             route_name, url_replacements
         )
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                endpoint,
-                headers=headers,
-                files=form_data,
-                ssl=True,
-            ) as resp:
-                _LOGGER.debug("Request URL: ", resp.request_info.url)
-                _LOGGER.debug("Response Code: ", resp.status)
-                _LOGGER.debug("Response Reason: ", resp.reason)
+            # Create a MultipartWriter
+            with aiohttp.MultipartWriter() as mp:
+                for key, value in form_data.items():
+                    mp.append(value, headers={"Content-Disposition": f"form-data; name={key}"})
+                    # part = mp.append(value)
+                    # part.set_content_disposition('form-data', name=key)
+                            # Add a file
+                with open(file_path, 'rb') as f:
+                    mp.append(f, headers={"Content-Disposition": f"form-data; name='file'; filename={file_name}"})
 
-                if resp.status != 200:
-                    try:
-                        content = await resp.text()
-                        error_message = json.load(io.StringIO(content))["message"]
-                    except Exception as e:
-                        error_message = e
-                    raise HttpError(
-                        "HTTP request to LandingLens server failed with "
-                        f"code {resp.status}-{resp.reason} and error message: \n"
-                        f"{error_message}"
-                    )
-                resp_with_content = await resp.json()
-                _LOGGER.debug(
-                    "Response Content (500 chars): ",
-                    json.dumps(resp_with_content)[:500],
-                )
-                assert resp_with_content is not None
-                return resp_with_content
+                    async with session.post(
+                        endpoint,
+                        headers=headers,
+                        data=mp,
+                        ssl=True,
+                    ) as resp:
+                        _LOGGER.debug("Request URL: ", resp.request_info.url)
+                        _LOGGER.debug("Response Code: ", resp.status)
+                        _LOGGER.debug("Response Reason: ", resp.reason)
+
+                        if resp.status != 200:
+                            try:
+                                content = await resp.text()
+                                error_message = json.load(io.StringIO(content))["message"]
+                            except Exception as e:
+                                error_message = e
+                            raise HttpError(
+                                "HTTP request to LandingLens server failed with "
+                                f"code {resp.status}-{resp.reason} and error message: \n"
+                                f"{error_message}"
+                            )
+                        resp_with_content = await resp.json()
+                        _LOGGER.debug(
+                            "Response Content (500 chars): ",
+                            json.dumps(resp_with_content)[:500],
+                        )
+                        assert resp_with_content is not None
+                        return resp_with_content
 
     async def _api_async(
         self,
