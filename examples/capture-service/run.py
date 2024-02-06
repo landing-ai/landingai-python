@@ -2,7 +2,8 @@ import logging
 from datetime import datetime
 
 from landingai.pipeline.image_source import NetworkedCamera
-from landingai.predict import Predictor  # , EdgePredictor
+from landingai.predict import Predictor, EdgePredictor
+import argparse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,6 +21,7 @@ _CAPTURE_INTERVAL = (
 # Public Cloud & Sky detection segmentation model
 api_key = "land_sk_aMemWbpd41yXnQ0tXvZMh59ISgRuKNRKjJEIUHnkiH32NBJAwf"
 endpoint_id = "432d58f6-6cd4-4108-a01c-2f023503d838"
+model_id = "9315c71e-31af-451f-9b38-120e035e6240"
 
 #
 # Below we provide some links to public cameras. Local RTSP cameras can also be used by specifying a local URL
@@ -38,10 +40,35 @@ stream_url = (
 
 
 if __name__ == "__main__":
-    # Cloud inference model to segment clouds
-    cloud_sky_model = Predictor(endpoint_id, api_key=api_key)
-    # Local inference model example. In order to use it, you need to manually run the local inference server with the "cloud & sky" model.
-    # cloud_sky_model = EdgePredictor()
+    parser = argparse.ArgumentParser(
+        description="Capture a live traffic camera and run a cloud segmentation model on it"
+    )
+
+    parser.add_argument(
+        "--localinference",
+        action="store_true",
+        help="Use a local LandingLens docker inference service",
+    )
+    args = parser.parse_args()
+    if args.localinference:
+        # Local inference model example. In order to use it, you need to manually run the local inference server with the "cloud & sky" model.
+        try:
+            cloud_sky_model = EdgePredictor()
+        except ConnectionError:
+            _LOGGER.error(
+                f"""Failed to connect to the local LandingLens docker inference service. Have you launched the LandingLens container? If not please read the guide here (https://support.landing.ai/docs/docker-deploy)\nOnce you have installed it and obtained a license, run:
+                docker run -p 8000:8000 --rm --name landingedge\\
+                -e LANDING_LICENSE_KEY=YOUR_LICENSE_KEY  \\
+                public.ecr.aws/landing-ai/deploy:latest \\
+                run-model-id -name sdk_example \\
+                    -k {api_key}\\
+                    -m {model_id}
+                """
+            )
+            exit(1)
+    else:
+        # Cloud inference model to segment clouds
+        cloud_sky_model = Predictor(endpoint_id, api_key=api_key)
 
     Camera = NetworkedCamera(
         stream_url, motion_detection_threshold=1, capture_interval=_CAPTURE_INTERVAL
@@ -58,11 +85,12 @@ if __name__ == "__main__":
         _LOGGER.info(
             f"Inference time {(datetime.now()-start_time).total_seconds():.2f} sec"
         )
+        _LOGGER.info(f"Detailed inference metrics {cloud_sky_model.get_metrics()}")
         # Do some further processing on the pipeline
         frame = (
             frame.overlay_predictions()
             # .show_image()
-            .show_image(image_src="overlay")
+            .show_image(include_predictions=True)
             # .save_image(filename_prefix="./capture")
         )
         start_time = datetime.now()

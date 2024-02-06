@@ -30,6 +30,9 @@ from landingai.utils import load_api_credential, serialize_image
 
 _LOGGER = logging.getLogger(__name__)
 
+# performance_metrics keeps performance metrics for the last call to _do_inference()
+performance_metrics: Dict[str, int] = {}
+
 
 class Predictor:
     """A class that calls your inference endpoint on the LandingLens platform."""
@@ -160,6 +163,23 @@ class Predictor:
             _CloudExtractor,
             data=data,
         )
+
+    def get_metrics(self) -> Dict[str, int]:
+        """
+        Return the performance metrics for the last inference call.
+
+        Returns:
+            A dictionary containing the performance metrics.
+            Example:
+            {
+                "decoding_s": 0.0084266,
+                "infer_s": 3.3537345,
+                "postprocess_s": 0.0255059,
+                "preprocess_s": 0.0124037,
+                "waiting_s": 0.0001487
+            }
+        """
+        return performance_metrics
 
 
 class OcrPredictor(Predictor):
@@ -405,7 +425,7 @@ class _CloudExtractor(_Extractor):
         Parameters
         ----------
         response: Response from the LandingLens prediction endpoint.
-        Example example input:
+        Example input:
         {
             "backbonetype": "ObjectDetectionPrediction",
             "backbonepredictions":
@@ -631,7 +651,7 @@ class _EdgeExtractor(_Extractor):
         Parameters
         ----------
         response: Response from the Edge prediction endpoint.
-        Example example input:
+        Example input:
         {
             "type": "ObjectDetectionPrediction",
             "predictions":
@@ -726,7 +746,48 @@ class _EdgeExtractor(_Extractor):
         Parameters
         ----------
         response: Response from the Edge prediction endpoint.
-
+        Example input:
+        {
+            "type": "SegmentationPrediction",
+            "model_id": "9315c71e-31af-451f-9b38-120e035e6240",
+            "predictions": {
+                "bitmaps": {
+                    "1855c44a-215f-40d0-b627-9c4c83641df2": {
+                        "bitmap": "84480Z",
+                        "defectId": 74026,
+                        "labelIndex": 2,
+                        "labelName": "Cloud",
+                        "score": 0
+                    },
+                    "c2e7372c-4d64-4078-a6ee-09bf4ef5084a": {
+                        "bitmap": "84480Z",
+                        "defectId": 74025,
+                        "labelIndex": 1,
+                        "labelName": "Sky",
+                        "score": 0
+                    }
+                },
+                "encoding": {
+                    "algorithm": "rle",
+                    "options": {
+                        "map": {
+                            "N": 1,
+                            "Z": 0
+                        }
+                    }
+                },
+                "imageHeight": 240,
+                "imageWidth": 352,
+                "numClasses": 2
+            },
+            "latency": {
+                "decoding_s": 0.0084266,
+                "infer_s": 3.3537345,
+                "postprocess_s": 0.0255059,
+                "preprocess_s": 0.0124037,
+                "waiting_s": 0.0001487
+            }
+        }
         """
         encoded_predictions = response["predictions"]["bitmaps"]
         encoding_map = response["predictions"]["encoding"]["options"]["map"]
@@ -821,6 +882,7 @@ def _do_inference(
     data: Optional[Dict[str, Any]] = None,
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
+    global performance_metrics
     try:
         resp = session.post(endpoint_url, files=files, params=params, data=data)
     except requests.exceptions.ConnectionError as e:
@@ -830,5 +892,7 @@ def _do_inference(
     response = HttpResponse.from_response(resp)
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()
-    json_dict = response.json()
+    json_dict = cast(Dict[str, Any], response.json())
+    # Save performance metrics for debugging
+    performance_metrics = json_dict.get("latency", {})
     return extractor_class.extract_prediction(json_dict)
