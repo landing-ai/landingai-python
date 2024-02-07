@@ -20,6 +20,7 @@ from tqdm import tqdm
 from landingai.data_management.client import (
     GET_PROJECT_SPLIT,
     MEDIA_LIST,
+    DATASET_SNAPSHOT,
     MEDIA_REGISTER,
     MEDIA_SIGN,
     MEDIA_UPDATE_SPLIT,
@@ -391,6 +392,32 @@ class Media:
             f"Successfully updated split key to '{split_key}' for {len(media_ids)} medias with media ids: {media_ids}"
         )
 
+    def create_snapshot(
+        self,
+        snapshot_name: str,
+    ) -> None:
+        """
+        Create a snapshot for a all the medias on the LandingLens platform in the project and download the csv of all the media and label
+
+        Parameters
+        ----------
+        snapshot_name: str
+            The name of the snapshot.
+
+        Returns
+        -------
+        >>> client = Media(project_id, api_key)
+        """
+
+        project_id = self._client._project_id
+        dataset_id = self._client.get_project_property(project_id)["datasetId"]
+
+        resp = self._client._api(
+            DATASET_SNAPSHOT,
+            params=_build_snapshot_params(project_id, dataset_id, snapshot_name)
+        )
+
+
 
 class _MediaBody(PrettyPrintable):
     def __init__(
@@ -459,6 +486,42 @@ class _ListMediaRequestParams(PrettyPrintable):
             "mediaStatus",
         ]
 
+class _SelectMediaOptions(PrettyPrintable):
+    def __init__(
+        self,
+        field_filter_map: Optional[Dict[str, Any]] = None,
+        column_filter_map: Optional[Dict[str, Any]] = None,
+        selectedMedia: Optional[List[int]] = None,
+        unselectedMedia: Optional[List[int]] = None,
+        isUnselectMode: Optional[bool] = None,
+    ) -> None:
+        # Under these default values, the server will return all the medias
+        if column_filter_map is None:
+            column_filter_map = {}
+        if field_filter_map is None:
+            field_filter_map = {}
+        if selectedMedia is None:
+            selectedMedia = []
+        if unselectedMedia is None:
+            unselectedMedia = []
+        if isUnselectMode is None:
+            isUnselectMode = True
+        self.fieldFilterMap = field_filter_map
+        self.columnFilterMap = column_filter_map
+        self.selectedMedia = selectedMedia
+        self.unselectedMedia = unselectedMedia
+        self.isUnselectMode = isUnselectMode
+
+def _build_snapshot_params(
+    project_id, dataset_id, snapshot_name
+) > Dict[str, Any]:
+    return {
+        project_id: project_id,
+        name: snapshot_name,
+        details: "This snapshot is created through SDK",
+        onlyLabeled: False,
+        selectMediaOptions: _SelectMediaOptions(),
+    }
 
 def _metadata_to_filter(
     input_metadata: Dict[str, Any], metadata_mapping: Dict[str, Any]

@@ -21,6 +21,7 @@ MEDIA_REGISTER = "media_register"
 MEDIA_SIGN = "media_sign"
 MEDIA_DETAILS = "media_details"
 MEDIA_UPDATE_SPLIT = "media_update_split"
+DATASET_SNAPSHOT = "dataset_snapshot"
 GET_PROJECT_SPLIT = "get_project_split"
 GET_PROJECT = "get_project"
 GET_DEFECTS = "get_defects"
@@ -94,6 +95,11 @@ ROUTES = {
         "endpoint": "api/{version}/project/with_users",
         "method": requests.get,
     },
+    DATASET_SNAPSHOT: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/{version}/dataset/create_dataset_snapshot",
+        "method": requests.post,
+    }
 }
 
 _URL_ROOTS = {
