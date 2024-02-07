@@ -8,6 +8,8 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
+import webbrowser
+
 
 import aiofiles
 import aiohttp
@@ -21,6 +23,7 @@ from landingai.data_management.client import (
     GET_PROJECT_SPLIT,
     MEDIA_LIST,
     DATASET_SNAPSHOT,
+    GET_DATASET_SNAPSHOT_SIGNED_URL,
     MEDIA_REGISTER,
     MEDIA_SIGN,
     MEDIA_UPDATE_SPLIT,
@@ -392,7 +395,7 @@ class Media:
             f"Successfully updated split key to '{split_key}' for {len(media_ids)} medias with media ids: {media_ids}"
         )
 
-    def create_snapshot(
+    def snapshot(
         self,
         snapshot_name: str,
     ) -> None:
@@ -408,16 +411,56 @@ class Media:
         -------
         >>> client = Media(project_id, api_key)
         """
+        if not snapshot_name:
+            raise ValueError("snapshot_name is required")
 
         project_id = self._client._project_id
-        dataset_id = self._client.get_project_property(project_id)["datasetId"]
-
         resp = self._client._api(
             DATASET_SNAPSHOT,
-            params=_build_snapshot_params(project_id, dataset_id, snapshot_name)
+            data=obj_to_dict(_build_snapshot_params(project_id, snapshot_name))
+        )
+        snapshot_id = resp["data"]["id"]
+        version = resp["data"]["version"]
+        _LOGGER.info(f"Snapshot created with id: {snapshot_id}, version: {version}")
+
+        return resp["data"]
+
+    def download_snapshot(
+        self,
+        version: int,
+        file_type: str = 'csv'
+    ) -> None:
+        """
+        Download the snapshot csv file from the LandingLens platform.
+
+        Parameters
+        ----------
+        version: int
+            The version of the snapshot (NOT the snapshot id!!).
+            TODO: Once clef support snapshot_id this should be changed to support support_id
+        file_type: str
+            The type of the file to download. Defaults to 'csv'. Supported types are 'csv' and 'pascal_voc_xml'
+        Returns
+        -------
+        >>> client = Media(project_id, api_key)
+        """
+        if not version:
+            raise ValueError("version(not snapshot id!) is required")
+
+        dataset_id = self._client.get_project_property(self._client._project_id, "dataset_id")
+        resp = self._client._api(
+            GET_DATASET_SNAPSHOT_SIGNED_URL,
+            params=obj_to_dict({"datasetId": dataset_id, "version": version})
         )
 
+        if file_type == 'csv':
+            csv_signed_url = resp["data"]["csvPathSignedUrl"]
+            webbrowser.open(csv_signed_url) # open browser to download the file
 
+        elif file_type == 'pascal_voc_xml':
+            raise NotImplementedError("pascal_voc_xml is not supported yet, coming soon!")
+        else:
+            raise ValueError(f"Unsupported file type: {file_type}")
 
 class _MediaBody(PrettyPrintable):
     def __init__(
@@ -513,14 +556,14 @@ class _SelectMediaOptions(PrettyPrintable):
         self.isUnselectMode = isUnselectMode
 
 def _build_snapshot_params(
-    project_id, dataset_id, snapshot_name
-) > Dict[str, Any]:
+    project_id, snapshot_name
+) -> Dict[str, Any]:
     return {
-        project_id: project_id,
-        name: snapshot_name,
-        details: "This snapshot is created through SDK",
-        onlyLabeled: False,
-        selectMediaOptions: _SelectMediaOptions(),
+        "projectId": project_id,
+        "name": snapshot_name,
+        "details": "This snapshot is created through SDK",
+        "onlyLabeled": False,
+        "selectMediaOptions": _SelectMediaOptions(), # default to select all medias
     }
 
 def _metadata_to_filter(
