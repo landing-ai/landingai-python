@@ -63,9 +63,8 @@ class Exporter:
         _LOGGER.debug("Signed URL: ", signed_url)
         self._download_file_from_signed_url(signed_url, save_path)
         print(f"Event logs exported successfully to path: {save_path}")
-        return
 
-    def _download_file_from_signed_url(self, signed_url: str, save_path: str):
+    def _download_file_from_signed_url(self, signed_url: str, save_path: str) -> None:
         response = requests.get(signed_url)
         with open(save_path, "wb") as file:
             file.write(response.content)
