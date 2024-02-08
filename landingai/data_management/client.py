@@ -26,6 +26,7 @@ GET_PROJECT = "get_project"
 GET_DEFECTS = "get_defects"
 GET_PROJECT_MODEL_INFO = "get_project_model_info"
 GET_FAST_TRAINING_EXPORT = "get_fast_training_export"
+EVENT_LOGS = "event_logs"
 
 
 ROUTES = {
@@ -93,6 +94,11 @@ ROUTES = {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/project/with_users",
         "method": requests.get,
+    },
+    EVENT_LOGS: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/event/export",
+        "method": requests.post,
     },
 }
 
