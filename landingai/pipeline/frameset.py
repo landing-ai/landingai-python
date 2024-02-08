@@ -202,7 +202,11 @@ class Frame(BaseModel):
         ----------
         image_src : if empty the source image will be converted. Otherwise the image will be selected from `other_images`
         """
-        img = self.image if image_src == "" else self.other_images[image_src]
+        img = (
+            self.image
+            if image_src == "" or image_src not in self.other_images
+            else self.other_images[image_src]
+        )
         return np.asarray(img)
 
     def show_image(
@@ -610,7 +614,8 @@ class FrameSet(BaseModel):
         video_file_path: str,
         video_fps: Optional[int] = None,
         video_length_sec: Optional[float] = None,
-        image_src: str = "",
+        image_src: str = "",  # TODO: remove this parameter in next major version
+        include_predictions: bool = False,
     ) -> "FrameSet":
         """Save the FrameSet as an mp4 video file. The following example, shows to use save_video to save a clip from a live RTSP source.
         ```python
@@ -640,6 +645,14 @@ class FrameSet(BaseModel):
         """
         if not video_file_path.lower().endswith(".mp4"):
             raise NotImplementedError("Only .mp4 is supported")
+
+        if image_src:
+            warnings.warn(
+                "image_src keyword on FrameSet.save_video is deprecated. Use include_predictions instead."
+            )
+        if include_predictions:
+            image_src = "overlay"
+
         total_frames = len(self.frames)
         if total_frames == 0:
             return self
