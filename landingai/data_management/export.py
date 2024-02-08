@@ -1,4 +1,4 @@
-from typing import  Optional
+from typing import Optional
 
 from landingai.data_management.client import EVENT_LOGS, LandingLens
 from datetime import datetime, timezone
@@ -49,11 +49,16 @@ class Exporter:
             datetime.strptime(from_date, "%Y-%m-%d")
         except ValueError:
             raise ValueError("from_date must be in YYYY-MM-DD format")
-        from_timestamp = datetime.strptime(f"{from_date} 00:00:00.00000", "%Y-%m-%d %H:%M:%S.%f")
+        from_timestamp = datetime.strptime(
+            f"{from_date} 00:00:00.00000", "%Y-%m-%d %H:%M:%S.%f"
+        )
         to_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")
 
         _LOGGER.info("Exporting event logs...")
-        resp = self._client._api(EVENT_LOGS, params={"fromTimestamp": from_timestamp, "toTimestamp": to_timestamp})
+        resp = self._client._api(
+            EVENT_LOGS,
+            params={"fromTimestamp": from_timestamp, "toTimestamp": to_timestamp},
+        )
         signed_url = resp["data"].get("signedUrl")
         _LOGGER.debug("Signed URL: ", signed_url)
         self._download_file_from_signed_url(signed_url, save_path)
@@ -62,5 +67,5 @@ class Exporter:
 
     def _download_file_from_signed_url(self, signed_url: str, save_path: str):
         response = requests.get(signed_url)
-        with open(save_path, 'wb') as file:
+        with open(save_path, "wb") as file:
             file.write(response.content)
