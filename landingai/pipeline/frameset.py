@@ -202,7 +202,11 @@ class Frame(BaseModel):
         ----------
         image_src : if empty the source image will be converted. Otherwise the image will be selected from `other_images`
         """
-        img = self.image if image_src == "" or image_src not in self.other_images else self.other_images[image_src]
+        img = (
+            self.image
+            if image_src == "" or image_src not in self.other_images
+            else self.other_images[image_src]
+        )
         return np.asarray(img)
 
     def show_image(
