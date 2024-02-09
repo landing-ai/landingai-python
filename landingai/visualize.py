@@ -78,7 +78,7 @@ def overlay_ocr_predictions(
         img_right_text = _draw_box_text((w, h), box, txt)
         pts = np.array(box, np.int32).reshape((-1, 1, 2))
         cv2.polylines(img_right_text, [pts], True, color, 1)
-        img_right = cv2.bitwise_and(img_right, img_right_text)
+        img_right = np.array(cv2.bitwise_and(img_right, img_right_text), dtype=np.uint8)
     img_left = Image.blend(image, img_left, 0.5)
     img_show = Image.new("RGB", (w * 2, h), (255, 255, 255))
     img_show.paste(img_left, (0, 0, w, h))
@@ -126,6 +126,9 @@ def overlay_bboxes(
             image = np.asarray(image)[:, :, :3]  # Get rid of the alpha channel
         else:
             image = np.asarray(image)
+
+    # Numpy arrays created from PIL images are read-only by default. By copying it, we make it writeable.
+    image = image.copy()
 
     if options is None:
         options = {}
@@ -350,7 +353,7 @@ def _create_font(
 ) -> ImageFont.FreeTypeFont:
     font_size = int(min(size) * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
-    length = font.getsize(txt)[0]
+    length = font.getlength(txt)
     if length > size[0]:
         font_size = int(font_size * size[0] / length)
         font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
