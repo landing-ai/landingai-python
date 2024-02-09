@@ -16,7 +16,7 @@ packages = [{include = "landingai"}]
 "documentation" = "https://landing-ai.github.io/landingai-python/landingai.html"
 
 [tool.poetry.dependencies]  # main dependency group
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 
 opencv-python = ">=4.5,<5.0"  # about 87MB (exclude transitive dependencies)
 numpy = ">=1.21.0,<2.0.0"
