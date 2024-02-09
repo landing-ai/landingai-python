@@ -36,7 +36,7 @@ class TimerStats:
         """Add a private dictionary keeping track of all timings"""
         super().__init__(*args, **kwargs)
         self._timings: Dict[str, MutableSequence[float]] = defaultdict(
-            partial(deque, maxlen=_MAX_SIZE)  # type: ignore
+            partial(deque, maxlen=_MAX_SIZE)
         )
 
     def add(self, name: str, value: float) -> None:

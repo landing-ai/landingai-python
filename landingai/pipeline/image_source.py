@@ -236,7 +236,7 @@ class NetworkedCamera(BaseModel, ImageSourceBase):
     stream_url: str
     motion_detection_threshold: int
     capture_interval: Union[float, None] = None
-    previous_frame: Union[Frame, None] = None
+    previous_frame: Union[np.ndarray, None] = None
     _last_capture_time: datetime = PrivateAttr()
     _cap: Any = PrivateAttr()  # cv2.VideoCapture
     _t: Any = PrivateAttr()  # threading.Thread
