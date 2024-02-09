@@ -127,6 +127,9 @@ def overlay_bboxes(
         else:
             image = np.asarray(image)
 
+    # Numpy arrays created from PIL images are read-only by default. By copying it, we make it writeable.
+    image = image.copy()
+
     if options is None:
         options = {}
     bbox_style = options.get("bbox_style", "default").lower()
@@ -350,7 +353,7 @@ def _create_font(
 ) -> ImageFont.FreeTypeFont:
     font_size = int(min(size) * 0.99)
     font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
-    length = font.getsize(txt)[0]
+    length = font.getlength(txt)
     if length > size[0]:
         font_size = int(font_size * size[0] / length)
         font = ImageFont.truetype(font_path, font_size, encoding="utf-8")
