@@ -36,8 +36,6 @@ class Predictor:
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
     _num_retry: int = 3
-    # performance_metrics keeps performance metrics for the last call to _do_inference()
-    _performance_metrics: Dict[str, int] = {}
 
     def __init__(
         self,
@@ -76,6 +74,8 @@ class Predictor:
         }
         headers = self._build_default_headers(self._api_credential, extra_x_event)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
+        # performance_metrics keeps performance metrics for the last call to _do_inference()
+        self._performance_metrics: Dict[str, int] = {}
 
     def _check_connectivity(
         self, url: Optional[str] = None, host: Optional[Tuple[str, int]] = None
@@ -154,7 +154,7 @@ class Predictor:
             "endpoint_id": self._endpoint_id,
         }
         data = {"metadata": metadata.json()} if metadata else None
-        return _do_inference(
+        (preds, self._performance_metrics) = _do_inference(
             self._session,
             Predictor._url,
             files,
@@ -162,6 +162,7 @@ class Predictor:
             _CloudExtractor,
             data=data,
         )
+        return preds
 
     def get_metrics(self) -> Dict[str, int]:
         """
@@ -178,7 +179,7 @@ class Predictor:
                 "waiting_s": 0.0001487
             }
         """
-        return _performance_metrics
+        return self._performance_metrics
 
 
 class OcrPredictor(Predictor):
@@ -264,7 +265,7 @@ class OcrPredictor(Predictor):
         if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
 
-        preds = _do_inference(
+        (preds, self._performance_metrics) = _do_inference(
             self._session,
             OcrPredictor._url,
             files,
@@ -361,7 +362,10 @@ class EdgePredictor(Predictor):
                     "contentType": "multipart/form-data"
                 },  # No retries for the inference service
             )
-        return _do_inference(session, self._url, files, {}, _EdgeExtractor, data=data)
+        (preds, self._performance_metrics) = _do_inference(
+            session, self._url, files, {}, _EdgeExtractor, data=data
+        )
+        return preds
 
 
 class _Extractor:
@@ -879,7 +883,7 @@ def _do_inference(
     extractor_class: Type[_Extractor],
     *,
     data: Optional[Dict[str, Any]] = None,
-) -> List[Prediction]:
+) -> Tuple[List[Prediction], Dict[str, int]]:
     """Call the inference endpoint and extract the prediction result."""
     global _performance_metrics
     try:
@@ -893,5 +897,5 @@ def _do_inference(
     response.raise_for_status()
     json_dict = cast(Dict[str, Any], response.json())
     # Save performance metrics for debugging
-    _performance_metrics = json_dict.get("latency", {})
-    return extractor_class.extract_prediction(json_dict)
+    performance_metrics = json_dict.get("latency", {})
+    return (extractor_class.extract_prediction(json_dict), performance_metrics)
