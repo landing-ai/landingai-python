@@ -30,15 +30,14 @@ from landingai.utils import load_api_credential, serialize_image
 
 _LOGGER = logging.getLogger(__name__)
 
-# performance_metrics keeps performance metrics for the last call to _do_inference()
-performance_metrics: Dict[str, int] = {}
-
 
 class Predictor:
     """A class that calls your inference endpoint on the LandingLens platform."""
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
     _num_retry: int = 3
+    # performance_metrics keeps performance metrics for the last call to _do_inference()
+    _performance_metrics: Dict[str, int] = {}
 
     def __init__(
         self,
@@ -179,7 +178,7 @@ class Predictor:
                 "waiting_s": 0.0001487
             }
         """
-        return performance_metrics
+        return _performance_metrics
 
 
 class OcrPredictor(Predictor):
@@ -882,7 +881,7 @@ def _do_inference(
     data: Optional[Dict[str, Any]] = None,
 ) -> List[Prediction]:
     """Call the inference endpoint and extract the prediction result."""
-    global performance_metrics
+    global _performance_metrics
     try:
         resp = session.post(endpoint_url, files=files, params=params, data=data)
     except requests.exceptions.ConnectionError as e:
@@ -894,5 +893,5 @@ def _do_inference(
     response.raise_for_status()
     json_dict = cast(Dict[str, Any], response.json())
     # Save performance metrics for debugging
-    performance_metrics = json_dict.get("latency", {})
+    _performance_metrics = json_dict.get("latency", {})
     return extractor_class.extract_prediction(json_dict)

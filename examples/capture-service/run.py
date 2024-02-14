@@ -85,7 +85,7 @@ if __name__ == "__main__":
         _LOGGER.info(
             f"Inference time {(datetime.now()-start_time).total_seconds():.2f} sec"
         )
-        _LOGGER.info(f"Detailed inference metrics {cloud_sky_model.get_metrics()}")
+        _LOGGER.debug(f"Detailed inference metrics {cloud_sky_model.get_metrics()}")
         # Do some further processing on the pipeline
         frame = (
             frame.overlay_predictions()
