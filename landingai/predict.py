@@ -74,6 +74,8 @@ class Predictor:
         }
         headers = self._build_default_headers(self._api_credential, extra_x_event)
         self._session = _create_session(Predictor._url, self._num_retry, headers)
+        # performance_metrics keeps performance metrics for the last call to _do_inference()
+        self._performance_metrics: Dict[str, int] = {}
 
     def _check_connectivity(
         self, url: Optional[str] = None, host: Optional[Tuple[str, int]] = None
@@ -152,7 +154,7 @@ class Predictor:
             "endpoint_id": self._endpoint_id,
         }
         data = {"metadata": metadata.json()} if metadata else None
-        return _do_inference(
+        (preds, self._performance_metrics) = _do_inference(
             self._session,
             Predictor._url,
             files,
@@ -160,6 +162,24 @@ class Predictor:
             _CloudExtractor,
             data=data,
         )
+        return preds
+
+    def get_metrics(self) -> Dict[str, int]:
+        """
+        Return the performance metrics for the last inference call.
+
+        Returns:
+            A dictionary containing the performance metrics.
+            Example:
+            {
+                "decoding_s": 0.0084266,
+                "infer_s": 3.3537345,
+                "postprocess_s": 0.0255059,
+                "preprocess_s": 0.0124037,
+                "waiting_s": 0.0001487
+            }
+        """
+        return self._performance_metrics
 
 
 class OcrPredictor(Predictor):
@@ -245,7 +265,7 @@ class OcrPredictor(Predictor):
         if rois := kwargs.get("regions_of_interest", []):
             data["rois"] = serialize_rois(rois, mode)
 
-        preds = _do_inference(
+        (preds, self._performance_metrics) = _do_inference(
             self._session,
             OcrPredictor._url,
             files,
@@ -342,7 +362,10 @@ class EdgePredictor(Predictor):
                     "contentType": "multipart/form-data"
                 },  # No retries for the inference service
             )
-        return _do_inference(session, self._url, files, {}, _EdgeExtractor, data=data)
+        (preds, self._performance_metrics) = _do_inference(
+            session, self._url, files, {}, _EdgeExtractor, data=data
+        )
+        return preds
 
 
 class _Extractor:
@@ -405,7 +428,7 @@ class _CloudExtractor(_Extractor):
         Parameters
         ----------
         response: Response from the LandingLens prediction endpoint.
-        Example example input:
+        Example input:
         {
             "backbonetype": "ObjectDetectionPrediction",
             "backbonepredictions":
@@ -631,7 +654,7 @@ class _EdgeExtractor(_Extractor):
         Parameters
         ----------
         response: Response from the Edge prediction endpoint.
-        Example example input:
+        Example input:
         {
             "type": "ObjectDetectionPrediction",
             "predictions":
@@ -726,7 +749,48 @@ class _EdgeExtractor(_Extractor):
         Parameters
         ----------
         response: Response from the Edge prediction endpoint.
-
+        Example input:
+        {
+            "type": "SegmentationPrediction",
+            "model_id": "9315c71e-31af-451f-9b38-120e035e6240",
+            "predictions": {
+                "bitmaps": {
+                    "1855c44a-215f-40d0-b627-9c4c83641df2": {
+                        "bitmap": "84480Z",
+                        "defectId": 74026,
+                        "labelIndex": 2,
+                        "labelName": "Cloud",
+                        "score": 0
+                    },
+                    "c2e7372c-4d64-4078-a6ee-09bf4ef5084a": {
+                        "bitmap": "84480Z",
+                        "defectId": 74025,
+                        "labelIndex": 1,
+                        "labelName": "Sky",
+                        "score": 0
+                    }
+                },
+                "encoding": {
+                    "algorithm": "rle",
+                    "options": {
+                        "map": {
+                            "N": 1,
+                            "Z": 0
+                        }
+                    }
+                },
+                "imageHeight": 240,
+                "imageWidth": 352,
+                "numClasses": 2
+            },
+            "latency": {
+                "decoding_s": 0.0084266,
+                "infer_s": 3.3537345,
+                "postprocess_s": 0.0255059,
+                "preprocess_s": 0.0124037,
+                "waiting_s": 0.0001487
+            }
+        }
         """
         encoded_predictions = response["predictions"]["bitmaps"]
         encoding_map = response["predictions"]["encoding"]["options"]["map"]
@@ -819,8 +883,9 @@ def _do_inference(
     extractor_class: Type[_Extractor],
     *,
     data: Optional[Dict[str, Any]] = None,
-) -> List[Prediction]:
+) -> Tuple[List[Prediction], Dict[str, int]]:
     """Call the inference endpoint and extract the prediction result."""
+    global _performance_metrics
     try:
         resp = session.post(endpoint_url, files=files, params=params, data=data)
     except requests.exceptions.ConnectionError as e:
@@ -830,5 +895,7 @@ def _do_inference(
     response = HttpResponse.from_response(resp)
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()
-    json_dict = response.json()
-    return extractor_class.extract_prediction(json_dict)
+    json_dict = cast(Dict[str, Any], response.json())
+    # Save performance metrics for debugging
+    performance_metrics = json_dict.get("latency", {})
+    return (extractor_class.extract_prediction(json_dict), performance_metrics)
