@@ -10,12 +10,12 @@
   <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
 </p>
 
-# LandingLens Python SDK
-The LandingLens Python SDK contains the LandingLens development library and examples that show how to integrate your app with LandingLens in a variety of scenarios. The examples cover different model types, image acquisition sources, and post-procesing techniques.
+# LandingLens Python API Library
+The LandingLens Python API library contains the LandingLens development library and examples that show how to integrate your app with LandingLens in a variety of scenarios. The examples cover different model types, image acquisition sources, and post-procesing techniques.
 
 ## Documentation
 
--  [Landing AI Python SDK Docs](https://landing-ai.github.io/landingai-python/)
+-  [Landing AI Python Docs](https://landing-ai.github.io/landingai-python/)
 -  [Landing AI Support Center](https://support.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
 
