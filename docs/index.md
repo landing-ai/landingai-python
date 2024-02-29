@@ -2,11 +2,11 @@
   <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
 </p>
 
-# Welcome to the Landing AI Python SDK Documentation
+# Welcome to the Landing AI Python Library Documentation
 
-The Landing AI Python SDK is a set of tools to help you build computer vision applications. While some of the functionality is specific to [LandingLens](https://app.landing.ai/), the computer vision platform from Landing AI, other features can be used for managing images in general.
+The Landing AI Python Library is a set of tools to help you build computer vision applications. While some of the functionality is specific to [LandingLens](https://app.landing.ai/), the computer vision platform from Landing AI, other features can be used for managing images in general.
 
-The SDK includes features to acquire, process, and detect objects in your images and videos, with the least amount of code as possible.
+The library includes features to acquire, process, and detect objects in your images and videos, with the least amount of code as possible.
 
 ## Quick Start
 
