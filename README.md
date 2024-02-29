@@ -15,7 +15,7 @@ The LandingLens Python API library contains the LandingLens development library 
 
 ## Documentation
 
--  [Landing AI Python Docs](https://landing-ai.github.io/landingai-python/)
+-  [Landing AI Python Library Docs](https://landing-ai.github.io/landingai-python/)
 -  [Landing AI Support Center](https://support.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
 
