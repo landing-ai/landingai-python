@@ -9,6 +9,8 @@ from typing import Any, Dict, Optional, Tuple, cast
 import aiohttp
 import asyncio
 import requests
+import aiofiles
+
 
 from landingai.data_management.utils import to_camel_case
 from landingai.exceptions import HttpError
@@ -104,7 +106,7 @@ ROUTES = {
 }
 
 _URL_ROOTS = {
-    "LANDING_API": "https://app.landing.ai",
+    "LANDING_API": "https://app.dev.landing.ai",
 }
 _API_VERSION = "v1"
 _LOGGER = logging.getLogger(__name__)
@@ -174,71 +176,69 @@ class LandingLens:
     async def _api_async_post_form(
         self,
         route_name: str,
-        file_name: str,
-        file_path: str,
         form_data: Optional[Dict[str, Any]] = None,
         url_replacements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
-        print(file_path)
-        print(file_name)
 
-        endpoint, headers, params, root_url, route = self._api_common_setup(
-            route_name, url_replacements
-        )
+        endpoint, headers, params, root_url, route = self._api_common_setup(route_name, url_replacements)
 
         async with aiohttp.ClientSession() as session:
             # Create a MultipartWriter
-            with aiohttp.MultipartWriter() as mp:
+            with aiohttp.MultipartWriter("form-data", boundary=":") as mp:
                 for key, value in form_data.items():
-                    mp.append(value, headers={"Content-Disposition": f"form-data; name={key}"})
-                    # part = mp.append(value)
-                    # part.set_content_disposition('form-data', name=key)
-                            # Add a file
-                with open(file_path, 'rb') as f:
-                    mp.append(f, headers={"Content-Disposition": f"form-data; name='file'; filename={file_name}"})
+                    part = mp.append(value)
+                    part.set_content_disposition("form-data", name=key)
+                
+                async with session.post(
+                    endpoint,
+                    headers={**headers, 'Content-Type': 'multipart/form-data; boundary=":"'},
+                    data=mp,
+                    ssl=True,
+                ) as resp:
+                    _LOGGER.debug("Request URL: ", resp.request_info.url)
+                    _LOGGER.debug("Response Code: ", resp.status)
+                    _LOGGER.debug("Response Reason: ", resp.reason)
 
-                    async with session.post(
-                        endpoint,
-                        headers=headers,
-                        data=mp,
-                        ssl=True,
-                    ) as resp:
-                        _LOGGER.debug("Request URL: ", resp.request_info.url)
-                        _LOGGER.debug("Response Code: ", resp.status)
-                        _LOGGER.debug("Response Reason: ", resp.reason)
-
-                        if resp.status != 200:
-                            try:
-                                content = await resp.text()
-                                error_message = json.load(io.StringIO(content))["message"]
-                            except Exception as e:
-                                error_message = e
-                            raise HttpError(
-                                "HTTP request to LandingLens server failed with "
-                                f"code {resp.status}-{resp.reason} and error message: \n"
-                                f"{error_message}"
-                            )
-                        resp_with_content = await resp.json()
-                        _LOGGER.debug(
-                            "Response Content (500 chars): ",
-                            json.dumps(resp_with_content)[:500],
+                    if resp.status != 200:
+                        try:
+                            content = await resp.text()
+                            error_message = json.load(io.StringIO(content))["message"]
+                        except Exception as e:
+                            error_message = e
+                        raise HttpError(
+                            "HTTP request to LandingLens server failed with "
+                            f"code {resp.status}-{resp.reason} and error message: \n"
+                            f"{error_message}"
                         )
-                        assert resp_with_content is not None
-                        return resp_with_content
+                    resp_with_content = await resp.json()
+                    _LOGGER.debug(
+                        "Response Content (500 chars): ",
+                        json.dumps(resp_with_content)[:500],
+                    )
+                    assert resp_with_content is not None
+                    return resp_with_content
 
     async def _api_async(
         self,
         route_name: str,
         params: Optional[Dict[str, Any]] = None,
+        form_data: Optional[Dict[str, Any]] = None,
         resp_with_content: Optional[Dict[str, Any]] = None,
         url_replacements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
-        assert resp_with_content is not None
+        # assert resp_with_content is not None
         endpoint, headers, params, root_url, route = self._api_common_setup(
             route_name, url_replacements, resp_with_content, params
         )
+        
+        is_form_data = form_data is not None
+        form_data_io = aiohttp.FormData()
+        if is_form_data:
+            headers = {**headers, 'Content-Type': 'multipart/form-data; boundary=":"'}
+            for key, value in form_data.items():
+                form_data_io.add_field(key, value)
 
         async with aiohttp.ClientSession() as session:
             # TODO: should be library agnostic
@@ -252,8 +252,9 @@ class LandingLens:
             async with method(
                 endpoint,
                 headers=headers,
-                json=resp_with_content,
+                json=resp_with_content if not is_form_data else None,
                 params=params,
+                data=form_data_io if is_form_data else None,
                 ssl=True,
             ) as resp:
                 _LOGGER.debug("Request URL: ", resp.request_info.url)

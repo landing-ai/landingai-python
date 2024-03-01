@@ -16,6 +16,7 @@ import numpy as np
 import PIL.Image
 from PIL.Image import Image
 from tqdm import tqdm
+import nest_asyncio
 
 from landingai.data_management.client import (
     GET_PROJECT_SPLIT,
@@ -35,6 +36,8 @@ from landingai.data_management.utils import (
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
 from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
+import io
+nest_asyncio.apply()
 
 MediaType = Enum("MediaType", ["image", "video"])
 SrcType = Enum("SrcType", ["user", "production_line", "prism"])
@@ -245,26 +248,26 @@ class Media:
             #     initial_label,
             #     metadata,
             # )
-            # file_tasks = _upload_media_pictor(
-            #     self._client,
-            #     dataset_id,
-            #     project_id,
-            #     source,
-            #     filename,
-            # )
-            # loop = asyncio.get_event_loop()
-            # error_count = 0
-            # try:
-            #     resp = loop.run_until_complete(file_tasks)
-            #     medias.append(resp)
-            # except DuplicateUploadError:
-            #     if not tolerate_duplicate_upload:
-            #         raise
-            #     skipped_count = 1
-            # except Exception as e:
-            #     print(e)
-            #     error_count = 1
-            #     medias_with_errors[filename] = str(e)
+            file_tasks = _upload_media_pictor(
+                self._client,
+                dataset_id,
+                project_id,
+                source,
+                filename,
+            )
+            loop = asyncio.get_event_loop()
+            error_count = 0
+            try:
+                resp = loop.run_until_complete(file_tasks)
+                medias.append(resp)
+            except DuplicateUploadError:
+                if not tolerate_duplicate_upload:
+                    raise
+                skipped_count = 1
+            except Exception as e:
+                print(e)
+                error_count = 1
+                medias_with_errors[filename] = str(e)
 
         return {
             "num_uploaded": len(medias),
@@ -595,50 +598,28 @@ async def _upload_media_with_semaphore(
         )
 
 async def _upload_media_pictor(client: LandingLens, dataset_id, project_id, source, filename: str,):
-
-    # if isinstance(source, Image):
-    #     print('##1##')
-    #     contents = serialize_image(source)
-    # else:
-    #     print('##2##')
-    #     assert isinstance(source, str)
-    #     async with aiofiles.open(source, mode="rb") as file:
-    #         contents = await file.read()
+    if isinstance(source, Image):
+        print('##1##')
+        contents = serialize_image(source)
+    else:
+        print('##2##')
+        assert isinstance(source, str)
+        # contents = open(source,"rb").read()
+        async with aiofiles.open(source, mode="rb") as file:
+            contents = await file.read()
+    contents_io = io.BytesIO(contents)
 
     form_data = {
         "project_id": str(project_id),
         "dataset_id": str(dataset_id),
         "name": filename,
-        # "metadata": {},
-        # "tags": [],
-        # "file": contents
+        "file":  contents_io,
     }
-
+    #client._api_async()
     resp_data = await client._api_async_post_form(
         MEDIA_UPLOAD,
-        file_name = filename,
-        file_path = source,
         form_data = form_data
     )
-
-    # print(source)
-
-    # # Prepare the data for the POST request
-    # form_data = aiohttp.FormData()
-    # form_data.add_field('project_id', str(project_id))
-    # form_data.add_field('dataset_id', str(dataset_id))
-    # form_data.add_field('name', filename)
-    # form_data.add_field('metadata', str({}))
-    # form_data.add_field('tag', str([]))
-
-    # # Open the file in binary mode and add it to the form data
-    # with open(source, "rb") as file:
-    #     form_data.add_field('file', file)
-    #     # Make the POST request
-    #     resp_data = await client._api_async_post_form(
-    #         MEDIA_UPLOAD,
-    #         form_data
-    #     )
 
     return cast(Dict[str, Any], resp_data["data"])
 
