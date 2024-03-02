@@ -597,6 +597,7 @@ async def _upload_media_with_semaphore(
             filename,
         )
 
+
 async def _upload_media_pictor(client: LandingLens, dataset_id, project_id, source, filename: str,):
     if isinstance(source, Image):
         print('##1##')
@@ -604,19 +605,15 @@ async def _upload_media_pictor(client: LandingLens, dataset_id, project_id, sour
     else:
         print('##2##')
         assert isinstance(source, str)
-        # contents = open(source,"rb").read()
         async with aiofiles.open(source, mode="rb") as file:
             contents = await file.read()
-    contents_io = io.BytesIO(contents)
-
     form_data = {
         "project_id": str(project_id),
         "dataset_id": str(dataset_id),
         "name": filename,
-        "file":  contents_io,
+        "file":  contents,
     }
-    #client._api_async()
-    resp_data = await client._api_async_post_form(
+    resp_data = await client._api_async(
         MEDIA_UPLOAD,
         form_data = form_data
     )
