@@ -7,9 +7,7 @@ from importlib.metadata import version
 from typing import Any, Dict, Optional, Tuple, cast
 
 import aiohttp
-import asyncio
 import requests
-import aiofiles
 
 
 from landingai.data_management.utils import to_camel_case
@@ -160,18 +158,19 @@ class LandingLens:
         url_replacements: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
-        # assert resp_with_content is not None
+        is_form_data = form_data is not None
+        assert resp_with_content is not None if not is_form_data else True
+
         endpoint, headers, params, root_url, route = self._api_common_setup(
             route_name, url_replacements, resp_with_content, params
         )
-        is_form_data = form_data is not None
+
         # Create a MultipartWriter for the form data
         form = aiohttp.FormData()
         if is_form_data:
             headers.pop('Content-Type', None)
             for key, value in form_data.items():
                 form.add_field(key, value)
-        assert resp_with_content is not None if not is_form_data else True
 
         async with aiohttp.ClientSession() as session:
             # TODO: should be library agnostic

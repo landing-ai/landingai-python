@@ -36,7 +36,6 @@ from landingai.data_management.utils import (
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
 from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
-import io
 nest_asyncio.apply()
 
 MediaType = Enum("MediaType", ["image", "video"])
@@ -265,7 +264,6 @@ class Media:
                     raise
                 skipped_count = 1
             except Exception as e:
-                print(e)
                 error_count = 1
                 medias_with_errors[filename] = str(e)
 
@@ -595,6 +593,7 @@ async def _upload_media_with_semaphore(
             dataset_id,
             project_id,
             filename,
+            ext,
         )
 
 
