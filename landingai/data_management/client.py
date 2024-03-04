@@ -225,7 +225,11 @@ class LandingLens:
             route_name, url_replacements, data, params
         )
         resp = route["method"](
-            endpoint, params=params, json=data, headers=headers, verify=True,
+            endpoint,
+            params=params,
+            json=data,
+            headers=headers,
+            verify=True,
         )
         _LOGGER.info(f"Request URL: {resp.request.url}")
         _LOGGER.debug("Response Code: ", resp.status_code)

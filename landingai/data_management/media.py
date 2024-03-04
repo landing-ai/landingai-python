@@ -221,7 +221,7 @@ class Media:
                 medias_with_errors,
             ) = loop.run_until_complete(folder_tasks)
         else:
-            # Resolve filename and extension for _upload_media()
+            # Resolve filename and extension for _upload_media_pictor()
             if isinstance(source, Image):
                 ext = "png"
                 ts = int(datetime.now().timestamp() * 1000)
@@ -343,7 +343,11 @@ class Media:
             "limit": limit,
         }
 
-    def update_split_key(self, media_ids: List[int], split_key: str,) -> None:
+    def update_split_key(
+        self,
+        media_ids: List[int],
+        split_key: str,
+    ) -> None:
         """
         Update the split key for a list of medias on the LandingLens platform.
 
@@ -642,7 +646,7 @@ async def _upload_media_pictor(
     return cast(Dict[str, Any], resp_data["data"])
 
 
-async def _upload_media(
+async def _legacy_upload_media(
     client: LandingLens,
     dataset_id: int,
     filename: str,
