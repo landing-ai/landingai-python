@@ -36,6 +36,7 @@ from landingai.data_management.utils import (
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
 from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
+
 nest_asyncio.apply()
 
 MediaType = Enum("MediaType", ["image", "video"])
@@ -91,6 +92,7 @@ class Media:
         metadata_dict: Optional[Dict[str, Any]] = None,
         validate_extensions: bool = True,
         tolerate_duplicate_upload: bool = True,
+        tags: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Upload media to platform.
@@ -236,23 +238,17 @@ class Media:
                     This may result in an unexpected behavior - e.g. file not showing up in data browser."""
                 )
             # Create an async task
-            # file_tasks = _upload_media(
-            #     self._client,
-            #     dataset_id,
-            #     filename,
-            #     source,
-            #     project_id,
-            #     ext,
-            #     split,
-            #     initial_label,
-            #     metadata,
-            # )
             file_tasks = _upload_media_pictor(
                 self._client,
                 dataset_id,
-                project_id,
-                source,
                 filename,
+                source,
+                project_id,
+                ext,
+                split,
+                initial_label,
+                metadata,
+                tags,
             )
             loop = asyncio.get_event_loop()
             error_count = 0
@@ -347,11 +343,7 @@ class Media:
             "limit": limit,
         }
 
-    def update_split_key(
-        self,
-        media_ids: List[int],
-        split_key: str,
-    ) -> None:
+    def update_split_key(self, media_ids: List[int], split_key: str,) -> None:
         """
         Update the split key for a list of medias on the LandingLens platform.
 
@@ -588,34 +580,64 @@ async def _upload_media_with_semaphore(
     semaphore: asyncio.BoundedSemaphore,
 ) -> Dict[str, Any]:
     async with semaphore:
-        return await _upload_media(
-            client,
-            dataset_id,
-            project_id,
-            filename,
-            ext,
+        return await _upload_media_pictor(
+            client, dataset_id, filename, path, project_id, ext
         )
 
 
-async def _upload_media_pictor(client: LandingLens, dataset_id, project_id, source, filename: str,):
+async def _upload_media_pictor(
+    client: LandingLens,
+    dataset_id: int,
+    filename: str,
+    source: Union[str, Image],
+    project_id: int,
+    ext: str,
+    split: str = "",
+    initial_label: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    tags: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    # The platform doesn't support tiff, so we convert it to png before uploading
+    if ext.lower() == "tiff":
+        ext = "png"
+        filename = filename.replace(".tiff", ".png")
+        assert isinstance(source, str)
+        source = PIL.Image.open(source)  # later it gets converted to png in bytes
+
+    filetype = f"image/{ext}" if ext != "jpg" else "image/jpeg"
     if isinstance(source, Image):
-        print('##1##')
         contents = serialize_image(source)
     else:
-        print('##2##')
         assert isinstance(source, str)
         async with aiofiles.open(source, mode="rb") as file:
             contents = await file.read()
+
+    md5 = hashlib.md5()
+    md5.update(contents)
+    media_md5 = md5.hexdigest()
+
     form_data = {
         "project_id": str(project_id),
         "dataset_id": str(dataset_id),
         "name": filename,
-        "file":  contents,
+        "file": contents,
+        "split": split,
+        "initialLabel": json.dumps(initial_label),
+        "tags": json.dumps(tags),
+        "metadata": json.dumps(metadata),
     }
-    resp_data = await client._api_async(
-        MEDIA_UPLOAD,
-        form_data = form_data
-    )
+    resp_data = await client._api_async(MEDIA_UPLOAD, form_data=form_data)
+    if resp_data["code"] == 409:
+        _LOGGER.warning(
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+        )
+        raise DuplicateUploadError(
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+        )
+    elif "data" not in resp_data:
+        raise HttpError(
+            f"Failed to upload media due to HTTP {resp_data['code']} error, reason: {resp_data['message']}"
+        )
 
     return cast(Dict[str, Any], resp_data["data"])
 

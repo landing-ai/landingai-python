@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Tuple, cast
 
 import aiohttp
 import requests
+import re
 
 
 from landingai.data_management.utils import to_camel_case
@@ -18,8 +19,8 @@ METADATA_ITEMS = "metadata_items"
 METADATA_UPDATE = "metadata_update"
 METADATA_GET = "metadata_get"
 MEDIA_LIST = "media_list"
-MEDIA_REGISTER = "media_register" #deprecated
-MEDIA_SIGN = "media_sign" #deprecated
+MEDIA_REGISTER = "media_register"  # deprecated
+MEDIA_SIGN = "media_sign"  # deprecated
 MEDIA_UPLOAD = "media_upload"
 MEDIA_DETAILS = "media_details"
 MEDIA_UPDATE_SPLIT = "media_update_split"
@@ -104,7 +105,7 @@ ROUTES = {
 }
 
 _URL_ROOTS = {
-    "LANDING_API": "https://app.dev.landing.ai",
+    "LANDING_API": "https://app.landing.ai",
 }
 _API_VERSION = "v1"
 _LOGGER = logging.getLogger(__name__)
@@ -168,7 +169,7 @@ class LandingLens:
         # Create a MultipartWriter for the form data
         form = aiohttp.FormData()
         if is_form_data:
-            headers.pop('Content-Type', None)
+            headers.pop("Content-Type", None)
             for key, value in form_data.items():
                 form.add_field(key, value)
 
@@ -193,7 +194,7 @@ class LandingLens:
                 _LOGGER.debug("Response Code: ", resp.status)
                 _LOGGER.debug("Response Reason: ", resp.reason)
 
-                if resp.status != 200:
+                if not re.match(r"2[0-9]{2}$", str(resp.status)):
                     try:
                         content = await resp.text()
                         error_message = json.load(io.StringIO(content))["message"]
@@ -224,11 +225,7 @@ class LandingLens:
             route_name, url_replacements, data, params
         )
         resp = route["method"](
-            endpoint,
-            params=params,
-            json=data,
-            headers=headers,
-            verify=True,
+            endpoint, params=params, json=data, headers=headers, verify=True,
         )
         _LOGGER.info(f"Request URL: {resp.request.url}")
         _LOGGER.debug("Response Code: ", resp.status_code)
@@ -254,7 +251,7 @@ class LandingLens:
         route_name: str,
         url_replacements: Optional[Dict[str, Any]],
         data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]]= None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> Tuple[str, Dict[str, Any], Dict[str, Any], str, Dict[str, Any]]:
         route = ROUTES[route_name]
         headers = {
