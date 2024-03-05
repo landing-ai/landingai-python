@@ -168,7 +168,7 @@ class LandingLens:
 
         # Create a MultipartWriter for the form data
         form = aiohttp.FormData()
-        if is_form_data:
+        if form_data is not None:
             headers.pop("Content-Type", None)
             for key, value in form_data.items():
                 form.add_field(key, value)

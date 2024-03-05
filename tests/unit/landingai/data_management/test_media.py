@@ -66,11 +66,12 @@ def test_single_file_upload(mocked_aioresponse, tmp_path):
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_upload_single_file.yaml"
     )
-    _setup_aio_mocks(["image_1688427395107.jpeg"], mocked_aioresponse)
+    img_name = "image_1688427395107.jpeg"
+
+    _setup_aio_mocks([img_name], mocked_aioresponse)
     media = Media(_PROJECT_ID, _API_KEY)
-    file_name, img_path = _write_random_test_image(
-        tmp_path, file_name="image_1688427395107.jpeg"
-    )
+    file_name, img_path = _write_random_test_image(tmp_path, file_name=img_name)
+
     resp = media.upload(img_path)
     assert resp["num_uploaded"] == 1
     assert resp["skipped_count"] == 0
@@ -80,9 +81,10 @@ def test_single_file_upload(mocked_aioresponse, tmp_path):
     assert resp["medias"][0]["id"] is not None
     assert resp["medias"][0]["uploadTime"] is not None
     assert resp["medias"][0]["properties"] == {
-        "height": 20,
         "width": 20,
-        "imgType": "jpeg",
+        "format": "jpeg",
+        "height": 20,
+        "orientation": 1,
     }
     resp = media.ls()
     medias = resp["medias"]
@@ -128,9 +130,10 @@ def test_single_file_upload_metadata(mocked_aioresponse, tmp_path):
     assert resp["medias"][0]["id"] is not None
     assert resp["medias"][0]["uploadTime"] is not None
     assert resp["medias"][0]["properties"] == {
-        "height": 20,
         "width": 20,
-        "imgType": "jpeg",
+        "format": "jpeg",
+        "height": 20,
+        "orientation": 1,
     }
     resp = media.ls()
     medias = resp["medias"]
@@ -189,6 +192,26 @@ def _setup_aio_mocks(image_file_names, mocked_aioresponse):
                     "path": f"s3://client-sampleproject-3be620a0-83ab-4922-9946-3c979152abd9/media/dataset/38648/2023-07-03T23-50-32-230Z-{file_name}",
                     "properties": {"width": 20, "height": 20, "imgType": "jpeg"},
                     "uploadTime": "2023-07-03T23:50:49.342Z",
+                },
+            },
+        )
+        mocked_aioresponse.post(
+            "https://app.landing.ai/pictor/v1/upload",
+            status=200,
+            payload={
+                "code": 200,
+                "message": "Successfully uploaded the image.",
+                "data": {
+                    "id": 4661573,
+                    "path": f"s3://landinglens-bucket/12345567/89012345/dataset/6789/media/{file_name}",
+                    "name": file_name,
+                    "properties": {
+                        "width": 20,
+                        "format": "jpeg",
+                        "height": 20,
+                        "orientation": 1,
+                    },
+                    "uploadTime": "2024-03-04T23:26:40.583Z",
                 },
             },
         )
