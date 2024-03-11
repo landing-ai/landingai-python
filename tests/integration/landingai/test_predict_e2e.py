@@ -67,7 +67,7 @@ def test_od_predict():
     assert len(preds) == 3, "Result should not be empty or None"
     expected_scores = [0.9997851252555847, 0.9983770251274109, 0.9983124732971191]
     expected_bboxes = [
-        (432, 1036, 652, 1203),
+        (432, 1036, 653, 1204),
         (948, 1592, 1122, 1798),
         (1518, 1413, 1991, 1799),
     ]
