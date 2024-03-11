@@ -1,0 +1,8 @@
+responses:
+  - response:
+      auto_calculate_content_length: false
+      body: '[[{"text":"test","score":0.6326617002487183,"location":[{"x":598,"y":248},{"x":818,"y":250},{"x":818,"y":303},{"x":598,"y":301}]}]]'
+      content_type: text/plain
+      method: POST
+      status: 200
+      url: https://app.landing.ai/ocr/v1/detect-text

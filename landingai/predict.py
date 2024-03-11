@@ -885,7 +885,6 @@ def _do_inference(
     data: Optional[Dict[str, Any]] = None,
 ) -> Tuple[List[Prediction], Dict[str, int]]:
     """Call the inference endpoint and extract the prediction result."""
-    global _performance_metrics
     try:
         resp = session.post(endpoint_url, files=files, params=params, data=data)
     except requests.exceptions.ConnectionError as e:
@@ -895,7 +894,10 @@ def _do_inference(
     response = HttpResponse.from_response(resp)
     _LOGGER.debug("Response: %s", response)
     response.raise_for_status()
-    json_dict = cast(Dict[str, Any], response.json())
+    json_dict = response.json()
+    # OCR response is a list of list of predictions
+    if isinstance(json_dict, list):
+        return (extractor_class.extract_prediction(json_dict), {})
     # Save performance metrics for debugging
     performance_metrics = json_dict.get("latency", {})
     return (extractor_class.extract_prediction(json_dict), performance_metrics)

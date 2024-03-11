@@ -11,7 +11,7 @@ import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
 
-from landingai.common import APIKey, InferenceMetadata
+from landingai.common import APIKey, InferenceMetadata, OcrPrediction
 from landingai.exceptions import (
     BadRequestError,
     ClientError,
@@ -457,3 +457,29 @@ def test_OcrPredictor_kwargs(kwargs):
     image = np.zeros((10, 10, 3), dtype=np.uint8)
     with pytest.raises(ValueError):
         predictor.predict(image, **kwargs)
+
+
+@patch("socket.socket")
+@responses.activate
+def test_predict_ocr_successful_expected_request_body(connect_mock):
+    # Fake a succesfull connection
+    sock_instance = connect_mock.return_value
+    sock_instance.connect_ex.return_value = 0
+
+    responses._add_from_file(file_path="tests/data/responses/test_ocr_predict.yaml")
+
+    img_path = "tests/data/images/ocr_test.png"
+    img = Image.open(img_path)
+
+    expected_predictions = [
+        OcrPrediction(
+            text="test",
+            location=[(598, 248), (818, 250), (818, 303), (598, 301)],
+            score=0.6326617002487183,
+        )
+    ]
+
+    predictor = OcrPredictor(api_key="land_sk_something")
+    result = predictor.predict(img)
+
+    assert result == expected_predictions
