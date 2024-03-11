@@ -473,7 +473,9 @@ def test_predict_ocr_successful_expected_request_body(connect_mock):
 
     expected_predictions = [
         OcrPrediction(
-            text="test", location=[(598, 248), (818, 250), (818, 303), (598, 301)]
+            text="test",
+            location=[(598, 248), (818, 250), (818, 303), (598, 301)],
+            score=0.6326617002487183,
         )
     ]
 
