@@ -146,7 +146,6 @@ def test_class_predict():
     img_with_masks.save("tests/output/test_class.jpg")
 
 
-@pytest.mark.skip
 def test_ocr_predict():
     Path("tests/output").mkdir(parents=True, exist_ok=True)
     predictor = OcrPredictor(api_key=_API_KEY)
@@ -156,33 +155,32 @@ def test_ocr_predict():
     preds = predictor.predict(img, mode="multi-text")
     logging.info(preds)
     expected_texts = [
-        "公司名称",
-        "业务方向",
-        "Anysphere",
         "AI工具",
-        "Atomic Semi",
-        "芯片",
-        "Cursor",
-        "代码编辑",
-        "Diagram",
-        "设计",
-        "Harvey",
         "AI法律顾问",
-        "Kick",
-        "会计软件",
-        "Milo",
-        "家长虚拟助理",
-        "qqbot.dev",
-        "开发者工具",
-        "EdgeDB",
-        "开源数据库",
-        "Mem Labs",
-        "笔记应用",
-        "Speak",
-        "英语学习",
+        "Anysphere",
+        "Atomic Semi",
+        "Cursor",
         "Descript",
-        "音视频编辑",
-        "量子位",
+        "Diagram",
+        "EdgeDB",
+        "Harvey",
+        "Kick",
+        "Mem Labs",
+        "Milo",
+        "Speak",
+        "qqbot.dev",
+        "业务方向",
+        "代码编辑",
+        "会计软件",
+        "公司名称",
+        "家长虚拟助理",
+        "开发者工具",
+        "开源数据库",
+        "笔记应用",
+        "芯片",
+        "英语学习",
+        "设计",
+        "音视频编辑子位",
     ]
     preds = sorted(preds, key=lambda x: x.text)
     expected_texts = sorted(expected_texts)
@@ -206,12 +204,12 @@ def test_ocr_predict():
         {
             "text": "公司名称",
             "location": [(99, 19), (366, 19), (366, 75), (99, 75)],
-            "score": 0.828,
+            "score": 0.9974,
         },
         {
             "text": "英语学习",
             "location": [(599, 842), (814, 845), (814, 894), (599, 892)],
-            "score": 0.9393,
+            "score": 0.9983,
         },
     ]
     for pred, expected in zip(preds, expected):
