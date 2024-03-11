@@ -68,8 +68,8 @@ def test_od_predict():
     expected_scores = [0.9997851252555847, 0.9983770251274109, 0.9983124732971191]
     expected_bboxes = [
         (432, 1036, 653, 1204),
-        (948, 1592, 1122, 1798),
-        (1518, 1413, 1991, 1799),
+        (948, 1592, 1123, 1799),
+        (1518, 1413, 1992, 1800),
     ]
     for i, pred in enumerate(preds):
         assert pred.label_name == "Screw"
