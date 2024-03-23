@@ -5,22 +5,18 @@ import posixpath
 from functools import lru_cache
 from importlib.metadata import version
 from typing import Any, Dict, Optional, Tuple, cast
-
-import aiohttp
 import requests
-import re
 
 
 from landingai.data_management.utils import to_camel_case
 from landingai.exceptions import HttpError
 from landingai.utils import load_api_credential
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 METADATA_ITEMS = "metadata_items"
 METADATA_UPDATE = "metadata_update"
 METADATA_GET = "metadata_get"
 MEDIA_LIST = "media_list"
-MEDIA_REGISTER = "media_register"  # deprecated
-MEDIA_SIGN = "media_sign"  # deprecated
 MEDIA_UPLOAD = "media_upload"
 MEDIA_DETAILS = "media_details"
 MEDIA_UPDATE_SPLIT = "media_update_split"
@@ -71,16 +67,6 @@ ROUTES = {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/object/metadata",
         "method": requests.get,
-    },
-    MEDIA_REGISTER: {
-        "root_url": "LANDING_API",
-        "endpoint": "api/{version}/medias/new",
-        "method": requests.post,
-    },
-    MEDIA_SIGN: {
-        "root_url": "LANDING_API",
-        "endpoint": "api/{version}/medias/sign",
-        "method": requests.post,
     },
     MEDIA_UPLOAD: {
         "root_url": "LANDING_API",
@@ -150,7 +136,7 @@ class LandingLens:
     def _api_key(self) -> str:
         return self.api_key
 
-    async def _api_async(
+    def _api_async(
         self,
         route_name: str,
         params: Optional[Dict[str, Any]] = None,
@@ -165,53 +151,40 @@ class LandingLens:
         endpoint, headers, params, root_url, route = self._api_common_setup(
             route_name, url_replacements, resp_with_content, params
         )
+        if is_form_data:
+            # Create a MultipartEncoder for the form data
+            form = MultipartEncoder(fields=form_data) if form_data is not None else None
+            headers["Content-Type"] = form.content_type
 
-        # Create a MultipartWriter for the form data
-        form = aiohttp.FormData()
-        if form_data is not None:
-            headers.pop("Content-Type", None)
-            for key, value in form_data.items():
-                form.add_field(key, value)
-
-        async with aiohttp.ClientSession() as session:
-            # TODO: should be library agnostic
-            if route["method"] == requests.get:
-                method = session.get
-            elif route["method"] == requests.post:
-                method = session.post
-            else:
-                raise NotImplementedError()
-
-            async with method(
-                endpoint,
+        try:
+            response = requests.request(
+                method=route["method"].__name__,
+                url=endpoint,
                 headers=headers,
                 json=resp_with_content if not is_form_data else None,
                 params=params,
                 data=form if is_form_data else None,
-                ssl=True,
-            ) as resp:
-                _LOGGER.debug("Request URL: ", resp.request_info.url)
-                _LOGGER.debug("Response Code: ", resp.status)
-                _LOGGER.debug("Response Reason: ", resp.reason)
+            )
 
-                if not re.match(r"2[0-9]{2}$", str(resp.status)):
-                    try:
-                        content = await resp.text()
-                        error_message = json.load(io.StringIO(content))["message"]
-                    except Exception as e:
-                        error_message = e
-                    raise HttpError(
-                        "HTTP request to LandingLens server failed with "
-                        f"code {resp.status}-{resp.reason} and error message: \n"
-                        f"{error_message}"
-                    )
-                resp_with_content = await resp.json()
-                _LOGGER.debug(
-                    "Response Content (500 chars): ",
-                    json.dumps(resp_with_content)[:500],
-                )
-                assert resp_with_content is not None
-                return resp_with_content
+            _LOGGER.debug("Request URL: ", response.url)
+            _LOGGER.debug("Response Code: ", response.status_code)
+            _LOGGER.debug("Response Reason: ", response.reason)
+
+            resp_with_content = response.json()
+            _LOGGER.debug(
+                "Response Content (500 chars): ",
+                json.dumps(resp_with_content)[:500],
+            )
+        except requests.exceptions.RequestException as e:
+            raise HttpError(
+                "HTTP request to LandingLens server failed with "
+                f"code {response.status_code}-{response.reason} and error message: \n"
+                f"{str(e)}"
+            )
+        except Exception as e:
+            raise HttpError(f"An error occurred during the HTTP request: {str(e)}")
+        assert resp_with_content is not None
+        return resp_with_content
 
     def _api(
         self,
