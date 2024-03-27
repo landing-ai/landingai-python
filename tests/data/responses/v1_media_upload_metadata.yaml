@@ -1,6 +1,28 @@
 responses:
 - response:
     auto_calculate_content_length: false
+    body: '{
+      "code": 200,
+      "message": "Successfully uploaded the image.",
+      "data": {
+          "id": 1234567,
+          "path": "s3://landinglens-customer-data/12345678/901234567/dataset/4321/media/2024-03-26T22-21-49-216Z-image.jpeg",
+          "name": "image.jpeg",
+          "properties": {
+              "width": 20,
+              "format": "jpeg",
+              "height": 20,
+              "orientation": 1
+          },
+          "uploadTime": "2024-03-26T22:21:49.666Z"
+          }
+      }'
+    content_type: text/plain
+    method: POST
+    status: 201
+    url: https://app.landing.ai/pictor/v1/upload
+- response:
+    auto_calculate_content_length: false
     body: '{"code":0,"message":"","data":{"id":30863867234314,"orgId":376,"name":"Tiger
       team test - Data Management CLI Test","inviteOnly":false,"datasetId":38648,"importStatus":"created","importInfo":null,"labelType":"bounding_box","isDeleted":null,"registeredModelId":"84a48de7-ead4-42bb-9771-56a549b3ba5d","modelDefaultMetricKey":null,"customizedTrainingConfig":null,"createdAt":"2023-07-02T17:21:21.400Z","coverMediaId":10300417,"updatedByUserId":"8d36bffa-200e-11ed-861d-0242ac120002","users":[{"id":"d45adeec-64ba-4b90-96af-92b13aa5fce3","accountId":"b9a20526-caa8-7518-197e-add914b6055c","name":"Dillon","lastName":"Laird","username":"1@dillon@landing.ai","status":"ACTIVE","email":"dillon@landing.ai","userRole":"admin","orgId":376,"rank":null,"ssoUser":false,"stripeUserId":null,"expirationDate":null,"readOnly":false,"internal":false,"account_id":"b9a20526-caa8-7518-197e-add914b6055c","userProject":{"id":170068,"orgId":376,"userId":"d45adeec-64ba-4b90-96af-92b13aa5fce3","projectId":30863867234314,"role":"standard","isOwner":false,"permissions":["deploy_model","direct_label","train_model","upload_data"],"lastOpenedTime":"2023-08-30T01:51:39.000Z"}},{"id":"d810bae9-3310-4a95-bad8-9bf6fd78e444","accountId":"925f5145-13ad-eb02-99cf-b2af34988ddc","name":"asia","lastName":"cao","username":"1@yazhou.cao@landing.ai","status":"ACTIVE","email":"yazhou.cao@landing.ai","userRole":"admin","orgId":376,"rank":null,"ssoUser":false,"stripeUserId":null,"expirationDate":null,"readOnly":false,"internal":false,"account_id":"925f5145-13ad-eb02-99cf-b2af34988ddc","userProject":{"id":164392,"orgId":376,"userId":"d810bae9-3310-4a95-bad8-9bf6fd78e444","projectId":30863867234314,"role":"owner","isOwner":true,"permissions":["upload_data","train_model","deploy_model"],"lastOpenedTime":"2023-07-06T00:46:02.000Z"}}]}}'
     content_type: text/plain
