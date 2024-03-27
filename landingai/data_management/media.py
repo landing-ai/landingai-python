@@ -537,7 +537,9 @@ def _upload_media(
         "project_id": str(project_id),
         "dataset_id": str(dataset_id),
         "name": filename,
-        "file": (filename, open(source, "rb"), "text/plain") if  isinstance(source, str) else source,
+        "file": (filename, open(source, "rb"), "text/plain")
+        if isinstance(source, str)
+        else source,
         "split": split,
         "initialLabel": json.dumps(initial_label),
         "tags": json.dumps(tags),
