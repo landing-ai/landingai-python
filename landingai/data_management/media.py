@@ -26,7 +26,7 @@ from landingai.data_management.utils import (
     metadata_to_ids,
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
-from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
+from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS
 
 
 MediaType = Enum("MediaType", ["image", "video"])
@@ -537,7 +537,7 @@ def _upload_media(
         "project_id": str(project_id),
         "dataset_id": str(dataset_id),
         "name": filename,
-        "file": (filename, open(source, "rb"), "text/plain"),
+        "file": (filename, open(source, "rb"), "text/plain") if  isinstance(source, str) else source,
         "split": split,
         "initialLabel": json.dumps(initial_label),
         "tags": json.dumps(tags),

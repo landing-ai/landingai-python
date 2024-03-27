@@ -4,7 +4,6 @@ from unittest import mock
 import numpy as np
 import pytest
 import responses
-from aioresponses import aioresponses
 from PIL import Image
 
 from landingai.data_management.media import Media
@@ -62,13 +61,12 @@ Tests for Media.upload
 
 
 @responses.activate
-def test_single_file_upload(mocked_aioresponse, tmp_path):
+def test_single_file_upload(tmp_path):
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_upload_single_file.yaml"
     )
     img_name = "image_1688427395107.jpeg"
 
-    _setup_aio_mocks([img_name], mocked_aioresponse)
     media = Media(_PROJECT_ID, _API_KEY)
     file_name, img_path = _write_random_test_image(tmp_path, file_name=img_name)
 
@@ -114,11 +112,10 @@ def test_single_file_upload_400(mocked_ll_client, tmp_path):
 
 
 @responses.activate
-def test_single_file_upload_metadata(mocked_aioresponse, tmp_path):
+def test_single_file_upload_metadata(tmp_path):
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_upload_metadata.yaml"
     )
-    _setup_aio_mocks(["image.jpeg"], mocked_aioresponse)
     media = Media(_PROJECT_ID, _API_KEY)
     file_name, img_path = _write_random_test_image(tmp_path, file_name="image.jpeg")
     resp = media.upload(img_path, metadata_dict={"test": "test"})
@@ -142,17 +139,9 @@ def test_single_file_upload_metadata(mocked_aioresponse, tmp_path):
 
 
 @responses.activate
-def test_folder_upload_with_subdirectories_skip_txt(mocked_aioresponse, tmp_path):
+def test_folder_upload_with_subdirectories_skip_txt(tmp_path):
     responses._add_from_file(
         file_path="tests/data/responses/v1_media_upload_folder.yaml"
-    )
-    _setup_aio_mocks(
-        [
-            "image_1688427395107.jpeg",
-            "image_1688427395108.jpeg",
-            "image_1688427395109.jpeg",
-        ],
-        mocked_aioresponse,
     )
     media = Media(_PROJECT_ID, _API_KEY)
     _write_random_test_image_folder(tmp_path, num_images=1)
@@ -161,60 +150,6 @@ def test_folder_upload_with_subdirectories_skip_txt(mocked_aioresponse, tmp_path
     assert upload_resp["skipped_count"] == 2
     assert upload_resp["num_uploaded"] == 3
     assert upload_resp["error_count"] == 0
-
-
-def _setup_aio_mocks(image_file_names, mocked_aioresponse):
-    for file_name in image_file_names:
-        mocked_aioresponse.post(
-            "https://app.landing.ai/api/v1/medias/sign",
-            status=200,
-            payload={
-                "code": 0,
-                "message": "",
-                "data": {
-                    "url": f"https://client-sampleproject-3be620a0-83ab-4922-9946-3c979152abd9.s3.us-east-2.amazonaws.com/media/dataset/38648/2023-07-03T23-36-35-869Z-{file_name}",
-                    "s3url": f"s3://client-sampleproject-3be620a0-83ab-4922-9946-3c979152abd9/media/dataset/38648/2023-07-03T23-36-35-869Z-{file_name}",
-                },
-            },
-        )
-        mocked_aioresponse.put(
-            f"https://client-sampleproject-3be620a0-83ab-4922-9946-3c979152abd9.s3.us-east-2.amazonaws.com/media/dataset/38648/2023-07-03T23-36-35-869Z-{file_name}",
-            status=200,
-        )
-        mocked_aioresponse.post(
-            "https://app.landing.ai/api/v1/medias/new",
-            status=200,
-            payload={
-                "code": 0,
-                "message": "",
-                "data": {
-                    "id": 10304144,
-                    "path": f"s3://client-sampleproject-3be620a0-83ab-4922-9946-3c979152abd9/media/dataset/38648/2023-07-03T23-50-32-230Z-{file_name}",
-                    "properties": {"width": 20, "height": 20, "imgType": "jpeg"},
-                    "uploadTime": "2023-07-03T23:50:49.342Z",
-                },
-            },
-        )
-        mocked_aioresponse.post(
-            "https://app.landing.ai/pictor/v1/upload",
-            status=200,
-            payload={
-                "code": 200,
-                "message": "Successfully uploaded the image.",
-                "data": {
-                    "id": 4661573,
-                    "path": f"s3://landinglens-bucket/12345567/89012345/dataset/6789/media/{file_name}",
-                    "name": file_name,
-                    "properties": {
-                        "width": 20,
-                        "format": "jpeg",
-                        "height": 20,
-                        "orientation": 1,
-                    },
-                    "uploadTime": "2024-03-04T23:26:40.583Z",
-                },
-            },
-        )
 
 
 def _write_random_test_image(folder_path, file_name=None, image_name_prefix="image"):
@@ -235,12 +170,6 @@ def _write_random_test_image_folder(folder_path, num_images=2):
             _write_random_test_image(folder_path, image_name_prefix=f"image_{i}")
         )
     return files
-
-
-@pytest.fixture
-def mocked_aioresponse():
-    with aioresponses() as m:
-        yield m
 
 
 """

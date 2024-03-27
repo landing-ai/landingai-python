@@ -89,7 +89,7 @@ module = [
     "segmentation_mask_overlay.*",
     "bbox_visualizer.*",
     "streamlit.*",
-    "nest_asyncio.*",
+    "requests_toolbelt.*",
 ]
 
 [tool.ruff]

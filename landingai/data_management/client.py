@@ -177,8 +177,7 @@ class LandingLens:
             )
         except requests.exceptions.RequestException as e:
             raise HttpError(
-                "HTTP request to LandingLens server failed with "
-                f"code {response.status_code}-{response.reason} and error message: \n"
+                "HTTP request to LandingLens server failed with error message: \n"
                 f"{str(e)}"
             )
         except Exception as e:
