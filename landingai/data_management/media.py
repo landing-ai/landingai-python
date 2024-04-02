@@ -506,7 +506,7 @@ def _upload_folder(
                 tasks.append(task)
             else:
                 skipped_count += 1
-    for task in tqdm(as_completed(tasks)):
+    for task in tqdm(as_completed(tasks), total=len(tasks)):
         try:
             result = task.result()
             medias.append(result)
