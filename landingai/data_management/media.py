@@ -1,6 +1,4 @@
-import asyncio
 import base64
-import hashlib
 import json
 import logging
 import os
@@ -9,10 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-import aiofiles
-import aiohttp
-import cv2
-import numpy as np
+
 import PIL.Image
 from PIL.Image import Image
 from tqdm import tqdm
@@ -20,20 +15,19 @@ from tqdm import tqdm
 from landingai.data_management.client import (
     GET_PROJECT_SPLIT,
     MEDIA_LIST,
-    MEDIA_REGISTER,
-    MEDIA_SIGN,
     MEDIA_UPDATE_SPLIT,
+    MEDIA_UPLOAD,
     LandingLens,
 )
 from landingai.data_management.utils import (
     PrettyPrintable,
-    obj_to_dict,
     obj_to_params,
     validate_metadata,
     metadata_to_ids,
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
-from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS, serialize_image
+from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS
+
 
 MediaType = Enum("MediaType", ["image", "video"])
 SrcType = Enum("SrcType", ["user", "production_line", "prism"])
@@ -88,6 +82,7 @@ class Media:
         metadata_dict: Optional[Dict[str, Any]] = None,
         validate_extensions: bool = True,
         tolerate_duplicate_upload: bool = True,
+        tags: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Upload media to platform.
@@ -195,26 +190,24 @@ class Media:
 
         medias: List[Dict[str, Any]] = []
         skipped_count = 0
+        error_count = 0
         medias_with_errors: Dict[str, Any] = {}
 
         assert isinstance(source, (str, Image))
         if isinstance(source, str) and os.path.isdir(source):
-            folder_tasks = _upload_folder(
-                self._client,
-                dataset_id,
-                source,
-                project_id,
-                validate_extensions,
-                skipped_count,
-                tolerate_duplicate_upload,
-            )
-            loop = asyncio.get_event_loop()
             (
                 medias,
                 skipped_count,
                 error_count,
                 medias_with_errors,
-            ) = loop.run_until_complete(folder_tasks)
+            ) = _upload_folder(
+                self._client,
+                dataset_id,
+                source,
+                project_id,
+                validate_extensions,
+                tolerate_duplicate_upload,
+            )
         else:
             # Resolve filename and extension for _upload_media()
             if isinstance(source, Image):
@@ -232,22 +225,19 @@ class Media:
                     If you want to attempt the upload anyway, set validate_extensions=False.
                     This may result in an unexpected behavior - e.g. file not showing up in data browser."""
                 )
-            # Create an async task
-            file_tasks = _upload_media(
-                self._client,
-                dataset_id,
-                filename,
-                source,
-                project_id,
-                ext,
-                split,
-                initial_label,
-                metadata,
-            )
-            loop = asyncio.get_event_loop()
-            error_count = 0
             try:
-                resp = loop.run_until_complete(file_tasks)
+                resp = _upload_media(
+                    self._client,
+                    dataset_id,
+                    filename,
+                    source,
+                    project_id,
+                    ext,
+                    split,
+                    initial_label,
+                    metadata,
+                    tags,
+                )
                 medias.append(resp)
             except DuplicateUploadError:
                 if not tolerate_duplicate_upload:
@@ -392,38 +382,6 @@ class Media:
         )
 
 
-class _MediaBody(PrettyPrintable):
-    def __init__(
-        self,
-        name: str,
-        media_type: MediaType,
-        path: str,
-        project_id: int,
-        src_type: SrcType,
-        src_name: str,
-        properties: Dict[str, Any],
-        md5: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        initial_label: Optional[Dict[str, Any]] = None,
-        split: Optional[str] = None,
-        thumbnail_size: Optional[ThumbnailSize] = None,
-        dataset_id: Optional[int] = None,
-    ) -> None:
-        self.name = name
-        self.path = path
-        self.media_type = media_type
-        self.project_id = project_id
-        self.src_type = src_type
-        self.metadata = metadata
-        self.split = split
-        self.src_name = src_name
-        self.thumbnail_size = thumbnail_size
-        self.dataset_id = dataset_id
-        self.properties = properties
-        self.md5 = md5
-        self.initial_label = initial_label
-
-
 class _SortOptions(PrettyPrintable):
     def __init__(self, offset: int, limit: int) -> None:
         self.offset = offset
@@ -513,82 +471,49 @@ def _build_list_media_request(
     )
 
 
-async def _upload_folder(
+def _upload_folder(
     client: LandingLens,
     dataset_id: int,
     path: str,
     project_id: int,
     validate_extensions: bool,
-    skipped_count: int,
     tolerate_duplicate_upload: bool,
 ) -> Tuple[List[Any], int, int, Dict[str, Any]]:
-    semaphore = asyncio.BoundedSemaphore(_CONCURRENCY_LIMIT)
-    task_to_filename = {}
-    tasks = []
+    error_count = 0
+    skipped_count = 0
+    medias = []
+    medias_with_errors = {}
     for root, _, filenames in os.walk(path):
-        for filename in filenames:
+        _LOGGER.info(f"Uploading {len(filenames)} files")
+        for filename in tqdm(filenames):
             ext = os.path.splitext(filename)[-1][1:]
             if filename.lower() in _HIDDEN_FILES_TO_IGNORE:
                 pass
             elif ext.upper() in _ALLOWED_EXTENSIONS or not validate_extensions:
-                loop = asyncio.get_event_loop()
-                task = loop.create_task(
-                    _upload_media_with_semaphore(
+                try:
+                    result = _upload_media(
                         client,
                         dataset_id,
                         filename,
                         os.path.join(root, filename),
                         project_id,
                         ext,
-                        semaphore,
                     )
-                )
-                tasks.append(task)
-                task_to_filename[task] = filename
+                    medias.append(result)
+                except DuplicateUploadError:
+                    if not tolerate_duplicate_upload:
+                        raise
+                    skipped_count += 1
+                except Exception as e:
+                    error_count += 1
+                    medias_with_errors[filename] = e
             else:
                 skipped_count += 1
 
-    _LOGGER.info(f"Uploading {len(tasks)} files")
-    error_count = 0
-
-    for resp in tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-        try:
-            await resp
-        except DuplicateUploadError:
-            if not tolerate_duplicate_upload:
-                raise
-            skipped_count += 1
-        except Exception:
-            error_count += 1
-
-    medias = [t.result() for t in tasks if not t.exception()]
-    medias_with_errors = {
-        task_to_filename[t]: (t.exception()) for t in tasks if t.exception()
-    }
     return medias, skipped_count, error_count, medias_with_errors
 
 
-async def _upload_media_with_semaphore(
-    client: LandingLens,
-    dataset_id: int,
-    filename: str,
-    path: str,
-    project_id: int,
-    ext: str,
-    semaphore: asyncio.BoundedSemaphore,
-) -> Dict[str, Any]:
-    async with semaphore:
-        return await _upload_media(
-            client,
-            dataset_id,
-            filename,
-            path,
-            project_id,
-            ext,
-        )
-
-
-async def _upload_media(
+def _upload_media(
     client: LandingLens,
     dataset_id: int,
     filename: str,
@@ -598,6 +523,7 @@ async def _upload_media(
     split: str = "",
     initial_label: Optional[Dict[str, Any]] = None,
     metadata: Optional[Dict[str, Any]] = None,
+    tags: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     # The platform doesn't support tiff, so we convert it to png before uploading
     if ext.lower() == "tiff":
@@ -607,80 +533,29 @@ async def _upload_media(
         source = PIL.Image.open(source)  # later it gets converted to png in bytes
 
     filetype = f"image/{ext}" if ext != "jpg" else "image/jpeg"
-    if isinstance(source, Image):
-        contents = serialize_image(source)
-    else:
-        assert isinstance(source, str)
-        async with aiofiles.open(source, mode="rb") as file:
-            contents = await file.read()
-
-    md5 = hashlib.md5()
-    md5.update(contents)
-    media_md5 = md5.hexdigest()
-    resp_data = await client._api_async(
-        MEDIA_SIGN,
-        resp_with_content={
-            "filename": filename,
-            "filetype": filetype,
-            "uploadType": "dataset",
-            "projectId": project_id,
-            "md5": media_md5,
-            "uploadId": dataset_id,
-        },
-    )
-    if resp_data["code"] == 409:
-        _LOGGER.warning(
-            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+    form_data = {
+        "project_id": str(project_id),
+        "dataset_id": str(dataset_id),
+        "name": filename,
+        "file": (filename, open(source, "rb"), "text/plain")
+        if isinstance(source, str)
+        else source,
+        "split": split,
+        "initialLabel": json.dumps(initial_label),
+        "tags": json.dumps(tags),
+        "metadata": json.dumps(metadata),
+    }
+    resp = client._api_async(MEDIA_UPLOAD, form_data=form_data)
+    if resp["code"] == 409:
+        _LOGGER.debug(
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), response: {resp}"
         )
         raise DuplicateUploadError(
-            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), md5: {media_md5}, response: {resp_data}"
+            f"Skipping Media ({filename}, {filetype}) as it already exists in project ({project_id}), response: {resp}"
         )
-    elif "data" not in resp_data:
+    elif "data" not in resp:
         raise HttpError(
-            f"Failed to upload media due to HTTP {resp_data['code']} error, reason: {resp_data['message']}"
+            f"Failed to upload media due to HTTP {resp['code']} error, reason: {resp['message']}"
         )
-    data = resp_data["data"]
-    url = data["url"]
-    s3url = data["s3url"]
 
-    fields = data
-    del fields["url"]
-    del fields["s3url"]
-
-    # Upload to S3
-    async with aiohttp.ClientSession() as session:
-        async with session.put(url, data=contents) as resp:
-            if not resp.ok:
-                try:
-                    content = await resp.text()
-                    raise HttpError(
-                        f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
-                        f"and error message {content}"
-                    )
-                except BaseException as e:
-                    raise HttpError(
-                        f"HTTP async request to S3 failed with {resp.status}-{resp.reason} "
-                    ) from e
-
-    img_nparr = np.frombuffer(contents, np.uint8)
-    img = cv2.imdecode(img_nparr, cv2.IMREAD_UNCHANGED)
-    [height, width] = img.shape[:2]
-    fields = _MediaBody(
-        name=filename,
-        media_type=MediaType.image,
-        path=s3url,
-        project_id=int(project_id),
-        src_type=SrcType.user,
-        src_name="cli/sdk",
-        dataset_id=dataset_id,
-        md5=media_md5,
-        properties={"height": height, "width": width, "imgType": ext},
-        split=split,
-        metadata=metadata,
-        initial_label=initial_label,
-    )
-    resp_data = await client._api_async(
-        MEDIA_REGISTER, resp_with_content=obj_to_dict(fields)
-    )
-
-    return cast(Dict[str, Any], resp_data["data"])
+    return cast(Dict[str, Any], resp["data"])
