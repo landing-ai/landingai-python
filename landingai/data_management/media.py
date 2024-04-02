@@ -1,4 +1,5 @@
 import base64
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import logging
 import os
@@ -483,6 +484,9 @@ def _upload_folder(
     skipped_count = 0
     medias = []
     medias_with_errors = {}
+    thread_pool = ThreadPoolExecutor(max_workers=_CONCURRENCY_LIMIT)
+    tasks = []
+
     for root, _, filenames in os.walk(path):
         _LOGGER.info(f"Uploading {len(filenames)} files")
         for filename in tqdm(filenames):
@@ -490,25 +494,29 @@ def _upload_folder(
             if filename.lower() in _HIDDEN_FILES_TO_IGNORE:
                 pass
             elif ext.upper() in _ALLOWED_EXTENSIONS or not validate_extensions:
-                try:
-                    result = _upload_media(
-                        client,
-                        dataset_id,
-                        filename,
-                        os.path.join(root, filename),
-                        project_id,
-                        ext,
-                    )
-                    medias.append(result)
-                except DuplicateUploadError:
-                    if not tolerate_duplicate_upload:
-                        raise
-                    skipped_count += 1
-                except Exception as e:
-                    error_count += 1
-                    medias_with_errors[filename] = e
+                task = thread_pool.submit(
+                    _upload_media,
+                    client,
+                    dataset_id,
+                    filename,
+                    os.path.join(root, filename),
+                    project_id,
+                    ext,
+                )
+                tasks.append(task)
             else:
                 skipped_count += 1
+    for task in tqdm(as_completed(tasks)):
+        try:
+            result = task.result()
+            medias.append(result)
+        except DuplicateUploadError:
+            if not tolerate_duplicate_upload:
+                raise
+            skipped_count += 1
+        except Exception as e:
+            error_count += 1
+            medias_with_errors[filename] = e
 
     return medias, skipped_count, error_count, medias_with_errors
 
