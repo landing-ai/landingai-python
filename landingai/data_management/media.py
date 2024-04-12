@@ -549,7 +549,7 @@ def _upload_media(
         if isinstance(source, str)
         else source,
         "split": split,
-        "initialLabel": json.dumps(initial_label),
+        "initial_label": json.dumps(initial_label),
         "tags": json.dumps(tags),
         "metadata": json.dumps(metadata),
     }
