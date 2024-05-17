@@ -36,7 +36,7 @@ class NativeAppPredictor(Predictor):
 
     def _get_auth_token(self) -> str:
         try:
-            import snowflake.connector
+            import snowflake.connector  # type: ignore
         except ImportError:
             raise ImportError(
                 "snowflake-connector-python is required to use snowflake.NativeAppPredictor. "
