@@ -1,7 +1,7 @@
 """Snowflake-specific adapters and helpers"""
 
 import datetime
-from typing import Dict, Optional, cast
+from typing import Optional, cast
 from urllib.parse import urljoin
 
 from requests import Session
