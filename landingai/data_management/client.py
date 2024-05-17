@@ -49,8 +49,8 @@ ROUTES = {
         "method": requests.get,
     },
     GET_DEFECTS: {
-        "root_url": "LANDING_API",
-        "endpoint": "api/defect/defects",
+        "root_url": "LANDING_REST_API",
+        "endpoint": "projects/{project_id}/classes",
         "method": requests.get,
     },
     METADATA_ITEMS: {
@@ -84,14 +84,15 @@ ROUTES = {
         "method": requests.get,
     },
     GET_PROJECT: {
-        "root_url": "LANDING_API",
-        "endpoint": "api/{version}/project/with_users",
+        "root_url": "LANDING_REST_API",
+        "endpoint": "projects/{project_id}",
         "method": requests.get,
     },
 }
 
 _URL_ROOTS = {
     "LANDING_API": "https://app.landing.ai",
+    "LANDING_REST_API": "https://api.landing.ai/v1",
 }
 _API_VERSION = "v1"
 _LOGGER = logging.getLogger(__name__)
@@ -252,10 +253,10 @@ class LandingLens:
 
         if url_replacements:
             endpoint = endpoint.format(
-                **{**{"version": _API_VERSION}, **url_replacements}
+                **{**{"version": _API_VERSION, "project_id": self.project_id}, **url_replacements}
             )
         else:
-            endpoint = endpoint.format(**{"version": _API_VERSION})
+            endpoint = endpoint.format(**{"version": _API_VERSION, "project_id": self.project_id})
 
         return endpoint, headers, params, root_url, route
 
