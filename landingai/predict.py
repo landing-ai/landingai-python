@@ -36,6 +36,7 @@ class Predictor:
 
     _url: str = "https://predict.app.landing.ai/inference/v1/predict"
     _num_retry: int = 3
+    _session: Session
 
     def __init__(
         self,
@@ -61,9 +62,9 @@ class Predictor:
             Check if the cloud inference service is reachable, by default True
         """
         # Check if the cloud inference service is reachable
-        if check_server_ready and not self._check_connectivity(url=Predictor._url):
+        if check_server_ready and not self._check_connectivity(url=self._url):
             raise ConnectionError(
-                f"Failed to connect to the cloud inference service. Check that {Predictor._url} is accesible from this device"
+                f"Failed to connect to the cloud inference service. Check that {self._url} is accesible from this device"
             )
 
         self._endpoint_id = endpoint_id
@@ -73,7 +74,7 @@ class Predictor:
             "model_type": "fast_and_easy",
         }
         headers = self._build_default_headers(self._api_credential, extra_x_event)
-        self._session = _create_session(Predictor._url, self._num_retry, headers)
+        self._session = create_requests_session(self._url, self._num_retry, headers)
         # performance_metrics keeps performance metrics for the last call to _do_inference()
         self._performance_metrics: Dict[str, int] = {}
 
@@ -156,7 +157,7 @@ class Predictor:
         data = {"metadata": metadata.json()} if metadata else None
         (preds, self._performance_metrics) = _do_inference(
             self._session,
-            Predictor._url,
+            self._url,
             files,
             query_params,
             _CloudExtractor,
@@ -215,7 +216,7 @@ class OcrPredictor(Predictor):
             "model_type": "ocr",
         }
         headers = self._build_default_headers(self._api_credential, extra_x_event)
-        self._session = _create_session(Predictor._url, self._num_retry, headers)
+        self._session = create_requests_session(self._url, self._num_retry, headers)
 
     @retry(
         # All customers have a quota of images per minute. If the server return a 429, then we will wait 60 seconds and retry
@@ -267,7 +268,7 @@ class OcrPredictor(Predictor):
 
         (preds, self._performance_metrics) = _do_inference(
             self._session,
-            OcrPredictor._url,
+            self._url,
             files,
             {},
             _OcrExtractor,
@@ -314,7 +315,7 @@ class EdgePredictor(Predictor):
             raise ConnectionError(
                 f"Failed to connect to the model server. Please check if the server is running and the connection url ({self._url})."
             )
-        self._session = _create_session(
+        self._session = create_requests_session(
             self._url,
             0,
             {
@@ -355,7 +356,7 @@ class EdgePredictor(Predictor):
         if reuse_session:
             session = self._session
         else:
-            session = _create_session(
+            session = create_requests_session(
                 self._url,
                 0,
                 {
@@ -847,7 +848,7 @@ class _OcrExtractor(_Extractor):
         return cast(List[Prediction], preds)
 
 
-def _create_session(url: str, num_retry: int, headers: Dict[str, str]) -> Session:
+def create_requests_session(url: str, num_retry: int, headers: Dict[str, str]) -> Session:
     """Create a requests session with retry"""
     session = Session()
     retries = Retry(
