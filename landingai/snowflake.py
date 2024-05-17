@@ -7,6 +7,7 @@ from landingai.predict import Predictor, create_requests_session
 
 
 class NativeAppPredictor(Predictor):
+    # For how long can we reuse the auth token before having to fetch a new one
     AUTH_TOKEN_MAX_AGE = datetime.timedelta(minutes=5)
 
     def __init__(
@@ -20,7 +21,9 @@ class NativeAppPredictor(Predictor):
         check_server_ready: bool = True,
         api_key: str = None,
     ) -> None:
-        super().__init__(endpoint_id, api_key=api_key, check_server_ready=check_server_ready)
+        super().__init__(
+            endpoint_id, api_key=api_key, check_server_ready=check_server_ready
+        )
         self._url = urljoin(native_app_url, "/inference/v1/predict")
         self.snowflake_account = snowflake_account
         self.snowflake_user = snowflake_user
@@ -34,13 +37,14 @@ class NativeAppPredictor(Predictor):
             import snowflake.connector
         except ImportError:
             raise ImportError(
-                "snowflake-connector-python is required to use Snowflake. "
+                "snowflake-connector-python is required to use snowflake.NativeAppPredictor. "
                 "Please, pip install snowflake-connector-python"
             )
 
         # Reuse the token if it's not too old
         if self._auth_token is not None and (
-            datetime.datetime.now() - self._last_auth_token_fetch < self.AUTH_TOKEN_MAX_AGE
+            datetime.datetime.now() - self._last_auth_token_fetch
+            < self.AUTH_TOKEN_MAX_AGE
         ):
             return self._auth_token
 
@@ -48,13 +52,11 @@ class NativeAppPredictor(Predictor):
             user=self.snowflake_user,
             password=self.snowflake_password,
             account=self.snowflake_account,
-            session_parameters={
-                'PYTHON_CONNECTOR_QUERY_RESULT_FORMAT': 'json'
-            }
+            session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
         )
         ctx._all_async_queries_finished = lambda: False
-        token_data = ctx._rest._token_request('ISSUE')
-        self._auth_token = token_data['data']['sessionToken']
+        token_data = ctx._rest._token_request("ISSUE")
+        self._auth_token = token_data["data"]["sessionToken"]
         self._last_auth_token_fetch = datetime.datetime.now()
         return self._auth_token
 
@@ -65,8 +67,9 @@ class NativeAppPredictor(Predictor):
             "model_type": "fast_and_easy",
         }
         headers = self._build_default_headers(self._api_credential, extra_x_event)
-        #if "apikey" in headers:
-        #    del headers["apikey"]
+        # TODO: Soon, we will remove the need for the apikey header in snowflake native app.
+        # if "apikey" in headers:
+        #     del headers["apikey"]
 
         headers["Authorization"] = f'Snowflake Token="{self._get_auth_token()}"'
 

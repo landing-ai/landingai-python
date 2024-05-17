@@ -848,7 +848,9 @@ class _OcrExtractor(_Extractor):
         return cast(List[Prediction], preds)
 
 
-def create_requests_session(url: str, num_retry: int, headers: Dict[str, str]) -> Session:
+def create_requests_session(
+    url: str, num_retry: int, headers: Dict[str, str]
+) -> Session:
     """Create a requests session with retry"""
     session = Session()
     retries = Retry(
