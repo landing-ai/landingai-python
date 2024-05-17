@@ -1,8 +1,10 @@
 """Snowflake-specific adapters and helpers"""
 
 import datetime
-from typing import Dict
+from typing import Dict, Optional, cast
 from urllib.parse import urljoin
+
+from requests import Session
 from landingai.predict import Predictor, create_requests_session
 
 
@@ -18,8 +20,8 @@ class NativeAppPredictor(Predictor):
         snowflake_user: str,
         snowflake_password: str,
         native_app_url: str,
+        api_key: str,
         check_server_ready: bool = True,
-        api_key: str = None,
     ) -> None:
         super().__init__(
             endpoint_id, api_key=api_key, check_server_ready=check_server_ready
@@ -30,7 +32,7 @@ class NativeAppPredictor(Predictor):
         self.snowflake_password = snowflake_password
 
         self._auth_token = None
-        self._last_auth_token_fetch = None
+        self._last_auth_token_fetch: Optional[datetime.datetime] = None
 
     def _get_auth_token(self) -> str:
         try:
@@ -54,14 +56,14 @@ class NativeAppPredictor(Predictor):
             account=self.snowflake_account,
             session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
         )
-        ctx._all_async_queries_finished = lambda: False
-        token_data = ctx._rest._token_request("ISSUE")
+        ctx._all_async_queries_finished = lambda: False  # type: ignore
+        token_data = ctx._rest._token_request("ISSUE")  # type: ignore
         self._auth_token = token_data["data"]["sessionToken"]
         self._last_auth_token_fetch = datetime.datetime.now()
-        return self._auth_token
+        return cast(str, self._auth_token)
 
     @property
-    def _session(self) -> Dict[str, str]:
+    def _session(self) -> Session:
         extra_x_event = {
             "endpoint_id": self._endpoint_id,
             "model_type": "fast_and_easy",
@@ -80,6 +82,6 @@ class NativeAppPredictor(Predictor):
         )
 
     @_session.setter
-    def _session(self, value: Dict[str, str]) -> None:
+    def _session(self, value: Session) -> None:
         """Ignore setting the session. We always create a new session when needed."""
         pass
