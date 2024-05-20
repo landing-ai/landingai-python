@@ -5,10 +5,6 @@ from pathlib import Path
 from unittest import mock
 from unittest.mock import patch
 
-from cryptography.hazmat.backends import default_backend
-
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
 import numpy as np
 import pytest
 import responses
@@ -38,6 +34,9 @@ from landingai.pipeline.frameset import FrameSet, Frame
 
 
 # private_key generated with this call:
+# from cryptography.hazmat.backends import default_backend
+# from cryptography.hazmat.primitives.asymmetric import rsa
+# from cryptography.hazmat.primitives import serialization
 # private_key = rsa.generate_private_key(
 #     public_exponent=65537,
 #     key_size=512,
@@ -49,8 +48,7 @@ from landingai.pipeline.frameset import FrameSet, Frame
 #     encryption_algorithm=serialization.NoEncryption()
 # )
 # print(private_key_bytes.decode("ascii"))
-SAMPLE_PRIVATE_KEY = (
-    """-----BEGIN PRIVATE KEY-----
+SAMPLE_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
 MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEA0ClglAUkfAZi9EC6
 3ERx98skdh7oSoVTswBa4RdekfSOvdxet4yhd0EJdc60aQAkxK++0ybNna3BTElh
 ufGGSwIDAQABAkAXO/cWrnhDC6dx4eO5gD5ETT1Vnd+JqdYMzcZXB3e7zJ+XeeJq
@@ -60,7 +58,6 @@ zQNKEzMHHO/kb0J1uZhHtB9Ow2uDr74zrrZpAiEA9wDlvfbskrr9HdIrkqNp5BLg
 R6Ahjt7zfEwCXoKhQFjle9G81Z4RAiEAsU2UZjwsv6BfRg2vnM5RxQZfDZqPM5Jq
 dviT9m65/9s=
 -----END PRIVATE KEY-----"""
-)
 
 
 def test_predict_with_none():
@@ -417,8 +414,8 @@ def test_snowflake_nativeapp_predict_using_private_key(
     )
     # Not that readable, but this should be the result of the private key serialization
     assert (
-        snowflake_connect_mock.call_args[1]["private_key"] ==
-        b"0\x82\x01T\x02\x01\x000\r\x06\t*\x86H\x86\xf7\r\x01\x01"
+        snowflake_connect_mock.call_args[1]["private_key"]
+        == b"0\x82\x01T\x02\x01\x000\r\x06\t*\x86H\x86\xf7\r\x01\x01"
         b"\x01\x05\x00\x04\x82\x01>0\x82\x01:\x02\x01\x00\x02A\x00"
         b"\xd0)`\x94\x05$|\x06b\xf4@\xba\xdcDq\xf7\xcb$v\x1e\xe8J"
         b"\x85S\xb3\x00Z\xe1\x17^\x91\xf4\x8e\xbd\xdc^\xb7\x8c\xa1wA"

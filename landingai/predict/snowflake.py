@@ -1,7 +1,7 @@
 """Snowflake-specific adapters and helpers"""
 
 import datetime
-from typing import Optional, cast
+from typing import Any, Dict, Optional, cast
 from urllib.parse import urljoin
 
 from cryptography.hazmat.backends import default_backend
@@ -29,9 +29,9 @@ class SnowflakeNativeAppPredictor(Predictor):
         native_app_url: str,
         check_server_ready: bool = True,
     ) -> None:
-        assert snowflake_password is not None or snowflake_private_key is not None, (
-            "You must provide either `snowflake_password` or `snowflake_public_key`."
-        )
+        assert (
+            snowflake_password is not None or snowflake_private_key is not None
+        ), "You must provide either `snowflake_password` or `snowflake_public_key`."
         super().__init__(
             endpoint_id, api_key=None, check_server_ready=check_server_ready
         )
@@ -63,7 +63,7 @@ class SnowflakeNativeAppPredictor(Predictor):
             < self.AUTH_TOKEN_MAX_AGE
         ):
             return self._auth_token
-        connect_params = dict(
+        connect_params: Dict[str, Any] = dict(
             user=self.snowflake_user,
             account=self.snowflake_account,
             session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
