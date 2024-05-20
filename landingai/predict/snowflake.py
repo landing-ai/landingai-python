@@ -76,10 +76,6 @@ class SnowflakeNativeAppPredictor(Predictor):
             "model_type": "fast_and_easy",
         }
         headers = self._build_default_headers(self._api_credential, extra_x_event)
-        # TODO: Soon, we will remove the need for the apikey header in snowflake native app.
-        # if "apikey" in headers:
-        #     del headers["apikey"]
-
         headers["Authorization"] = f'Snowflake Token="{self._get_auth_token()}"'
 
         return create_requests_session(
