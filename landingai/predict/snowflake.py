@@ -5,10 +5,14 @@ from typing import Optional, cast
 from urllib.parse import urljoin
 
 from requests import Session
-from landingai.predict import Predictor, create_requests_session
+from landingai.common import APIKey
+from landingai.predict.cloud import Predictor
+from landingai.predict.utils import create_requests_session
 
 
-class NativeAppPredictor(Predictor):
+class SnowflakeNativeAppPredictor(Predictor):
+    """Snowflake Native App Predictor, which is basically a regular cloud predictor with a different auth mechanism."""
+
     # For how long can we reuse the auth token before having to fetch a new one
     AUTH_TOKEN_MAX_AGE = datetime.timedelta(minutes=5)
 
@@ -20,11 +24,10 @@ class NativeAppPredictor(Predictor):
         snowflake_user: str,
         snowflake_password: str,
         native_app_url: str,
-        api_key: str,
         check_server_ready: bool = True,
     ) -> None:
         super().__init__(
-            endpoint_id, api_key=api_key, check_server_ready=check_server_ready
+            endpoint_id, api_key=None, check_server_ready=check_server_ready
         )
         self._url = urljoin(native_app_url, "/inference/v1/predict")
         self.snowflake_account = snowflake_account
@@ -33,6 +36,10 @@ class NativeAppPredictor(Predictor):
 
         self._auth_token = None
         self._last_auth_token_fetch: Optional[datetime.datetime] = None
+
+    def _load_api_credential(self, api_key: Optional[str]) -> Optional[APIKey]:
+        # Snowflake Native App does not use API Key, so we ignore it
+        return None
 
     def _get_auth_token(self) -> str:
         try:

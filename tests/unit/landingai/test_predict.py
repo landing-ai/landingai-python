@@ -11,7 +11,12 @@ import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
 
-from landingai.common import APIKey, InferenceMetadata, OcrPrediction
+from landingai.common import (
+    APIKey,
+    ClassificationPrediction,
+    InferenceMetadata,
+    OcrPrediction,
+)
 from landingai.exceptions import (
     BadRequestError,
     ClientError,
@@ -23,6 +28,7 @@ from landingai.exceptions import (
     UnexpectedRedirectError,
 )
 from landingai.predict import EdgePredictor, Predictor, OcrPredictor
+from landingai.predict.snowflake import SnowflakeNativeAppPredictor
 from landingai.visualize import overlay_predictions
 from landingai.pipeline.frameset import FrameSet, Frame
 
@@ -248,6 +254,84 @@ def test_predict_matching_expected_request_body():
         api_key="land_sk_1111",
     )
     predictor.predict(img)
+
+
+@responses.activate
+@mock.patch("snowflake.connector.connect")
+def test_snowflake_nativeapp_predict_matching_expected_request_body(
+    snowflake_connect_mock,
+):
+    img_path = "tests/data/images/wildfire1.jpeg"
+    img = Image.open(img_path)
+    expected_request_files = {"file": _read_image_as_jpeg_bytes(img_path)}
+    responses.post(
+        url=(
+            "https://my-nativeapp.snowflakeapp.com/inference"
+            "/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43"
+        ),
+        match=[multipart_matcher(expected_request_files)],
+        json={
+            "backbonetype": None,
+            "backbonepredictions": None,
+            "predictions": {
+                "score": 0.9951885938644409,
+                "labelIndex": 0,
+                "labelName": "Fire",
+            },
+            "type": "ClassificationPrediction",
+        },
+    )
+
+    # Mock snowflake connection
+    snowflake_ctx = snowflake_connect_mock.return_value
+    snowflake_ctx._rest._token_request.return_value = {
+        "data": {"sessionToken": "fake_token"}
+    }
+    predictor = SnowflakeNativeAppPredictor(
+        "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43",
+        snowflake_account="ABCD1234",
+        snowflake_user="my-user",
+        snowflake_password="my-password",
+        native_app_url="https://my-nativeapp.snowflakeapp.com",
+    )
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert snowflake_connect_mock.call_count == 1
+    snowflake_connect_mock.assert_called_with(
+        user="my-user",
+        password="my-password",
+        account="ABCD1234",
+        session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
+    )
+
+    # Make sure that subsequent calls to predict() will not call snowflake.connect again,
+    # and will instead reuse the token
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert snowflake_connect_mock.call_count == 1  # No new calls to snowflake.connect
+
+    # And after 5 minutes, it should call snowflake.connect again
+    predictor._last_auth_token_fetch = (
+        predictor._last_auth_token_fetch
+        - SnowflakeNativeAppPredictor.AUTH_TOKEN_MAX_AGE
+    )
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert (
+        snowflake_connect_mock.call_count == 2
+    )  # New call to snowflake.connect as made
 
 
 @patch("socket.socket")
