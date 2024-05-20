@@ -4,6 +4,8 @@ import datetime
 from typing import Optional, cast
 from urllib.parse import urljoin
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 from requests import Session
 from landingai.common import APIKey
 from landingai.predict.cloud import Predictor
@@ -22,10 +24,14 @@ class SnowflakeNativeAppPredictor(Predictor):
         *,
         snowflake_account: str,
         snowflake_user: str,
-        snowflake_password: str,
+        snowflake_password: Optional[str] = None,
+        snowflake_private_key: Optional[str] = None,
         native_app_url: str,
         check_server_ready: bool = True,
     ) -> None:
+        assert snowflake_password is not None or snowflake_private_key is not None, (
+            "You must provide either `snowflake_password` or `snowflake_public_key`."
+        )
         super().__init__(
             endpoint_id, api_key=None, check_server_ready=check_server_ready
         )
@@ -33,6 +39,7 @@ class SnowflakeNativeAppPredictor(Predictor):
         self.snowflake_account = snowflake_account
         self.snowflake_user = snowflake_user
         self.snowflake_password = snowflake_password
+        self.snowflake_private_key = snowflake_private_key
 
         self._auth_token = None
         self._last_auth_token_fetch: Optional[datetime.datetime] = None
@@ -56,13 +63,26 @@ class SnowflakeNativeAppPredictor(Predictor):
             < self.AUTH_TOKEN_MAX_AGE
         ):
             return self._auth_token
-
-        ctx = snowflake.connector.connect(
+        connect_params = dict(
             user=self.snowflake_user,
-            password=self.snowflake_password,
             account=self.snowflake_account,
             session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
         )
+        if self.snowflake_password is not None:
+            connect_params["password"] = self.snowflake_password
+        if self.snowflake_private_key is not None:
+            p_key = serialization.load_pem_private_key(
+                self.snowflake_private_key.encode("ascii"),
+                password=None,
+                backend=default_backend(),
+            )
+            connect_params["private_key"] = p_key.private_bytes(
+                encoding=serialization.Encoding.DER,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+
+        ctx = snowflake.connector.connect(**connect_params)
         ctx._all_async_queries_finished = lambda: False  # type: ignore
         token_data = ctx._rest._token_request("ISSUE")  # type: ignore
         self._auth_token = token_data["data"]["sessionToken"]
