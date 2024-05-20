@@ -27,8 +27,12 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
-from landingai.predict import EdgePredictor, Predictor, OcrPredictor
-from landingai.predict.snowflake import SnowflakeNativeAppPredictor
+from landingai.predict import (
+    EdgePredictor,
+    Predictor,
+    OcrPredictor,
+    SnowflakeNativeAppPredictor,
+)
 from landingai.visualize import overlay_predictions
 from landingai.pipeline.frameset import FrameSet, Frame
 
