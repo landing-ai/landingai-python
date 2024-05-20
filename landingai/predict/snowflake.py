@@ -27,13 +27,15 @@ class SnowflakeNativeAppPredictor(Predictor):
         snowflake_password: Optional[str] = None,
         snowflake_private_key: Optional[str] = None,
         native_app_url: str,
+        # TODO: Remove this once we remove the API key auth from snowflake
+        api_key: Optional[str] = None,
         check_server_ready: bool = True,
     ) -> None:
         assert (
             snowflake_password is not None or snowflake_private_key is not None
         ), "You must provide either `snowflake_password` or `snowflake_public_key`."
         super().__init__(
-            endpoint_id, api_key=None, check_server_ready=check_server_ready
+            endpoint_id, api_key=api_key, check_server_ready=check_server_ready
         )
         self._url = urljoin(native_app_url, "/inference/v1/predict")
         self.snowflake_account = snowflake_account
@@ -45,8 +47,11 @@ class SnowflakeNativeAppPredictor(Predictor):
         self._last_auth_token_fetch: Optional[datetime.datetime] = None
 
     def _load_api_credential(self, api_key: Optional[str]) -> Optional[APIKey]:
-        # Snowflake Native App does not use API Key, so we ignore it
-        return None
+        # Snowflake Native App does not use API Key, so we ignore it.
+        # Once we remove the API key auth from snowflake, we can always return None here.
+        if api_key is None:
+            return None
+        return super()._load_api_credential(api_key)
 
     def _get_auth_token(self) -> str:
         try:
