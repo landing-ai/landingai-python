@@ -11,7 +11,12 @@ import responses
 from PIL import Image
 from responses.matchers import multipart_matcher
 
-from landingai.common import APIKey, InferenceMetadata, OcrPrediction
+from landingai.common import (
+    APIKey,
+    ClassificationPrediction,
+    InferenceMetadata,
+    OcrPrediction,
+)
 from landingai.exceptions import (
     BadRequestError,
     ClientError,
@@ -22,9 +27,41 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
-from landingai.predict import EdgePredictor, Predictor, OcrPredictor
+from landingai.predict import (
+    EdgePredictor,
+    Predictor,
+    OcrPredictor,
+    SnowflakeNativeAppPredictor,
+)
 from landingai.visualize import overlay_predictions
 from landingai.pipeline.frameset import FrameSet, Frame
+
+
+# private_key generated with this call:
+# from cryptography.hazmat.backends import default_backend
+# from cryptography.hazmat.primitives.asymmetric import rsa
+# from cryptography.hazmat.primitives import serialization
+# private_key = rsa.generate_private_key(
+#     public_exponent=65537,
+#     key_size=512,
+#     backend=default_backend()
+# )
+# private_key_bytes = private_key.private_bytes(
+#     encoding=serialization.Encoding.PEM,
+#     format=serialization.PrivateFormat.PKCS8,
+#     encryption_algorithm=serialization.NoEncryption()
+# )
+# print(private_key_bytes.decode("ascii"))
+SAMPLE_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEA0ClglAUkfAZi9EC6
+3ERx98skdh7oSoVTswBa4RdekfSOvdxet4yhd0EJdc60aQAkxK++0ybNna3BTElh
+ufGGSwIDAQABAkAXO/cWrnhDC6dx4eO5gD5ETT1Vnd+JqdYMzcZXB3e7zJ+XeeJq
+zQNKEzMHHO/kb0J1uZhHtB9Ow2uDr74zrrZpAiEA9wDlvfbskrr9HdIrkqNp5BLg
+94az+m58nipNPt0TbmUCIQDXvk/EmZbHwl9joa28VrZiHekGmNT9beFezFbZ6j0+
+7wIgaiXUlWJ8IEKDbEFZwFbBtuX2D+mvhrvcigwbzhwrsZECIDHn3BvmS3K6C8bI
+R6Ahjt7zfEwCXoKhQFjle9G81Z4RAiEAsU2UZjwsv6BfRg2vnM5RxQZfDZqPM5Jq
+dviT9m65/9s=
+-----END PRIVATE KEY-----"""
 
 
 def test_predict_with_none():
@@ -248,6 +285,159 @@ def test_predict_matching_expected_request_body():
         api_key="land_sk_1111",
     )
     predictor.predict(img)
+
+
+@responses.activate
+@mock.patch("snowflake.connector.connect")
+def test_snowflake_nativeapp_predict_matching_expected_request_body(
+    snowflake_connect_mock,
+):
+    img_path = "tests/data/images/wildfire1.jpeg"
+    img = Image.open(img_path)
+    expected_request_files = {"file": _read_image_as_jpeg_bytes(img_path)}
+    responses.post(
+        url=(
+            "https://my-nativeapp.snowflakeapp.com/inference"
+            "/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43"
+        ),
+        match=[multipart_matcher(expected_request_files)],
+        json={
+            "backbonetype": None,
+            "backbonepredictions": None,
+            "predictions": {
+                "score": 0.9951885938644409,
+                "labelIndex": 0,
+                "labelName": "Fire",
+            },
+            "type": "ClassificationPrediction",
+        },
+    )
+
+    # Mock snowflake connection
+    snowflake_ctx = snowflake_connect_mock.return_value
+    snowflake_ctx._rest._token_request.return_value = {
+        "data": {"sessionToken": "fake_token"}
+    }
+    predictor = SnowflakeNativeAppPredictor(
+        "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43",
+        snowflake_account="ABCD1234",
+        snowflake_user="my-user",
+        snowflake_password="my-password",
+        native_app_url="https://my-nativeapp.snowflakeapp.com",
+    )
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert snowflake_connect_mock.call_count == 1
+    snowflake_connect_mock.assert_called_with(
+        user="my-user",
+        password="my-password",
+        account="ABCD1234",
+        session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
+    )
+
+    # Make sure that subsequent calls to predict() will not call snowflake.connect again,
+    # and will instead reuse the token
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert snowflake_connect_mock.call_count == 1  # No new calls to snowflake.connect
+
+    # And after 5 minutes, it should call snowflake.connect again
+    predictor._last_auth_token_fetch = (
+        predictor._last_auth_token_fetch
+        - SnowflakeNativeAppPredictor.AUTH_TOKEN_MAX_AGE
+    )
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert (
+        snowflake_connect_mock.call_count == 2
+    )  # New call to snowflake.connect as made
+
+
+@responses.activate
+@mock.patch("snowflake.connector.connect")
+def test_snowflake_nativeapp_predict_using_private_key(
+    snowflake_connect_mock,
+):
+    img_path = "tests/data/images/wildfire1.jpeg"
+    img = Image.open(img_path)
+    expected_request_files = {"file": _read_image_as_jpeg_bytes(img_path)}
+    responses.post(
+        url=(
+            "https://my-nativeapp.snowflakeapp.com/inference"
+            "/v1/predict?endpoint_id=8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43"
+        ),
+        match=[multipart_matcher(expected_request_files)],
+        json={
+            "backbonetype": None,
+            "backbonepredictions": None,
+            "predictions": {
+                "score": 0.9951885938644409,
+                "labelIndex": 0,
+                "labelName": "Fire",
+            },
+            "type": "ClassificationPrediction",
+        },
+    )
+
+    # Mock snowflake connection
+    snowflake_ctx = snowflake_connect_mock.return_value
+    snowflake_ctx._rest._token_request.return_value = {
+        "data": {"sessionToken": "fake_token"}
+    }
+    predictor = SnowflakeNativeAppPredictor(
+        "8fc1bc53-c5c1-4154-8cc1-a08f2e17ba43",
+        snowflake_account="ABCD1234",
+        snowflake_user="my-user",
+        snowflake_private_key=SAMPLE_PRIVATE_KEY,
+        native_app_url="https://my-nativeapp.snowflakeapp.com",
+    )
+    response = predictor.predict(img)
+    assert response == [
+        ClassificationPrediction(
+            score=0.9951885938644409, label_name="Fire", label_index=0
+        )
+    ]
+    assert snowflake_connect_mock.call_count == 1
+    snowflake_connect_mock.assert_called_with(
+        user="my-user",
+        private_key=mock.ANY,
+        account="ABCD1234",
+        session_parameters={"PYTHON_CONNECTOR_QUERY_RESULT_FORMAT": "json"},
+    )
+    # Not that readable, but this should be the result of the private key serialization
+    assert (
+        snowflake_connect_mock.call_args[1]["private_key"]
+        == b"0\x82\x01T\x02\x01\x000\r\x06\t*\x86H\x86\xf7\r\x01\x01"
+        b"\x01\x05\x00\x04\x82\x01>0\x82\x01:\x02\x01\x00\x02A\x00"
+        b"\xd0)`\x94\x05$|\x06b\xf4@\xba\xdcDq\xf7\xcb$v\x1e\xe8J"
+        b"\x85S\xb3\x00Z\xe1\x17^\x91\xf4\x8e\xbd\xdc^\xb7\x8c\xa1wA"
+        b"\tu\xce\xb4i\x00$\xc4\xaf\xbe\xd3&\xcd\x9d\xad\xc1LIa"
+        b"\xb9\xf1\x86K\x02\x03\x01\x00\x01\x02@\x17;\xf7\x16\xaexC"
+        b"\x0b\xa7q\xe1\xe3\xb9\x80>DM=U\x9d\xdf\x89\xa9\xd6\x0c\xcd"
+        b"\xc6W\x07w\xbb\xcc\x9f\x97y\xe2j\xcd\x03J\x133\x07\x1c\xef"
+        b"\xe4oBu\xb9\x98G\xb4\x1fN\xc3k\x83\xaf\xbe3\xae\xb6i\x02!\x00"
+        b"\xf7\x00\xe5\xbd\xf6\xec\x92\xba\xfd\x1d\xd2+\x92\xa3i\xe4"
+        b"\x12\xe0\xf7\x86\xb3\xfan|\x9e*M>\xdd\x13ne\x02!\x00\xd7\xbeO"
+        b"\xc4\x99\x96\xc7\xc2_c\xa1\xad\xbcV\xb6b\x1d\xe9\x06\x98\xd4"
+        b"\xfdm\xe1^\xccV\xd9\xea=>\xef\x02 j%\xd4\x95b| B\x83lAY\xc0V"
+        b"\xc1\xb6\xe5\xf6\x0f\xe9\xaf\x86\xbb\xdc\x8a\x0c\x1b\xce\x1c+"
+        b"\xb1\x91\x02 1\xe7\xdc\x1b\xe6Kr\xba\x0b\xc6\xc8G\xa0!\x8e\xde"
+        b"\xf3|L\x02^\x82\xa1@X\xe5{\xd1\xbc\xd5\x9e\x11\x02!\x00\xb1M"
+        b"\x94f<,\xbf\xa0_F\r\xaf\x9c\xceQ\xc5\x06_\r\x9a\x8f3\x92jv"
+        b"\xf8\x93\xf6n\xb9\xff\xdb"
+    )
 
 
 @patch("socket.socket")
