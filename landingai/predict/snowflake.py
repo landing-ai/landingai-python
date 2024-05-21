@@ -4,8 +4,6 @@ import datetime
 from typing import Any, Dict, Optional, cast
 from urllib.parse import urljoin
 
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 from requests import Session
 from landingai.common import APIKey
 from landingai.predict.cloud import Predictor
@@ -56,10 +54,12 @@ class SnowflakeNativeAppPredictor(Predictor):
     def _get_auth_token(self) -> str:
         try:
             import snowflake.connector  # type: ignore
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives import serialization
         except ImportError:
             raise ImportError(
-                "snowflake-connector-python is required to use snowflake.NativeAppPredictor. "
-                "Please, pip install snowflake-connector-python"
+                "In order to use snowflake.NativeAppPredictor, you must install snowflake optionals. "
+                "Please, run: pip install landingai[snowflake]"
             )
 
         # Reuse the token if it's not too old
