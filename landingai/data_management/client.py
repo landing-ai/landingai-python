@@ -23,6 +23,7 @@ MEDIA_UPDATE_SPLIT = "media_update_split"
 GET_PROJECT_SPLIT = "get_project_split"
 GET_PROJECT = "get_project"
 GET_DEFECTS = "get_defects"
+CREATE_DEFECTS = "create_defects"
 GET_PROJECT_MODEL_INFO = "get_project_model_info"
 GET_FAST_TRAINING_EXPORT = "get_fast_training_export"
 
@@ -52,6 +53,11 @@ ROUTES = {
         "root_url": "LANDING_REST_API",
         "endpoint": "projects/{project_id}/classes",
         "method": requests.get,
+    },
+    CREATE_DEFECTS: {
+        "root_url": "LANDING_REST_API",
+        "endpoint": "projects/{project_id}/classes",
+        "method": requests.post,
     },
     METADATA_ITEMS: {
         "root_url": "LANDING_API",
@@ -147,7 +153,11 @@ class LandingLens:
     ) -> Dict[str, Any]:
         """Returns a response from the LandingLens API"""
         is_form_data = form_data is not None
-        assert resp_with_content is not None if not is_form_data else True
+        assert (
+            resp_with_content is not None
+            if not is_form_data and params is None
+            else True
+        )
 
         endpoint, headers, params, root_url, route = self._api_common_setup(
             route_name, url_replacements, resp_with_content, params
@@ -247,16 +257,19 @@ class LandingLens:
             params = {}
         if route["method"] == requests.get and not params.get("projectId"):
             params["projectId"] = self.project_id
-        if route["method"] == requests.post and data and not data.get("projectId"):
-            data["projectId"] = self.project_id
         endpoint = posixpath.join(root_url, cast(str, route["endpoint"]))
 
         if url_replacements:
             endpoint = endpoint.format(
-                **{**{"version": _API_VERSION, "project_id": self.project_id}, **url_replacements}
+                **{
+                    **{"version": _API_VERSION, "project_id": self.project_id},
+                    **url_replacements,
+                }
             )
         else:
-            endpoint = endpoint.format(**{"version": _API_VERSION, "project_id": self.project_id})
+            endpoint = endpoint.format(
+                **{"version": _API_VERSION, "project_id": self.project_id}
+            )
 
         return endpoint, headers, params, root_url, route
 

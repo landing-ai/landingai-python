@@ -1,6 +1,8 @@
 from typing import Dict, Optional
 
-from landingai.data_management.client import GET_DEFECTS, LandingLens
+from landingai.data_management.client import GET_DEFECTS, CREATE_DEFECTS, LandingLens
+from landingai.data_management.types.projects import ProjectType
+from landingai.data_management.types.classes import ClassMap
 
 
 class Label:
@@ -43,8 +45,43 @@ class Label:
             ```
         """
         project_id = self._client._project_id
-        resp = self._client._api(GET_DEFECTS, params={"projectId": project_id})
+        project_type = self._client.get_project_property(project_id, "projectType")
+        resp = self._client._api_async(GET_DEFECTS, params={"projectId": project_id})
         resp_data = resp["data"]
-        label_map = {str(label["indexId"]): label["name"] for label in resp_data}
-        label_map["0"] = "ok"
+        label_map = {str(label["index"]): label["name"] for label in resp_data}
+        if project_type != ProjectType.classification:
+            label_map["0"] = "ok"
         return label_map
+
+    def create_label_map(self, label_map: Dict[str, ClassMap]) -> Dict[str, str]:
+        """Create labels into the selected project.
+        Parameters
+        ----------
+        label_map: Dict[str, ClassMap]
+            The label maps to be created. The key is the label index and the value is the label name.
+
+        Returns
+        ----------
+        Dict[str, str]
+            A dictionary of label index to label name.
+            ```
+            # Example output
+            {
+                "0": "ok",
+                "1": "cat",
+                "2": "dog",
+                "3": "duck",
+            }
+            ```
+        """
+        project_id = self._client._project_id
+        project_type = self._client.get_project_property(project_id, "projectType")
+        resp = self._client._api_async(
+            CREATE_DEFECTS,
+            resp_with_content=label_map,
+        )
+        resp_data = resp["data"]
+        resp_label_map = {str(label["index"]): label["name"] for label in resp_data}
+        if project_type != ProjectType.classification:
+            resp_label_map["0"] = "ok"
+        return resp_label_map
