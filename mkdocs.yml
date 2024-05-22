@@ -46,6 +46,7 @@ nav:
     - Working with Frames: inferences/frames-inference.md
     - Overlaying Predictions: inferences/overlaying-predictions.md
     - Running Inferences Locally: inferences/docker-deployment.md
+    - Snowflake Native App: inferences/snowflake-native-app.md
     - Extracting Text (OCR) [beta]: inferences/ocr.md
   - Data Management: metadata.md
   #- Image operations (soon): image-operations.md
