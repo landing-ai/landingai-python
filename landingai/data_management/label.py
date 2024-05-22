@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
 from landingai.data_management.client import GET_DEFECTS, CREATE_DEFECTS, LandingLens
-from landingai.data_management.types.projects import ProjectType
+from landingai.data_management.types.label import LabelType
 from landingai.data_management.types.classes import ClassMap
 
 
@@ -45,11 +45,11 @@ class Label:
             ```
         """
         project_id = self._client._project_id
-        project_type = self._client.get_project_property(project_id, "projectType")
+        project_type = self._client.get_project_property(project_id, "labelType")
         resp = self._client._api_async(GET_DEFECTS, params={"projectId": project_id})
         resp_data = resp["data"]
         label_map = {str(label["index"]): label["name"] for label in resp_data}
-        if project_type != ProjectType.classification:
+        if project_type != LabelType.classification:
             label_map["0"] = "ok"
         return label_map
 
@@ -59,6 +59,8 @@ class Label:
         ----------
         label_map: Dict[str, ClassMap]
             The label maps to be created. The key is the label index and the value is the label name.
+            # Example input
+            {"1": {"name": "Screw"},"2": {"name": "dust"}}
 
         Returns
         ----------
@@ -75,13 +77,13 @@ class Label:
             ```
         """
         project_id = self._client._project_id
-        project_type = self._client.get_project_property(project_id, "projectType")
+        project_type = self._client.get_project_property(project_id, "labelType")
         resp = self._client._api_async(
             CREATE_DEFECTS,
             resp_with_content=label_map,
         )
         resp_data = resp["data"]
         resp_label_map = {str(label["index"]): label["name"] for label in resp_data}
-        if project_type != ProjectType.classification:
+        if project_type != LabelType.classification:
             resp_label_map["0"] = "ok"
         return resp_label_map

@@ -90,8 +90,8 @@ ROUTES = {
         "method": requests.get,
     },
     GET_PROJECT: {
-        "root_url": "LANDING_REST_API",
-        "endpoint": "projects/{project_id}",
+        "root_url": "LANDING_API",
+        "endpoint": "api/{version}/project/with_users",
         "method": requests.get,
     },
 }

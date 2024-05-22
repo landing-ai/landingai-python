@@ -6,3 +6,25 @@ responses:
     method: GET
     status: 200
     url: https://app.landing.ai/api/defect/defects?projectId=34243219343364
+- response:
+    auto_calculate_content_length: false
+    body: '{"code":0,"message":"","data":{"id":34243219343364,"orgId":376,"name":"Tiger
+        team test - Data Management CLI Test","inviteOnly":false,"datasetId":38648,"importStatus":"created","importInfo":null,"labelType":"bounding_box","isDeleted":null,"registeredModelId":"84a48de7-ead4-42bb-9771-56a549b3ba5d","modelDefaultMetricKey":null,"customizedTrainingConfig":null,"createdAt":"2023-07-02T17:21:21.400Z","coverMediaId":10300417,"updatedByUserId":"8d36bffa-200e-11ed-861d-0242ac120002","users":[{"id":"d810bae9-3310-4a95-bad8-9bf6fd78e444","accountId":"925f5145-13ad-eb02-99cf-b2af34988ddc","name":"asia","lastName":"cao","username":"1@yazhou.cao@landing.ai","status":"ACTIVE","email":"yazhou.cao@landing.ai","userRole":"admin","orgId":376,"rank":null,"ssoUser":false,"stripeUserId":null,"expirationDate":null,"readOnly":false,"internal":false,"account_id":"925f5145-13ad-eb02-99cf-b2af34988ddc","userProject":{"id":164392,"orgId":376,"userId":"d810bae9-3310-4a95-bad8-9bf6fd78e444","projectId":34243219343364,"role":"owner","isOwner":true,"permissions":["upload_data","train_model","deploy_model"],"lastOpenedTime":"2023-07-02T23:41:03.000Z"}}]}}'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: https://app.landing.ai/api/v1/project/with_users?projectId=34243219343364
+- response:
+    auto_calculate_content_length: false
+    body: '{"code":0,"message":"","data":[{"id":84689,"name":"num_plate","index":1,"color":null,"description":"foo-test"},{"id":84690,"name":"number_plate","index":2,"color":"#0000FF","description":""}]}'
+    content_type: text/plain
+    method: GET
+    status: 200
+    url: https://api.landing.ai/v1/projects/34243219343364/classes?projectId=34243219343364
+- response:
+    auto_calculate_content_length: false
+    body: '{"code":0,"message":"","data":[{"id":84689,"name":"num_plate","index":1,"color":null,"description":"foo-test"},{"id":84690,"name":"number_plate","index":2,"color":"#0000FF","description":""}]}'
+    content_type: text/plain
+    method: POST
+    status: 200
+    url: https://api.landing.ai/v1/projects/34243219343364/classes

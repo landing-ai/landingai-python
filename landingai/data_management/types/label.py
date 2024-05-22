@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ProjectType(str, Enum):
+class LabelType(str, Enum):
     classification = "classification"
-    object_detection = "object-detection"
+    object_detection = "bounding_box"
     segmentation = "segmentation"
