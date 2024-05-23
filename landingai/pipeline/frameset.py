@@ -684,7 +684,9 @@ class FrameSet(BaseModel):
 
         writer = imageio.get_writer(video_file_path, fps=video_fps)
         for fr in self.frames:
-            writer.append_data(fr.to_numpy_array(include_predictions=include_predictions))
+            writer.append_data(
+                fr.to_numpy_array(include_predictions=include_predictions)
+            )
         writer.close()
 
         # TODO: Future delete if we get out of OpenCV
