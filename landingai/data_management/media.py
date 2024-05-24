@@ -386,14 +386,14 @@ class Media:
 
     def auto_split(
         self,
-        split_percentages: SplitPercentages = None,
+        split_percentages: Optional[Dict] = None,
         auto_split_option: AutoSplitOptions = AutoSplitOptions.without_split,
     ) -> None:
         """
         Auto splits the media of the given project on the LandingLens platform.
         Parameters
         ----------
-        split_percentages: SplitPercentages
+        split_percentages: Dict
             An object containing the train, dev and test percentages to split the data into.
         auto_split_option: AutoSplitOptions
             "without-split" [Default]: only auto splits the labeled media that does not have a split assigned to it

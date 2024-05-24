@@ -156,7 +156,7 @@ class LandingLens:
         form_data: Optional[Dict[str, Any]] = None,
         resp_with_content: Optional[Dict[str, Any]] = None,
         url_replacements: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+    ) -> Any:
         """Returns a response from the LandingLens API"""
         is_form_data = form_data is not None
         assert (
@@ -207,7 +207,7 @@ class LandingLens:
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         url_replacements: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+    ) -> Any:
         """Returns a response from the LandingLens API"""
         endpoint, headers, params, root_url, route = self._api_common_setup(
             route_name, url_replacements, data, params
