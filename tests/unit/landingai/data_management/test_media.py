@@ -252,7 +252,7 @@ def test_auto_split():
     responses._add_from_file(file_path="tests/data/responses/v1_media_auto_split.yaml")
     media = Media(_PROJECT_ID, _API_KEY)
     response = media.auto_split()
-    assert response == None  # there is no returned value from auto-split
+    assert response is None  # there is no returned value from auto-split
 
 
 def test_invalid_auto_split_total_sum():
