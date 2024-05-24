@@ -2,6 +2,7 @@ from enum import Enum
 from pydantic import BaseModel, root_validator, validator
 from typing import Any, Dict, Optional
 
+
 class AutoSplitOptions(str, Enum):
     all_labeled = "all-labeled"
     without_split = "without-split"
