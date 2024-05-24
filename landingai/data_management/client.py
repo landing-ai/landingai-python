@@ -26,6 +26,7 @@ GET_DEFECTS = "get_defects"
 CREATE_DEFECTS = "create_defects"
 GET_PROJECT_MODEL_INFO = "get_project_model_info"
 GET_FAST_TRAINING_EXPORT = "get_fast_training_export"
+AUTO_SPLIT = "auto_split"
 
 
 ROUTES = {
@@ -93,6 +94,11 @@ ROUTES = {
         "root_url": "LANDING_API",
         "endpoint": "api/{version}/project/with_users",
         "method": requests.get,
+    },
+    AUTO_SPLIT: {
+        "root_url": "LANDING_REST_API",
+        "endpoint": "projects/{project_id}/autosplit",
+        "method": requests.post,
     },
 }
 
@@ -176,15 +182,15 @@ class LandingLens:
                 params=params,
                 data=form if is_form_data else None,
             )
-
+            response.raise_for_status()
             _LOGGER.debug("Request URL: ", response.url)
             _LOGGER.debug("Response Code: ", response.status_code)
             _LOGGER.debug("Response Reason: ", response.reason)
 
-            resp_with_content = response.json()
+            resp_data = response.json()
             _LOGGER.debug(
                 "Response Content (500 chars): ",
-                json.dumps(resp_with_content)[:500],
+                json.dumps(resp_data)[:500],
             )
         except requests.exceptions.RequestException as e:
             raise HttpError(
@@ -193,8 +199,7 @@ class LandingLens:
             )
         except Exception as e:
             raise HttpError(f"An error occurred during the HTTP request: {str(e)}")
-        assert resp_with_content is not None
-        return resp_with_content
+        return resp_data
 
     def _api(
         self,

@@ -245,3 +245,28 @@ def test_ls_not_allowed_media_status_empty_list():
         str(e.value)
         in "Wrong media status. Allowed media statuses are ['raw', 'in_task', 'approved']"
     )
+
+
+@responses.activate
+def test_auto_split():
+    responses._add_from_file(file_path="tests/data/responses/v1_media_auto_split.yaml")
+    media = Media(_PROJECT_ID, _API_KEY)
+    response = media.auto_split()
+    assert response == None  # there is no returned value from auto-split
+
+
+def test_invalid_auto_split_total_sum():
+    media = Media(_PROJECT_ID, _API_KEY)
+    with pytest.raises(HttpError) as e:
+        media.auto_split(split_percentages={"train": 70, "dev": 40, "test": 10})
+    assert (
+        "train + dev + test values should add up to 100 but they add up to 120"
+        in str(e.value)
+    )
+
+
+def test_invalid_auto_split_input_vals():
+    media = Media(_PROJECT_ID, _API_KEY)
+    with pytest.raises(HttpError) as e:
+        media.auto_split(split_percentages={"train": 0, "dev": 90, "test": 10})
+    assert '"train" and "dev" should be defined and cannot be zero' in str(e.value)

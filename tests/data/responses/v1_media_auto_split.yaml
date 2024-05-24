@@ -1,0 +1,8 @@
+responses:
+- response:
+    auto_calculate_content_length: false
+    body: '{"code":0,"message":"","data":{}}'
+    content_type: text/plain
+    method: POST
+    status: 201
+    url:  https://api.landing.ai/v1/projects/30863867234314/autosplit

@@ -18,6 +18,7 @@ from landingai.data_management.client import (
     MEDIA_LIST,
     MEDIA_UPDATE_SPLIT,
     MEDIA_UPLOAD,
+    AUTO_SPLIT,
     LandingLens,
 )
 from landingai.data_management.utils import (
@@ -28,6 +29,7 @@ from landingai.data_management.utils import (
 )
 from landingai.exceptions import DuplicateUploadError, HttpError
 from landingai.utils import _LLENS_SUPPORTED_IMAGE_FORMATS
+from landingai.data_management.types.media import AutoSplitOptions, SplitPercentages
 
 
 MediaType = Enum("MediaType", ["image", "video"])
@@ -381,6 +383,42 @@ class Media:
         _LOGGER.info(
             f"Successfully updated split key to '{split_key}' for {len(media_ids)} medias with media ids: {media_ids}"
         )
+
+    def auto_split(
+        self,
+        split_percentages: SplitPercentages = None,
+        auto_split_option: AutoSplitOptions = AutoSplitOptions.without_split,
+    ) -> None:
+        """
+        Auto splits the media of the given project on the LandingLens platform.
+        Parameters
+        ----------
+        split_percentages: SplitPercentages
+            An object containing the train, dev and test percentages to split the data into.
+        auto_split_option: AutoSplitOptions
+            "without-split" [Default]: only auto splits the labeled media that does not have a split assigned to it
+            "all-labeled": auto splits all labeled data including already splitted media.
+            WARNING: if you have carefully splitted your data, using the "all-labeled" option will modify your custom split assignments.
+        Example
+        -------
+        >>> client = Media(project_id, api_key)
+        >>> client.auto_split(split_percentages={"train": 70, "dev":20, "test":10}, auto_split_option="without-split")
+        """
+        try:
+            split_percentages_val = (
+                SplitPercentages(**split_percentages)
+                if split_percentages
+                else SplitPercentages(train=70, dev=20, test=10)
+            )
+            self._client._api_async(
+                AUTO_SPLIT,
+                resp_with_content={
+                    "splitPercentages": split_percentages_val.dict(),
+                    "selectOption": auto_split_option,
+                },
+            )
+        except Exception as e:
+            raise HttpError(f"Failed to auto split media due to {e}")
 
 
 class _SortOptions(PrettyPrintable):

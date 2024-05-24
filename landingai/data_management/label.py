@@ -60,7 +60,7 @@ class Label:
         label_map: Dict[str, ClassMap]
             The label maps to be created. The key is the label index and the value is the label name.
             # Example input
-            {"1": {"name": "Screw"},"2": {"name": "dust"}}
+            {"1": {"name": "cat"},"2": {"name": "dog"},"3": {"name": "duck"}}
 
         Returns
         ----------
