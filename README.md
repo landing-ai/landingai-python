@@ -7,7 +7,7 @@
 <br>
 
 <p align="center">
-  <img width="150" height="150" src="https://github.com/landing-ai/landingai-python/raw/main/assets/landing-logo.png">
+  <img width="171" height="150" src="https://github.com/landing-ai/landingai-python/raw/main/assets/landing-logo.png">
 </p>
 
 # LandingLens Python Library
