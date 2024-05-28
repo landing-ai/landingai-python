@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
+  <img width="171" height="150" src="https://github.com/landing-ai/landingai-python/raw/main/assets/landing-logo.png">
 </p>
 
 # Welcome to the LandingAI Python Library Documentation
