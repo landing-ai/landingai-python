@@ -1,6 +1,6 @@
 We've provided some examples in Jupyter Notebooks to focus on ease of use, and some examples in Python apps to provide a more robust and complete experience.
 
-If you have a cool app that uses the Landing AI SDK and you would like to have it featured here, please [let us know](https://github.com/landing-ai/landingai-python/issues/new).
+If you have a cool app that uses the LandingAI SDK and you would like to have it featured here, please [let us know](https://github.com/landing-ai/landingai-python/issues/new).
 
 <!-- Generated using https://www.tablesgenerator.com/markdown_tables -->
 

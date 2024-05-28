@@ -1,6 +1,6 @@
 # User Guide
 
-After you've developed a computer vision model, you can run inference with it and apply those results to serve your business goals. To help you make the most of your model, Landing AI offers the `landingai` Python library. This library enables you to use your LandingLens model and build your computer vision applications with ease.
+After you've developed a computer vision model, you can run inference with it and apply those results to serve your business goals. To help you make the most of your model, LandingAI offers the `landingai` Python library. This library enables you to use your LandingLens model and build your computer vision applications with ease.
 
 Specifically, it provides Python APIs to allow you to:
 - Get prediction results from your deployed model (without worrying about communicating with the model server and different deployment options)
@@ -64,7 +64,7 @@ For more information, see `landingai.common.InferenceMetadata` and `landingai.pr
 
 The `Predictor` class uses Cloud Deployment, which limits how often inference can be run. 
 
-You can run inference up to 40 times per minute per endpoint. If you exceed that limit, the API returns a `429 Too Many Requests` response status code. If you have questions about inference limits, or need to run inference more frequently, please contact your Landing AI representative or [sales@landing.ai](mailto:sales@landing.ai).
+You can run inference up to 40 times per minute per endpoint. If you exceed that limit, the API returns a `429 Too Many Requests` response status code. If you have questions about inference limits, or need to run inference more frequently, please contact your LandingAI representative or [sales@landing.ai](mailto:sales@landing.ai).
 
 Note: if the server return a 429, the `landingai.predict.Predictor.predict` API will wait 60 seconds and retry by default.
 
