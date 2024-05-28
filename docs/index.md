@@ -17,7 +17,7 @@ First, install the LandingAI Python library:
 pip install landingai~=0.3.0
 ```
 
-    
+
 ### Acquire Your First Images
 
 After installing the LandingAI Python library, you can start acquiring images from one of many image sources. 
@@ -65,6 +65,11 @@ For example, let's say we've created and deployed a model in LandingLens that de
 ???+ note
 
     If you don't have a LandingLens account, create one [here](https://app.landing.ai/). Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2). Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
+
+
+???+ note
+    If you are running LandingLens as a Snowflake Native App, see the [Snowflake Native App](inferences/snowflake-native-app.md) section for more information.
+
 
 ```py
 from landingai.pipeline.image_source import Webcam
