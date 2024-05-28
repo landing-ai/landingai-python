@@ -6,7 +6,7 @@ This example focuses on how to continuously run inference on images extracted fr
 
 ### Prerequisites
 
-Before starting, install the Landing AI Python library. For more information, see the top-level `README.md`.
+Before starting, install the LandingAI Python library. For more information, see the top-level `README.md`.
 
 ## Run the Example Source and Inference Model
 

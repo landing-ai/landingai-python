@@ -1,5 +1,4 @@
-"""The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images.
-"""
+"""The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images."""
 
 from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
@@ -758,7 +757,7 @@ class FrameSet(BaseModel):
         #     img = cv2.cvtColor(np.asarray(self.frames[0].image), cv2.COLOR_BGR2RGB)
         # else:
         #     img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
-        # cv2.imshow("Landing AI - Press any key to exit", img)
+        # cv2.imshow("LandingAI - Press any key to exit", img)
         # cv2.waitKey(0) # close window when a key press is detected
         # cv2.waitKey(1)
         # cv2.destroyWindow('image')

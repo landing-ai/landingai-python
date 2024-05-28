@@ -36,6 +36,6 @@ def get_latest_traffic():
     st.write(f"Parked Cars: **{parked}**")
 
 
-st.title("Landing AI Traffic Counter")
+st.title("LandingAI Traffic Counter")
 button = st.button("Get Latest Traffic", on_click=get_latest_traffic)
 st.divider()

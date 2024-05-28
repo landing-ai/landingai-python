@@ -7,7 +7,7 @@
 <br>
 
 <p align="center">
-  <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
+  <img width="150" height="150" src="https://github.com/landing-ai/landingai-python/raw/main/assets/landing-logo.png">
 </p>
 
 # LandingLens Python Library
@@ -15,15 +15,15 @@ The LandingLens Python library contains the LandingLens development library and 
 
 ## Documentation
 
--  [Landing AI Python Library Docs](https://landing-ai.github.io/landingai-python/)
--  [Landing AI Support Center](https://support.landing.ai/)
+-  [LandingAI Python Library Docs](https://landing-ai.github.io/landingai-python/)
+-  [LandingAI Support Center](https://support.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
 
 
 ## Quick start
 
 ### Install
-First, install the Landing AI Python library:
+First, install the LandingAI Python library:
 
 ```bash
 pip install landingai
@@ -32,7 +32,7 @@ pip install landingai
 
 ### Acquire Your First Images
 
-After installing the Landing AI Python library, you can start acquiring images from one of many image sources.
+After installing the LandingAI Python library, you can start acquiring images from one of many image sources.
 
 For example, from a single image file:
 
