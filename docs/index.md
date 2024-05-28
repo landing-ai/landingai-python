@@ -2,16 +2,16 @@
   <img width="100" height="100" src="https://github.com/landing-ai/landingai-python/raw/main/assets/avi-logo.png">
 </p>
 
-# Welcome to the Landing AI Python Library Documentation
+# Welcome to the LandingAI Python Library Documentation
 
-The Landing AI Python Library is a set of tools to help you build computer vision applications. While some of the functionality is specific to [LandingLens](https://app.landing.ai/), the computer vision platform from Landing AI, other features can be used for managing images in general.
+The LandingAI Python Library is a set of tools to help you build computer vision applications. While some of the functionality is specific to [LandingLens](https://app.landing.ai/), the computer vision platform from LandingAI, other features can be used for managing images in general.
 
 The library includes features to acquire, process, and detect objects in your images and videos, with the least amount of code as possible.
 
 ## Quick Start
 
 ### Install
-First, install the Landing AI Python library:
+First, install the LandingAI Python library:
 
 ```bash
 pip install landingai~=0.3.0
@@ -20,7 +20,7 @@ pip install landingai~=0.3.0
 
 ### Acquire Your First Images
 
-After installing the Landing AI Python library, you can start acquiring images from one of many image sources.
+After installing the LandingAI Python library, you can start acquiring images from one of many image sources. 
 
 For example, from a single image file:
 

@@ -1,5 +1,4 @@
-"""The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images.
-"""
+"""The vision pipeline abstraction helps chain image processing operations as sequence of steps. Each step consumes and produces a `FrameSet` which typically contains a source image and derivative metadata and images."""
 
 from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, cast
@@ -195,13 +194,27 @@ class Frame(BaseModel):
             pred_frames.append(new_frame)
         return FrameSet(frames=pred_frames)
 
-    def to_numpy_array(self, image_src: str = "") -> np.ndarray:
+    def to_numpy_array(
+        self,
+        image_src: str = "",
+        *,
+        include_predictions: bool = False,
+    ) -> np.ndarray:
         """Return a numpy array using RGB channel ordering. If this array is passed to OpenCV, you will need to convert it to BGR
 
         Parameters
         ----------
-        image_src : if empty the source image will be converted. Otherwise the image will be selected from `other_images`
+        image_src (deprecated): if empty the source image will be displayed. Otherwise the image will be selected from `other_images`
+        include_predictions: If the image has predictions, should it be overlaid on top of the image?
         """
+        if image_src:
+            warnings.warn(
+                "image_src keyword on Frame.to_numpy_array is deprecated. Use include_predictions instead."
+            )
+            if image_src == "overlay":
+                include_predictions = True
+        if include_predictions:
+            image_src = "overlay"
         img = (
             self.image
             if image_src == "" or image_src not in self.other_images
@@ -650,8 +663,8 @@ class FrameSet(BaseModel):
             warnings.warn(
                 "image_src keyword on FrameSet.save_video is deprecated. Use include_predictions instead."
             )
-        if include_predictions:
-            image_src = "overlay"
+            if image_src == "overlay":
+                include_predictions = True
 
         total_frames = len(self.frames)
         if total_frames == 0:
@@ -670,7 +683,9 @@ class FrameSet(BaseModel):
 
         writer = imageio.get_writer(video_file_path, fps=video_fps)
         for fr in self.frames:
-            writer.append_data(fr.to_numpy_array(image_src))
+            writer.append_data(
+                fr.to_numpy_array(include_predictions=include_predictions)
+            )
         writer.close()
 
         # TODO: Future delete if we get out of OpenCV
@@ -742,7 +757,7 @@ class FrameSet(BaseModel):
         #     img = cv2.cvtColor(np.asarray(self.frames[0].image), cv2.COLOR_BGR2RGB)
         # else:
         #     img = cv2.cvtColor(np.asarray(self.frames[0].other_images[image_src]), cv2.COLOR_BGR2RGB)
-        # cv2.imshow("Landing AI - Press any key to exit", img)
+        # cv2.imshow("LandingAI - Press any key to exit", img)
         # cv2.waitKey(0) # close window when a key press is detected
         # cv2.waitKey(1)
         # cv2.destroyWindow('image')
