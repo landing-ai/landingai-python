@@ -9,7 +9,7 @@ import cv2
 import imageio
 import numpy as np
 from PIL import Image, ImageEnhance
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from landingai.common import (
     BoundingBox,
@@ -371,8 +371,9 @@ class Frame(BaseModel):
         self.image = enhancer.enhance(factor)
         return self
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
 
 
 class FrameSet(BaseModel):
@@ -820,9 +821,9 @@ class FrameSet(BaseModel):
                 self.frames.pop(i)
         return self
 
-    class Config:
-        # Add some encoders to prevent large structures from being printed
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             np.ndarray: lambda a: f"<np.ndarray: {a.shape}>",
             Image.Image: lambda i: f"<Image.Image: {i.size}>",
         }
+    )

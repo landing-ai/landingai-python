@@ -19,7 +19,7 @@ import warnings
 import cv2
 from PIL import ImageGrab
 import numpy as np
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, ConfigDict
 
 from landingai.image_source_ops import sample_images_from_video
 from landingai.pipeline.frameset import Frame
@@ -377,8 +377,9 @@ class NetworkedCamera(BaseModel, ImageSourceBase):
             latest_frame = self.get_latest_frame()
         return latest_frame
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
 
 
 class Webcam(NetworkedCamera):
