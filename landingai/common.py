@@ -44,6 +44,7 @@ class APIKey(BaseSettings):
         env_file=".env",
         env_prefix="landingai_",
         case_sensitive=False,
+        extra="ignore",
     )
 
 

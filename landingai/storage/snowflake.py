@@ -31,6 +31,7 @@ class SnowflakeCredential(BaseSettings):
         env_file=".env",
         env_prefix="SNOWFLAKE_",
         case_sensitive=False,
+        extra="ignore",
     )
 
 
@@ -55,6 +56,7 @@ class SnowflakeDBConfig(BaseSettings):
         env_file=".env",
         env_prefix="SNOWFLAKE_",
         case_sensitive=False,
+        extra="ignore",
     )
 
 

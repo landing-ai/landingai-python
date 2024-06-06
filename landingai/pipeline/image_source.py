@@ -233,7 +233,7 @@ class VideoFile(ImageSourceBase):
 class NetworkedCamera(BaseModel, ImageSourceBase):
     """The NetworkCamera class can connect to RTSP and other live video sources in order to grab frames. The main concern is to be able to consume frames at the source speed and drop them as needed to ensure the application allday gets the lastes frame"""
 
-    stream_url: str
+    stream_url: Union[str, int]
     motion_detection_threshold: int
     capture_interval: Union[float, None] = None
     previous_frame: Union[np.ndarray, None] = None
