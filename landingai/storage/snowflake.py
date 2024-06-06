@@ -49,7 +49,7 @@ class SnowflakeDBConfig(BaseSettings):
     warehouse: str
     database: str
     # NOTE: the name "schema" is reserved by pydantic, so we use "snowflake_schema" instead.
-    snowflake_schema: str = Field(..., env="SNOWFLAKE_SCHEMA")
+    snowflake_schema: str = Field(..., validation_alias="SNOWFLAKE_SCHEMA")
 
     model_config = SettingsConfigDict(
         env_file=".env",
