@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-from pydantic import BaseModel, Field, validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from landingai.exceptions import InvalidApiKeyError
@@ -31,7 +31,7 @@ class APIKey(BaseSettings):
 
     api_key: str
 
-    @validator("api_key")
+    @field_validator("api_key")
     def is_api_key_valid(cls, key: str) -> str:
         """Check if the API key is a v2 key."""
         if not key.startswith("land_sk_"):
