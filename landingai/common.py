@@ -5,7 +5,8 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-from pydantic import BaseModel, BaseSettings, Field, validator
+from pydantic import BaseModel, Field, validator
+from pydantic_settings import BaseSettings
 
 from landingai.exceptions import InvalidApiKeyError
 
