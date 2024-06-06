@@ -16,12 +16,12 @@ packages = [{include = "landingai"}]
 "documentation" = "https://landing-ai.github.io/landingai-python/landingai.html"
 
 [tool.poetry.dependencies]  # main dependency group
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 
 opencv-python = ">=4.5,<5.0"  # about 87MB (exclude transitive dependencies)
 numpy = ">=1.21.0,<2.0.0"
 pillow = ">=9.0,<11.0"
-pydantic = { version = "1.*", extras = ["dotenv"] } # Version 2 has breaking changes (in particular to seetings)
+pydantic = { version = "2.*", extras = ["dotenv"] } # Version 2 has breaking changes (in particular to seetings)
 requests = "2.*"
 urllib3 = "^1.26.0"
 # snowflake-connector-python = "3.0.*"  # about 51MB (exclude transitive dependencies)
@@ -32,8 +32,7 @@ aiohttp = { version = ">=3.7.3,<4.0.0", extras = ["speedups"] }
 aiofiles = ">=0.7.0,<1.0.0"
 tqdm = ">=4.64.0,<5.0.0"
 tenacity = "^8.2.3"
-pandas = "2.0"
-ruff = "^0.1.8"
+pandas = "2.*"
 requests-toolbelt = "^1.0.0"
 
 # Snowflake optionals
@@ -41,6 +40,7 @@ snowflake-connector-python = {version="^3.10.0", optional = true}
 cryptography = {version="^39.0.0", optional = true}
 
 [tool.poetry.group.dev.dependencies]
+ruff = "^0.1.8"
 autoflake = "1.*"
 pytest = "7.*"
 pdoc = "14.*"
