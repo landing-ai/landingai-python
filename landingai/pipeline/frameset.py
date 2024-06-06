@@ -822,6 +822,8 @@ class FrameSet(BaseModel):
         return self
 
     model_config = ConfigDict(
+        # json_encoders is deprecated and shoulf be removed in the future
+        # should be replaced by serializers: https://docs.pydantic.dev/latest/concepts/serialization/
         json_encoders={
             np.ndarray: lambda a: f"<np.ndarray: {a.shape}>",
             Image.Image: lambda i: f"<Image.Image: {i.size}>",
