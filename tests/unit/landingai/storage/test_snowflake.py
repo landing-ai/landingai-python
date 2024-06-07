@@ -1,4 +1,5 @@
 from unittest import mock
+from pathlib import Path
 
 import pytest
 
@@ -8,6 +9,26 @@ from landingai.storage.snowflake import (
     get_snowflake_presigned_url,
     save_remote_file_to_local,
 )
+
+
+def test_load_snowflake_settings_from_env_file(tmp_path):
+    env_file: Path = tmp_path / ".env"
+    env_file.write_text(
+        """
+        SNOWFLAKE_WAREHOUSE=test_warehouse
+        SNOWFLAKE_DATABASE=test_database
+        SNOWFLAKE_SCHEMA=test_schema
+        """
+    )
+    # Overwrite the default env_prefix to avoid conflict with the real .env
+    SnowflakeDBConfig.model_config["env_file"] = str(env_file)
+    snowflake_settings = SnowflakeDBConfig()
+    assert snowflake_settings.warehouse == "test_warehouse"
+    assert snowflake_settings.database == "test_database"
+    assert snowflake_settings.snowflake_schema == "test_schema"
+    # reset back to the default config
+    SnowflakeDBConfig.model_config["env_file"] = ".env"
+    env_file.unlink()
 
 
 @pytest.mark.skip

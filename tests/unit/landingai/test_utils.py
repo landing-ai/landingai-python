@@ -41,11 +41,11 @@ def test_load_api_credential_from_env_file(tmp_path):
                         """
     )
     # Overwrite the default env_prefix to avoid conflict with the real .env
-    APIKey.__config__.env_file = str(env_file)
+    APIKey.model_config["env_file"] = str(env_file)
     actual = load_api_credential()
     assert actual.api_key == "land_sk_12345"
     # reset back to the default config
-    APIKey.__config__.env_file = ".env"
+    APIKey.model_config["env_file"] = ".env"
     env_file.unlink()
 
 

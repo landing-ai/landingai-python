@@ -39,18 +39,12 @@ def test_load_api_key_from_env_file(tmp_path):
                         LANDINGAI_API_SECRET="abcd"
                         """
     )
-    # Overwrite the default env_prefix to avoid conflict with the real .env
-    APIKey.__config__.env_file = str(env_file)
-    for field in APIKey.__fields__.values():
-        APIKey.__config__.prepare_field(field)
     # Start testing
     credential = APIKey(_env_file=str(env_file))
     assert credential.api_key == "land_sk_2222"
     env_file.unlink()
     with pytest.raises(ValidationError):
         APIKey()
-    # reset back to the default config
-    APIKey.__config__.env_file = ".env"
 
 
 def test_decode_bitmap_rle():

@@ -5,7 +5,8 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-from pydantic import BaseModel, BaseSettings, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from landingai.exceptions import InvalidApiKeyError
 
@@ -30,7 +31,7 @@ class APIKey(BaseSettings):
 
     api_key: str
 
-    @validator("api_key")
+    @field_validator("api_key")
     def is_api_key_valid(cls, key: str) -> str:
         """Check if the API key is a v2 key."""
         if not key.startswith("land_sk_"):
@@ -39,10 +40,12 @@ class APIKey(BaseSettings):
             )
         return key
 
-    class Config:
-        env_file = ".env"
-        env_prefix = "landingai_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="landingai_",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
 
 class Prediction(BaseModel):
@@ -97,8 +100,9 @@ class ObjectDetectionPrediction(ClassificationPrediction):
         """The number of pixels within the predicted bounding box."""
         return (self.bboxes[2] - self.bboxes[0]) * (self.bboxes[3] - self.bboxes[1])
 
-    class Config:
-        keep_untouched = (cached_property,)
+    model_config = ConfigDict(
+        ignored_types=(cached_property,),
+    )
 
 
 class SegmentationPrediction(ClassificationPrediction):
@@ -158,8 +162,9 @@ class SegmentationPrediction(ClassificationPrediction):
         """The percentage of pixels that are predicted as the class."""
         return np.count_nonzero(self.decoded_boolean_mask) / math.prod(self.mask_shape)
 
-    class Config:
-        keep_untouched = (cached_property,)
+    model_config = ConfigDict(
+        ignored_types=(cached_property,),
+    )
 
 
 class InferenceMetadata(BaseModel):

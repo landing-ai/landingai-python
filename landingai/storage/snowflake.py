@@ -3,7 +3,8 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from landingai.storage.data_access import download_file
 
@@ -26,10 +27,12 @@ class SnowflakeCredential(BaseSettings):
     password: str
     account: str
 
-    class Config:
-        env_file = ".env"
-        env_prefix = "SNOWFLAKE_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="SNOWFLAKE_",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
 
 class SnowflakeDBConfig(BaseSettings):
@@ -47,12 +50,14 @@ class SnowflakeDBConfig(BaseSettings):
     warehouse: str
     database: str
     # NOTE: the name "schema" is reserved by pydantic, so we use "snowflake_schema" instead.
-    snowflake_schema: str = Field(..., env="SNOWFLAKE_SCHEMA")
+    snowflake_schema: str = Field(..., validation_alias="SNOWFLAKE_SCHEMA")
 
-    class Config:
-        env_file = ".env"
-        env_prefix = "SNOWFLAKE_"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="SNOWFLAKE_",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
 
 def save_remote_file_to_local(
