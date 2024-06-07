@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "landingai"
-version = "0.3.43"
+version = "0.3.44"
 description = "Helper library for interacting with LandingAI LandingLens"
 authors = ["LandingAI <dev@landing.ai>"]
 readme = "README.md"
