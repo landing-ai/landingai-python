@@ -16,7 +16,7 @@ responses:
     url: https://app.landing.ai/api/v1/metadata/get_metadata_by_projectId?projectId=30863867234314
 - response:
     auto_calculate_content_length: false
-    body: '{"code":0,"message":"","data":[{"orgId":376,"objectId":10300467,"objectType":"media","metadata":{"22024":"tom"}},{"orgId":376,"objectId":10300466,"objectType":"media","metadata":{"22024":"tom"}},{"orgId":376,"objectId":10300465,"objectType":"media","metadata":{"22024":"tom"}}]}'
+    body: '{"code":0,"message":"","data":[{"orgId":376,"mediaId":10300467,"objectType":"media","metadata":{"22024":"tom"}},{"orgId":376,"mediaId":10300466,"objectType":"media","metadata":{"22024":"tom"}},{"orgId":376,"mediaId":10300465,"objectType":"media","metadata":{"22024":"tom"}}]}'
     content_type: text/plain
     method: POST
     status: 200

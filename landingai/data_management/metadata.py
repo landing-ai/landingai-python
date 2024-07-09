@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional, Union
 from landingai.data_management.client import METADATA_GET, METADATA_UPDATE, LandingLens
 from landingai.data_management.utils import (
     PrettyPrintable,
-    obj_to_dict,
-    metadata_to_ids,
     ids_to_metadata,
+    metadata_to_ids,
+    obj_to_dict,
 )
 
 
@@ -67,7 +67,7 @@ class Metadata:
         ):
             raise ValueError("Missing required flags: {'media_ids'}")
 
-        if not input_metadata or len(input_metadata) == 0:
+        if not input_metadata:
             raise ValueError("Missing required flags: {'metadata'}")
 
         dataset_id = self._client.get_project_property(project_id, "dataset_id")
@@ -93,13 +93,13 @@ class Metadata:
         return {
             "project_id": project_id,
             "metadata": ids_to_metadata(resp_data[0]["metadata"], id_to_metadata),
-            "media_ids": [media["objectId"] for media in resp_data],
+            "media_ids": [media["mediaId"] for media in resp_data],
         }
 
     def get(self, media_id: int) -> Dict[str, str]:
         """Return all the metadata associated with a given media."""
         resp = self._client._api(
-            METADATA_GET, params={"objectId": media_id, "objectType": "media"}
+            METADATA_GET, params={"mediaId": media_id, "objectType": "media"}
         )
         _, id_to_metadata = self._client.get_metadata_mappings(self._client._project_id)
         return {id_to_metadata[int(k)]: v for k, v in resp["data"].items()}
