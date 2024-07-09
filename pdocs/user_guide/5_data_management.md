@@ -33,7 +33,7 @@ YOUR_API_KEY = "land_sk_12345"
 YOUR_PROJECT_ID = 1190
 metadata_client = Metadata(YOUR_PROJECT_ID, YOUR_API_KEY)
 # Set three metadata values ('timestamp', 'country' and 'labeler') for images with IDs 123 and 124
-metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", labeler="tom")
+metadata_client.update(media_ids=[123, 124], timestamp=12345, country="us", labeler="tom")
 # Output:
 # {
 #    project_id: 1190,
