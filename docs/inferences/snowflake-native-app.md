@@ -3,7 +3,7 @@ If you are hosting LandingLens as a Snowflake Native App, you need to use the `S
 In order to use this predictor class, you must first install the `snowflake` optionals when installing the `landingai` package. You can do this by running:
 
 ```sh
-pip install landingai[snowflake]
+pip install "landingai[snowflake]"
 ```
 
 Here is an example of how to use the `SnowflakeNativeAppPredictor` class:
