@@ -294,6 +294,8 @@ class Media:
         metadata_mapping, meta_id_to_metadata = self._client.get_metadata_mappings(
             project_id
         )
+        tag_id_to_tag = self._client.get_tag_mappings(project_id)
+
         metadata_filter_map: Dict[str, Any] = {}
         if metadata and len(metadata) > 0:
             metadata_filter_map = _metadata_to_filter(metadata, metadata_mapping)
@@ -324,6 +326,9 @@ class Media:
                 meta_id_to_metadata.get(int(k), None): v
                 for k, v in media["metadata"].items()
             }
+            media["tagIds"] = [
+                tag_id_to_tag.get(int(tag_id), None) for tag_id in media["tagIds"]
+            ]
 
         if len(medias) == self._media_max_page_size:
             _LOGGER.warning(f"fetched medias only up to {self._media_max_page_size}")
@@ -425,6 +430,7 @@ class _ListMediaRequestParams(PrettyPrintable):
             "uploadTime",
             "mediaStatus",
             "metadata",
+            "tagIds",
         ]
 
 

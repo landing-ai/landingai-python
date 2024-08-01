@@ -23,6 +23,7 @@ MEDIA_UPDATE_SPLIT = "media_update_split"
 GET_PROJECT_SPLIT = "get_project_split"
 GET_PROJECT = "get_project"
 GET_DEFECTS = "get_defects"
+GET_TAGS = "get_tags"
 GET_PROJECT_MODEL_INFO = "get_project_model_info"
 GET_FAST_TRAINING_EXPORT = "get_fast_training_export"
 
@@ -51,6 +52,11 @@ ROUTES = {
     GET_DEFECTS: {
         "root_url": "LANDING_API",
         "endpoint": "api/defect/defects",
+        "method": requests.get,
+    },
+    GET_TAGS: {
+        "root_url": "LANDING_API",
+        "endpoint": "api/{version}/tag/tags",
         "method": requests.get,
     },
     METADATA_ITEMS: {
@@ -289,3 +295,10 @@ class LandingLens:
         id_to_metadata = {v[0]: k for k, v in metadata_mapping.items()}
 
         return metadata_mapping, id_to_metadata
+
+    @lru_cache(maxsize=_LRU_CACHE_SIZE)
+    def get_tag_mappings(self, project_id: int) -> Dict[int, str]:
+        resp = self._api(GET_TAGS, params={"projectId": project_id})
+        tags_resp = resp.get("data", {})
+        tag_id_to_tag = {tag_field["id"]: tag_field["name"] for tag_field in tags_resp}
+        return tag_id_to_tag
