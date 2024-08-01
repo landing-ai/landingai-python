@@ -291,9 +291,11 @@ class Media:
 
         dataset_id = self._client.get_project_property(project_id, "dataset_id")
 
+        metadata_mapping, meta_id_to_metadata = self._client.get_metadata_mappings(
+            project_id
+        )
         metadata_filter_map: Dict[str, Any] = {}
         if metadata and len(metadata) > 0:
-            metadata_mapping, _ = self._client.get_metadata_mappings(project_id)
             metadata_filter_map = _metadata_to_filter(metadata, metadata_mapping)
 
         column_filter_map: Dict[str, Any] = {}
@@ -316,6 +318,12 @@ class Media:
             ),
         )
         medias = resp["data"]
+        # convert the metadata ids to metadata names
+        for media in medias:
+            media["metadata"] = {
+                meta_id_to_metadata.get(int(k), None): v
+                for k, v in media["metadata"].items()
+            }
 
         if len(medias) == self._media_max_page_size:
             _LOGGER.warning(f"fetched medias only up to {self._media_max_page_size}")
@@ -416,15 +424,19 @@ class _ListMediaRequestParams(PrettyPrintable):
             "name",
             "uploadTime",
             "mediaStatus",
+            "metadata",
         ]
 
 
 def _metadata_to_filter(
-    input_metadata: Dict[str, Any], metadata_mapping: Dict[str, Any]
+    input_metadata: Dict[str, Any],
+    metadata_mapping: Dict[str, Any],
 ) -> Dict[str, Any]:
     validate_metadata(input_metadata, metadata_mapping)
     return {
-        metadata_mapping[key][0]: {"=": val}
+        metadata_mapping[key][0]: {
+            "CONTAINS_ANY": [val] if not isinstance(val, list) else val
+        }
         for key, val in input_metadata.items()
         if key in metadata_mapping
     }
