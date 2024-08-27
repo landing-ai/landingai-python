@@ -12,15 +12,15 @@ This section explains how to use the associated Python APIs to:
 
 Metadata is additional information you can attach to an image. Every image can be associated with multiple metadata. Each metadata is a key-value pair associated with an image, where key is the metadata name and value is a string that represents the information. For example, when you upload an image to LandingLens, you can add metadata like the country where the image was created, the timestamp when the image was created, etc.
 
-Metadata is useful when you need to manage hundreds or thousands of images in LandingLens or you need to collaborate with other team members to label datasets. For example, you can metadata to group certain types of images together (ex: images taken last week), then change their [split key](https://support.landing.ai/docs/datasets-and-splits) or create a [labeling task](https://support.landing.ai/landinglens/docs/agreement-based-labeling#send-labeling-tasks) for those images.
+Metadata is useful when you need to manage hundreds or thousands of images in LandingLens or you need to collaborate with other team members to label datasets. For example, you can metadata to group certain types of images together (ex: images taken last week), then change their [split key](https://support.landing.ai/docs/splits) or create a [labeling task](https://support.landing.ai/docs/agreement-based-labeling) for those images.
 
 Use the `landingai.data_management.metadata.Metadata` API to manage metadata.
 
 **Prerequisite**: You must create a metadata key in the LandingLens UI before you can update it (assign a value to it) via the API. Each metadata key is project-specific.
 
-The following screenshot shows how to acess the Manage Metadata module.
+The following screenshot shows how to access the Manage Metadata module.
 
-![the Metadata Management UI](assets/Metadata_Management_UI.png)
+![the Metadata Management UI](https://github.com/landing-ai/landingai-python/blob/main/pdocs/assets/Metadata_Management_UI.png)
 
 ### Code Example of Metadata Management
 The following code snippet shows how to assign values to the Timestamp, Country, and Labeler metadata keys.
@@ -44,7 +44,7 @@ metadata_client.update(media_id=[123, 124], timestamp=12345, country="us", label
 
 ### Update Split Key for Images
 
-When managing hundreds or thousands of images on the platform, it can be more efficient to manage (add/update/remove) the [split key](https://support.landing.ai/docs/datasets-and-splits) programmatically. Use the `update_split_key()` function in `landingai.data_management.media.Media` to manage the the split value for images.
+When managing hundreds or thousands of images on the platform, it can be more efficient to manage (add/update/remove) the [split key](https://support.landing.ai/docs/splits) programmatically. Use the `update_split_key()` function in `landingai.data_management.media.Media` to manage the the split value for images.
 
 **Example**
 
@@ -81,8 +81,6 @@ In addition to uploading images, the upload API supports the following features:
     * [Segmentation mask files](https://support.landing.ai/docs/upload-labeled-images-seg) for Segmentation projects.
     * A classification name (string) for Classification projects.
 3. Attach additional metadata (key-value pairs) to images.
-
-for more information, go [here](https://support.landing.ai/landinglens/docs/uploading#upload-images-with-split-and-label-information).
 
 
 ### Upload Segmentation Masks
