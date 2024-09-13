@@ -99,7 +99,7 @@ class Metadata:
     def get(self, media_id: int) -> Dict[str, str]:
         """Return all the metadata associated with a given media."""
         resp = self._client._api(
-            METADATA_GET, params={"mediaId": media_id, "objectType": "media"}
+            METADATA_GET, params={"objectId": media_id, "objectType": "media"}
         )
         _, id_to_metadata = self._client.get_metadata_mappings(self._client._project_id)
         return {id_to_metadata[int(k)]: v for k, v in resp["data"].items()}
