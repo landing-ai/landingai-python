@@ -5,11 +5,10 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from landingai.exceptions import InvalidApiKeyError
-
 
 # A tuple of (xmin, ymin, xmax, ymax) representing a bounding box.
 BoundingBox = Tuple[int, int, int, int]
@@ -81,6 +80,9 @@ class OcrPrediction(Prediction):
 
     location: List[Tuple[int, int]]
     """A quadrilateral polygon that represents the location of the text. It is a list of four (x, y) coordinates."""
+
+    score: float
+    """The confidence score of the OCR prediction."""
 
 
 class ObjectDetectionPrediction(ClassificationPrediction):
