@@ -334,7 +334,9 @@ class _EdgeExtractor(PredictionExtractor):
         predictions = response["predictions"]
         return [
             OcrPrediction(
-                text=pred["text"], score=pred["score"], location=pred["location"]
+                text=pred["text"],
+                score=pred["score"],
+                location=[(coord["x"], coord["y"]) for coord in pred["location"]],
             )
             for pred in predictions
         ]

@@ -3,7 +3,7 @@ responses:
       auto_calculate_content_length: false
       body: |
         {
-          "type": "OCRPrediction",
+          "type": "OcrPrediction",
           "predictions": [
             {
               "text": "Best By: 06/17/2026",
