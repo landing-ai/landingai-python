@@ -1,17 +1,33 @@
----
-type: OcrPrediction
-predictions:
-  - text: "Best By: 06/17/2026"
-    score: 0.97393847
-    location:
-      - { x: 193, y: 438 }
-      - { x: 194, y: 386 }
-      - { x: 485, y: 391 }
-      - { x: 484, y: 443 }
-  - text: "C101 06172402: 14"
-    score: 0.96005297
-    location:
-      - { x: 189, y: 475 }
-      - { x: 192, y: 426 }
-      - { x: 485, y: 440 }
-      - { x: 483, y: 488 }
+responses:
+  - response:
+      auto_calculate_content_length: false
+      body: |
+        {
+          "type": "OCRPrediction",
+          "predictions": [
+            {
+              "text": "Best By: 06/17/2026",
+              "score": 0.97393847,
+              "location": [
+                { "x": 193, "y": 438 },
+                { "x": 194, "y": 386 },
+                { "x": 485, "y": 391 },
+                { "x": 484, "y": 443 }
+              ]
+            },
+            {
+              "text": "C101 06172402: 14",
+              "score": 0.96005297,
+              "location": [
+                { "x": 189, "y": 475 },
+                { "x": 192, "y": 426 },
+                { "x": 485, "y": 440 },
+                { "x": 483, "y": 488 }
+              ]
+            }
+          ]
+        }
+      content_type: text/plain
+      method: POST
+      status: 200
+      url: http://localhost:8123/images
