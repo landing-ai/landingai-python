@@ -1,25 +1,24 @@
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+import PIL.Image
+
 from landingai.common import (
     ClassificationPrediction,
     InferenceMetadata,
     ObjectDetectionPrediction,
+    OcrPrediction,
     Prediction,
     SegmentationPrediction,
 )
 from landingai.predict.cloud import Predictor
 from landingai.predict.utils import (
     PredictionExtractor,
-    get_cloudinference_prediction,
     create_requests_session,
+    get_cloudinference_prediction,
 )
 from landingai.timer import Timer
 from landingai.utils import serialize_image
-
-
-import PIL.Image
-import numpy as np
-
-
-from typing import Any, Dict, List, Optional, Union
 
 
 class EdgePredictor(Predictor):
@@ -300,6 +299,47 @@ class _EdgeExtractor(PredictionExtractor):
         ]
 
     @staticmethod
+    def _extract_edge_ocr_prediction(
+        response: Dict[str, Any],
+    ) -> List[OcrPrediction]:
+        """Extract OCR Prediction result from the edge inference response.
+
+        Example input:
+        {
+            "type": "OcrPrediction",
+            "predictions": [
+                {
+                    "text": "Best By: 06/17/2026",
+                    "score": 0.97393847,
+                    "location": [
+                        {"x": 193, "y": 438},
+                        {"x": 194, "y": 386},
+                        {"x": 485, "y": 391},
+                        {"x": 484, "y": 443}
+                    ]
+                },
+                {
+                    "text": "C101 06172402: 14",
+                    "score": 0.96005297,
+                    "location": [
+                        {"x": 189, "y": 475},
+                        {"x": 192, "y": 426},
+                        {"x": 485, "y": 440},
+                        {"x": 483, "y": 488}
+                    ]
+                }
+            ]
+        }
+        """
+        predictions = response["predictions"]
+        return [
+            OcrPrediction(
+                text=pred["text"], score=pred["score"], location=pred["location"]
+            )
+            for pred in predictions
+        ]
+
+    @staticmethod
     def extract_prediction(response: Dict[str, Any]) -> List[Prediction]:
         response_type = response.get("type")
         if response_type is None:
@@ -311,6 +351,8 @@ class _EdgeExtractor(PredictionExtractor):
             predictions = _EdgeExtractor._extract_edge_seg_prediction(response)  # type: ignore
         elif response_type == "ClassificationPrediction":
             predictions = _EdgeExtractor._extract_edge_class_prediction(response)  # type: ignore
+        elif response_type == "OcrPrediction":
+            predictions = _EdgeExtractor._extract_edge_ocr_prediction(response)  # type: ignore
         else:
             raise NotImplementedError(
                 f"{response_type} is not implemented in EdgeExtractor"
