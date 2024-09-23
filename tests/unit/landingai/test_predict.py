@@ -27,15 +27,14 @@ from landingai.exceptions import (
     UnauthorizedError,
     UnexpectedRedirectError,
 )
+from landingai.pipeline.frameset import Frame, FrameSet
 from landingai.predict import (
     EdgePredictor,
-    Predictor,
     OcrPredictor,
+    Predictor,
     SnowflakeNativeAppPredictor,
 )
 from landingai.visualize import overlay_predictions
-from landingai.pipeline.frameset import FrameSet, Frame
-
 
 # private_key generated with this call:
 # from cryptography.hazmat.backends import default_backend
@@ -670,6 +669,49 @@ def test_predict_ocr_successful_expected_request_body(connect_mock):
     ]
 
     predictor = OcrPredictor(api_key="land_sk_something")
+    result = predictor.predict(img)
+
+    assert result == expected_predictions
+
+
+@patch("socket.socket")
+@responses.activate
+def test_edge_ocr_predict_successful(connect_mock):
+    # Fake a successful connection
+    sock_instance = connect_mock.return_value
+    sock_instance.connect_ex.return_value = 0
+
+    responses._add_from_file(
+        file_path="tests/data/responses/test_edge_ocr_predict.yaml"
+    )
+
+    img_path = "tests/data/images/ocr_test_image.jpeg"
+    img = Image.open(img_path)
+
+    expected_predictions = [
+        OcrPrediction(
+            text="Best By: 06/17/2026",
+            location=[
+                {"x": 193, "y": 438},
+                {"x": 194, "y": 386},
+                {"x": 485, "y": 391},
+                {"x": 484, "y": 443},
+            ],
+            score=0.97393847,
+        ),
+        OcrPrediction(
+            text="C101 06172402: 14",
+            location=[
+                {"x": 189, "y": 475},
+                {"x": 192, "y": 426},
+                {"x": 485, "y": 440},
+                {"x": 483, "y": 488},
+            ],
+            score=0.96005297,
+        ),
+    ]
+
+    predictor = EdgePredictor("localhost", 8123)
     result = predictor.predict(img)
 
     assert result == expected_predictions
