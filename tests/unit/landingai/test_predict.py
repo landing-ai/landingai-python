@@ -685,7 +685,7 @@ def test_edge_ocr_predict_successful(connect_mock):
         file_path="tests/data/responses/test_edge_ocr_predict.yaml"
     )
 
-    img_path = "tests/data/images/ocr_test_image.jpeg"
+    img_path = "tests/data/images/ocr_test_image.png"
     img = Image.open(img_path)
 
     expected_predictions = [
