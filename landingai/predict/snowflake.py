@@ -24,6 +24,7 @@ class SnowflakeNativeAppPredictor(Predictor):
         snowflake_user: str,
         snowflake_password: Optional[str] = None,
         snowflake_private_key: Optional[str] = None,
+        snowflake_authenticator: Optional[str] = None,
         native_app_url: str,
         # TODO: Remove this once we remove the API key auth from snowflake
         api_key: Optional[str] = None,
@@ -40,6 +41,7 @@ class SnowflakeNativeAppPredictor(Predictor):
         self.snowflake_user = snowflake_user
         self.snowflake_password = snowflake_password
         self.snowflake_private_key = snowflake_private_key
+        self.snowflake_authenticator = snowflake_authenticator
 
         self._auth_token = None
         self._last_auth_token_fetch: Optional[datetime.datetime] = None
@@ -86,6 +88,8 @@ class SnowflakeNativeAppPredictor(Predictor):
                 format=serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=serialization.NoEncryption(),
             )
+        if self.snowflake_authenticator is not None:
+            connect_params["authenticator"] = self.snowflake_authenticator
 
         ctx = snowflake.connector.connect(**connect_params)
         ctx._all_async_queries_finished = lambda: False  # type: ignore
