@@ -2,6 +2,8 @@
 
 ::: landingai.data_management.client
 
+::: landingai.data_management.dataset
+
 ::: landingai.data_management.label
 
 ::: landingai.data_management.media
