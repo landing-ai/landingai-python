@@ -321,6 +321,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("bundle_path", help="LandingLens bundle path")
     parser.add_argument("img_path", help="Path to image to run inference on")
-    parser.add_argument("ext_delegate", nargs='?', help="Path to external delegate")
+    parser.add_argument("ext_delegate", nargs="?", help="Path to external delegate")
     args = parser.parse_args()
     run(args.bundle_path, args.img_path, args.ext_delegate)
