@@ -1,7 +1,3 @@
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry]
 name = "landingai"
 version = "0.3.49"
@@ -9,6 +5,10 @@ description = "Helper library for interacting with LandingAI LandingLens"
 authors = ["LandingAI <dev@landing.ai>"]
 readme = "README.md"
 packages = [{include = "landingai"}]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.urls]
 "Homepage" = "https://landing.ai"
