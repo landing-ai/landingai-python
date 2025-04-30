@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 import tflite_runtime.interpreter as tflite
 
+# windows: from tensorflow.lite.python.interpreter import Interpreter
+
 IMAGENET_DEFAULT_MEAN = np.array([123.675, 116.28, 103.53])
 IMAGENET_DEFAULT_STD = np.array([58.395, 57.12, 57.375])
 
