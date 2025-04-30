@@ -14,8 +14,7 @@ Windows:
 pip install -r requirements_win.txt
 ```
 
-Note: tflite-runtime is not available for Windows: https://github.com/google-ai-edge/LiteRT?tab=readme-ov-file#pypi-installation-requirements
-so on Windows we suggest to use Tensorflow.
+Note: tflite-runtime is not available for Windows, so we suggest to use Tensorflow.
 
 ## Run
 
