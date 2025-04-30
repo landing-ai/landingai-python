@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 import tflite_runtime.interpreter as tflite
 
+# windows: from tensorflow.lite.python.interpreter import Interpreter
+
 IMAGENET_DEFAULT_MEAN = np.array([123.675, 116.28, 103.53])
 IMAGENET_DEFAULT_STD = np.array([58.395, 57.12, 57.375])
 
@@ -270,10 +272,6 @@ def sanitize_bboxes(
         (bboxes, bboxes_scores, bboxes_labels), img_shape
     )
     return bboxes, bboxes_scores, bboxes_labels
-
-
-def expit(x: np.ndarray) -> np.ndarray:
-    return 1 / (1 + np.exp(-x))
 
 
 def run(bundle_path: str, img_path: str, ext_delegate: str | None) -> None:
