@@ -103,8 +103,7 @@ python run_inference_qat_model_exported.py \
     --bundle_path /path/to/published_model_bundle \
     --image_path /path/to/image.jpg \
     --model_name qat_eval-saved_model \
-    --output_path result.jpg \
-    --score_threshold 0.3
+    --output_path result.jpg
 
 # Display inference results on screen
 python run_inference_qat_model_exported.py \
@@ -130,7 +129,6 @@ python run_inference_qat_model_exported.py \
 - `--image_path`: Path to the input image (required)
 - `--model_name`: Specific model to use (optional, auto-selects if not provided)
 - `--output_path`: Path to save the annotated output image (optional)
-- `--score_threshold`: Confidence threshold for detections (default: 0.5)
 - `--show`: Display the result image on screen
 - `--list_models`: List available models in the bundle and exit
 - `--verbose`: Enable verbose logging
