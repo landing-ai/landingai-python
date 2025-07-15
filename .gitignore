@@ -92,3 +92,5 @@ docs-build
 
 # Local or WIP files
 local/
+
+venv
