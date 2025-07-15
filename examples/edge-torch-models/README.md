@@ -63,8 +63,6 @@ published_model_bundle/
 
 ### Model Bundle Inspection
 
-### Model Bundle Inspection
-
 ```bash
 # Basic bundle inspection
 python inspect_model_bundle.py --bundle_path /path/to/published_model_bundle
@@ -161,7 +159,6 @@ When `--model_name` is not specified, the inference CLI automatically selects To
 - OpenCV (for inference tool)
 - PIL/Pillow (for inference tool)
 - NumPy
-- Optional: AVI libraries for enhanced preprocessing
 
 ## Supported Model Types
 

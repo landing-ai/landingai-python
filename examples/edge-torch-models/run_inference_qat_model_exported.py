@@ -65,7 +65,7 @@ class TorchScriptInference:
     def load_model(self):
         """Load TorchScript model."""
         try:
-            # Use torch.jit.load for TorchScript models (as shown in test file)
+            # Use torch.jit.load for TorchScript models
             self.model = torch.jit.load(self.model_path, map_location=self.device)
             self.model.eval()
             logger.info(f"Successfully loaded TorchScript model from {self.model_path}")
@@ -86,12 +86,12 @@ class TorchScriptInference:
 
     def preprocess(self, image: np.ndarray) -> torch.Tensor:
         """Preprocess image for TorchScript model."""
-        # Preprocessing to match the model input spec from test (512x512)
+        # Preprocessing to match the model input spec
         if len(image.shape) == 3 and image.shape[2] == 3:
             image = cv2.resize(image, (512, 512))
             image = image.astype(np.float32)
 
-            # Normalize using ImageNet statistics (matching test preprocessing)
+            # Normalize using ImageNet statistics
             image = (image - IMAGENET_DEFAULT_MEAN[None, None]) / IMAGENET_DEFAULT_STD[
                 None, None
             ]
@@ -118,7 +118,7 @@ class TorchScriptInference:
 
     def postprocess(self, output: Any) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Extract boxes, scores, labels from output."""
-        # Handle the object detection model output format from the test file
+        # Handle the object detection model output format
         if isinstance(output, (list, tuple)) and len(output) == 6:
             # Format: logits, offsets, centers, bboxes, scores, labels
             try:
@@ -289,7 +289,6 @@ def select_model_from_bundle(
     priority_order = [
         "qat_eval-saved_model",  # QAT evaluation model (TorchScript) - best for inference
         "qat-saved_model",  # QAT training model (TorchScript)
-        "saved_model",  # Generic TorchScript model name
     ]
 
     # If user specified a preferred model, try to use it
