@@ -407,7 +407,6 @@ def draw_bboxes_on_image(
                 break
 
     for i, (box, score, label) in enumerate(zip(boxes, scores, labels)):
-
         # Handle different box formats
         if len(box) == 4:
             if np.all(box <= 1.0):
