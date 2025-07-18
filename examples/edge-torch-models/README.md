@@ -34,8 +34,10 @@ A tool that loads TorchScript models from published model bundles and runs objec
 
 **Features:**
 - **Automatic Resource Discovery**: Scans the bundle directory to find available models, defect maps, and configuration files
+- **Dynamic Configuration Extraction**: Automatically extracts image size from `transforms.yaml` and score threshold from `train.yaml`
 - **TorchScript Model Support**: Optimized for .pt files using torch.jit.load()
 - **Intelligent Model Selection**: Automatically selects the best available model or allows manual selection
+- **Smart Score Filtering**: Uses model-configured thresholds or allows custom threshold override
 - **Bounding Box Visualization**: Draws detection results on images with labels and confidence scores
 - **Flexible Output Options**: Save results to file, display on screen, or both
 
@@ -49,15 +51,16 @@ published_model_bundle/
 │   ├── before_train-saved_model.pth    # Pre-training PyTorch model
 │   ├── qat-saved_model.pt              # QAT training TorchScript model  
 │   ├── qat_eval-saved_model.pt         # QAT evaluation TorchScript model
-│   ├── saved_model.tflite              # TensorFlow Lite model (not supported)
-│   ├── original_code.py                # Model configuration/code
-│   └── original_graph.txt              # Model graph description
+│   └── saved_model.tflite              # TensorFlow Lite model (not supported)
+├── model_meta/
+│   ├── transforms.yaml                 # Image preprocessing configuration
+│   └── train.yaml                      # Training configuration with score threshold
 ├── dm.json                             # Defect map (class labels)
 ├── meta.json                           # Model metadata
 └── original_dm.json                    # Original defect map
 ```
 
-**Note**: The inference tool (`run_inference_qat_model_exported.py`) only supports TorchScript models (.pt files), while the inspector (`inspect_model_bundle.py`) supports both .pth and .pt files.
+**Note**: The inference tool (`run_inference_qat_model_exported.py`) only supports TorchScript models (.pt files) and automatically extracts configuration from the bundle's `model_meta/` directory, while the inspector (`inspect_model_bundle.py`) supports both .pth and .pt files.
 
 ## Usage Examples
 
@@ -96,11 +99,12 @@ python run_inference_qat_model_exported.py \
     --image_path dummy.jpg \
     --list_models
 
-# Use specific model for inference
+# Use specific model with custom score threshold
 python run_inference_qat_model_exported.py \
     --bundle_path /path/to/published_model_bundle \
     --image_path /path/to/image.jpg \
     --model_name qat_eval-saved_model \
+    --score_threshold 0.7 \
     --output_path result.jpg
 
 # Display inference results on screen
@@ -127,9 +131,25 @@ python run_inference_qat_model_exported.py \
 - `--image_path`: Path to the input image (required)
 - `--model_name`: Specific model to use (optional, auto-selects if not provided)
 - `--output_path`: Path to save the annotated output image (optional)
+- `--score_threshold`: Score threshold for filtering predictions (optional, overrides bundle configuration)
 - `--show`: Display the result image on screen
 - `--list_models`: List available models in the bundle and exit
 - `--verbose`: Enable verbose logging
+
+## Configuration Extraction
+
+The inference tool automatically extracts configuration from the bundle:
+
+### Image Size (`model_meta/transforms.yaml`)
+- Looks for `RescaleWithPadding` transform in `train` or `valid` sections
+- Extracts `height` and `width` parameters
+- Falls back to 512x512 if not found
+
+### Score Threshold (`model_meta/train.yaml`)
+- Extracts `model.score_threshold` value
+- Only applies filtering if threshold is found in bundle
+- Can be overridden with `--score_threshold` command line argument
+- Shows all predictions if no threshold is configured
 
 ## Model Analysis Output (Inspector)
 
@@ -156,6 +176,7 @@ When `--model_name` is not specified, the inference CLI automatically selects To
 
 - Python 3.11+
 - PyTorch
+- PyYAML (for configuration extraction)
 - OpenCV (for inference tool)
 - PIL/Pillow (for inference tool)
 - NumPy
@@ -187,7 +208,8 @@ When `--model_name` is not specified, the inference CLI automatically selects To
 ### Inference Output
 1. **Console logs**: Detection results with bounding box coordinates, confidence scores, and class labels
 2. **Annotated image**: Input image with bounding boxes, labels, and confidence scores drawn on top
-3. **Detection statistics**: Number of detections found above the specified threshold
+3. **Detection statistics**: Number of detections found and filtering information
+4. **Configuration summary**: Image size and score threshold used from bundle
 
 ## Error Handling
 
