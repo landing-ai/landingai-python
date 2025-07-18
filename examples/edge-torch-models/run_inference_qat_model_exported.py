@@ -30,6 +30,7 @@ from typing import Any, Dict, Optional, Tuple
 import cv2
 import numpy as np
 import torch
+import yaml
 from PIL import Image, ImageDraw, ImageFont
 
 # Standard preprocessing constants (ensure float32)
@@ -57,10 +58,11 @@ COLORS = [
 class TorchScriptInference:
     """TorchScript model inference (.pt files) - for both regular TorchScript and QAT models."""
 
-    def __init__(self, model_path: str):
+    def __init__(self, model_path: str, image_size: Tuple[int, int] = (512, 512)):
         self.model_path = Path(model_path)
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.image_size = image_size  # (width, height)
 
     def load_model(self):
         """Load TorchScript model."""
@@ -88,7 +90,8 @@ class TorchScriptInference:
         """Preprocess image for TorchScript model."""
         # Preprocessing to match the model input spec
         if len(image.shape) == 3 and image.shape[2] == 3:
-            image = cv2.resize(image, (512, 512))
+            width, height = self.image_size
+            image = cv2.resize(image, (width, height))
             image = image.astype(np.float32)
 
             # Normalize using ImageNet statistics
@@ -360,6 +363,69 @@ def load_defect_map(dm_path: Optional[str]) -> Dict[str, Any]:
         raise ValueError(f"Failed to load defect map: {e}")
 
 
+def extract_image_size_from_transforms(bundle_path: str) -> Tuple[int, int]:
+    """Extract image size from model_meta/transforms.yaml file."""
+    transforms_path = Path(bundle_path) / "model_meta" / "transforms.yaml"
+    
+    if not transforms_path.exists():
+        logger.warning(f"transforms.yaml not found at {transforms_path}, using default size (512, 512)")
+        return 512, 512
+    
+    try:
+        with open(transforms_path, "r") as f:
+            transforms_config = yaml.safe_load(f)
+        
+        # Look for RescaleWithPadding in train or valid transforms
+        for config_key in ["train", "valid"]:
+            if config_key in transforms_config:
+                transforms_list = transforms_config[config_key]
+                if isinstance(transforms_list, list):
+                    for transform in transforms_list:
+                        if isinstance(transform, dict) and "RescaleWithPadding" in transform:
+                            rescale_config = transform["RescaleWithPadding"]
+                            if "height" in rescale_config and "width" in rescale_config:
+                                height = rescale_config["height"]
+                                width = rescale_config["width"]
+                                logger.info(f"Extracted image size from transforms.yaml: {width}x{height}")
+                                return width, height
+        
+        logger.warning("Could not find RescaleWithPadding with height/width in transforms.yaml, using default size (512, 512)")
+        return 512, 512
+        
+    except Exception as e:
+        logger.warning(f"Failed to parse transforms.yaml: {e}, using default size (512, 512)")
+        return 512, 512
+
+
+def extract_score_threshold_from_train_config(bundle_path: str) -> Optional[float]:
+    """Extract score threshold from model_meta/train.yaml file."""
+    train_path = Path(bundle_path) / "model_meta" / "train.yaml"
+    
+    if not train_path.exists():
+        logger.warning(f"train.yaml not found at {train_path}, no score threshold will be applied")
+        return None
+    
+    try:
+        with open(train_path, "r") as f:
+            train_config = yaml.safe_load(f)
+        
+        # Only look for model.score_threshold
+        if isinstance(train_config, dict) and "model" in train_config:
+            model_config = train_config["model"]
+            if isinstance(model_config, dict) and "score_threshold" in model_config:
+                threshold = model_config["score_threshold"]
+                if isinstance(threshold, (int, float)):
+                    logger.info(f"Extracted score threshold from train.yaml: {threshold}")
+                    return float(threshold)
+        
+        logger.warning("Could not find model.score_threshold in train.yaml, no score threshold will be applied")
+        return None
+        
+    except Exception as e:
+        logger.warning(f"Failed to parse train.yaml: {e}, no score threshold will be applied")
+        return None
+
+
 def load_image(image_path: str) -> np.ndarray:
     """Load image from file using OpenCV."""
     image = cv2.imread(image_path)
@@ -463,12 +529,12 @@ def draw_bboxes_on_image(
     return np.array(pil_image)
 
 
-def get_model_inference(model_path: str) -> TorchScriptInference:
+def get_model_inference(model_path: str, image_size: Tuple[int, int] = (512, 512)) -> TorchScriptInference:
     """Create TorchScript inference object for .pt files."""
     model_path = Path(model_path)
 
     if model_path.suffix.lower() == ".pt":
-        return TorchScriptInference(str(model_path))
+        return TorchScriptInference(str(model_path), image_size)
     else:
         raise ValueError(
             f"Unsupported model format: {model_path.suffix}. This script only supports TorchScript (.pt) files. "
@@ -478,7 +544,8 @@ def get_model_inference(model_path: str) -> TorchScriptInference:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="TorchScript Model Inference CLI - Optimized for deployment models"
+        description="TorchScript Model Inference CLI - Optimized for deployment models. "
+                   "Automatically extracts image size and score threshold from bundle configuration."
     )
     parser.add_argument(
         "--bundle_path",
@@ -492,6 +559,11 @@ def main():
     )
     parser.add_argument(
         "--output_path", help="Path to save output image with annotations"
+    )
+    parser.add_argument(
+        "--score_threshold", 
+        type=float, 
+        help="Score threshold for filtering predictions (overrides bundle configuration)"
     )
 
     parser.add_argument("--show", action="store_true", help="Display the output image")
@@ -556,9 +628,25 @@ def main():
             resources["models"], args.model_name
         )
 
+        # Extract image size from transforms configuration
+        image_size = extract_image_size_from_transforms(extracted_bundle_path)
+        logger.info(f"Using image size: {image_size[0]}x{image_size[1]}")
+
+        # Extract score threshold from train configuration
+        if args.score_threshold is not None:
+            score_threshold = args.score_threshold
+            logger.info(f"Using score threshold from command line: {score_threshold}")
+        else:
+            score_threshold = extract_score_threshold_from_train_config(extracted_bundle_path)
+            if score_threshold is not None:
+                logger.info(f"Using score threshold from bundle: {score_threshold}")
+            else:
+                logger.info("No score threshold found in bundle, showing all predictions")
+                score_threshold = 0.0  # Show all predictions
+
         # Load TorchScript model
         logger.info(f"Loading TorchScript model: {model_name} from {model_path}")
-        inference = get_model_inference(str(model_path))
+        inference = get_model_inference(str(model_path), image_size)
         inference.load_model()
 
         # Load image
@@ -600,6 +688,19 @@ def main():
         logger.info("Postprocessing output")
         boxes, scores, labels = inference.postprocess(output)
 
+        # Apply score threshold filtering
+        if len(boxes) > 0 and score_threshold > 0.0:
+            score_mask = scores >= score_threshold
+            original_count = len(boxes)
+            boxes = boxes[score_mask]
+            scores = scores[score_mask]
+            labels = labels[score_mask]
+            filtered_count = original_count - len(boxes)
+            if filtered_count > 0:
+                logger.info(f"Filtered out {filtered_count} detections below score threshold {score_threshold}")
+        elif len(boxes) > 0 and score_threshold == 0.0:
+            logger.info("No score threshold applied, showing all detections")
+
         # Filter out invalid bounding boxes where x1 < x0 or y1 < y0
         if len(boxes) > 0:
             valid_indices = []
@@ -635,16 +736,16 @@ def main():
                     f"Removed all {original_count} detections due to invalid bounding box coordinates"
                 )
 
-        # Log all predictions (after filtering invalid boxes)
-        logger.info(f"Found {len(boxes)} valid detections")
+        # Log all predictions (after filtering invalid boxes and score threshold)
+        if score_threshold > 0.0:
+            logger.info(f"Found {len(boxes)} valid detections (after score threshold {score_threshold})")
+        else:
+            logger.info(f"Found {len(boxes)} valid detections (no score threshold applied)")
 
-        # Print all results (unfiltered)
+        # Print all results (after filtering)
         for i, (box, score, label) in enumerate(zip(boxes, scores, labels)):
             label_name = defect_map_for_viz.get(label, f"class_{label}")
             logger.info(f"Detection {i+1}: {label_name} ({score:.3f}) at {box}")
-
-        # Show all predictions in visualization
-        logger.info(f"Showing all {len(boxes)} detections in visualization")
 
         # Draw bounding boxes (all predictions)
         if len(boxes) > 0:
@@ -663,6 +764,7 @@ def main():
 
         # Show image
         if args.show:
+            logger.info(f"Showing all {len(boxes)} detections in visualization")
             result_pil = Image.fromarray(result_image)
             result_pil.show()
 
