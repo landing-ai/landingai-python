@@ -124,6 +124,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "examples/edge-torch-models"
 ]
 
 # Same as Black.
