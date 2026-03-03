@@ -1,11 +1,11 @@
 Running inferences with the standard `landingai.predict.Predictor` will send your image to LandingLens cloud, which is ideal if you don't want to worry about backend scalability, hardware provisioning, availability, etc. But this also adds some networking overhead that might limit how many inferences per second you can run.
 
-If you need to run several inferences per second, and you have your own cloud service or local machine, you might want to run inference using your own resources. For that, we provide **[Docker deployment](https://support.landing.ai/docs/docker-deploy)**, a Docker image with your LandingLens trained model embeded that you can run anywhere.
+If you need to run several inferences per second, and you have your own cloud service or local machine, you might want to run inference using your own resources. For that, we provide **[Docker deployment](https://landinglens.docs.landing.ai/landingedge/landingedge-overview)**, a Docker image with your LandingLens trained model embeded that you can run anywhere.
 
 
 ???+ note
 
-    You can get more details on how to set up and run the Docker deployment container locally or in your own cloud service in our [Support Center](https://support.landing.ai/docs/docker-deploy).
+    You can get more details on how to set up and run the Docker deployment container locally or in your own cloud service in our [documentation](https://landinglens.docs.landing.ai/landingedge/docker-deploy).
 
     Once you go through the Support Center guide, you will have the model running in a container, accessible in a specific host and port. The example below refers to these as `localhost` and `8000`, respectively.
 
@@ -37,4 +37,4 @@ The `EdgePredictor` class is a subclass of `Predictor`, so you can use it in the
 
 The time it takes to run the inference will vary according to the hardware where the Docker container is running (if you set it up to run on a GPU, for example, it will probably yield faster predictions).
 
-Check out the [Support Center](https://support.landing.ai/docs/docker-deploy) for more information on how to get a deployment license, run the Docker deployment with a a GPU, and more.
+Check out the [documentation](https://landinglens.docs.landing.ai/landingedge/docker-deploy) for more information on how to get a deployment license, run the Docker deployment with a a GPU, and more.

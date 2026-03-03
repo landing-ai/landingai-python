@@ -1,6 +1,6 @@
 ## Manage API Credentials
 
-If you send images to an endpoint through API (Cloud Deployment), you must add your API Key to the API call. You can generate the API Key in LandingLens. This API key is also known as API key v2. See [here](https://support.landing.ai/docs/api-key-and-api-secret) for more information.
+If you send images to an endpoint through API (Cloud Deployment), you must add your API Key to the API call. You can generate the API Key in LandingLens. This API key is also known as API key v2. See [here](https://landinglens.docs.landing.ai/api-key) for more information.
 
 Once you have generated the API key, here are three ways to configure your API Key, ordered by the priority in which they are loaded:
 
@@ -16,7 +16,7 @@ Once you have generated the API key, here are three ways to configure your API K
 
 In the past, LandingLens supports generating a key and secret pair, which is known as API key v1. This key is no longer supported in `landingai` Python package in version `0.1.0` and above.
 
-See [here](https://support.landing.ai/docs/api-key) for how to generate API v2 key.
+See [here](https://landinglens.docs.landing.ai/api-key) for how to generate API v2 key.
 
 ### FAQ
 

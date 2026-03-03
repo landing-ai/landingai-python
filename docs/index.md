@@ -32,7 +32,7 @@ frame.resize(width=512, height=512) # (2)!
 frame.save_image("/tmp/resized-image.png") # (3)!
 ```
 
-1. We support several image file types. See the full list [here](https://support.landing.ai/docs/upload-images).
+1. We support several image file types. See the full list [here](https://landinglens.docs.landing.ai/upload-images).
 2. Resize the frame to 512x512p.
 3. Save the resized image to `/tmp/resized-image.png`.
 
@@ -64,7 +64,7 @@ For example, let's say we've created and deployed a model in LandingLens that de
 
 ???+ note
 
-    If you don't have a LandingLens account, create one [here](https://app.landing.ai/). Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2). Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
+    If you don't have a LandingLens account, create one [here](https://app.landing.ai/). Learn how to use LandingLens from our [documentation](https://landinglens.docs.landing.ai/). Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
 
 
 ???+ note

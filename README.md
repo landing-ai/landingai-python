@@ -16,7 +16,7 @@ The LandingLens Python library contains the LandingLens development library and 
 ## Documentation
 
 -  [LandingAI Python Library Docs](https://landing-ai.github.io/landingai-python/)
--  [LandingAI Support Center](https://support.landing.ai/)
+-  [LandingLens Documentation](https://landinglens.docs.landing.ai/)
 -  [LandingLens Walk-Through Video](https://www.youtube.com/watch?v=779kvo2dxb4)
 
 
@@ -69,7 +69,7 @@ For example, let's say we've created and deployed a model in LandingLens that de
 > If you don't have a LandingLens account, create one [here](https://app.landing.ai/). You will need to get an "endpoint ID" and "API key" from LandingLens in order to run inferences. Check our [Running Inferences / Getting Started](https://landing-ai.github.io/landingai-python/inferences/getting-started/).
 
 > [!NOTE]
-> Learn how to use LandingLens from our [Support Center]([https://support.landing.ai/docs/landinglens-workflow](https://support.landing.ai/landinglens/en)) and [Video Tutorial Library](https://support.landing.ai/docs/landinglens-workflow-2).
+> Learn how to use LandingLens from our [documentation](https://landinglens.docs.landing.ai/).
 > Need help with specific use cases? Post your questions in our [Community](https://community.landing.ai/home).
 
 

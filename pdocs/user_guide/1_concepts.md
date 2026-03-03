@@ -17,10 +17,10 @@ This section explains important high-level concepts that will help you better us
 
 ### Model Deployment Options
 
-Before using this library for inference, you need train your model in LandingLens and [deploy it](https://support.landing.ai/docs/deployment-options).
+Before using this library for inference, you need train your model in LandingLens and [deploy it](https://landinglens.docs.landing.ai/deployment-options).
 
 This library supports two deployment options:
-- [Cloud Deployment](https://support.landing.ai/landinglens/docs/cloud-deployment)
+- [Cloud Deployment](https://landinglens.docs.landing.ai/cloud-deployment)
 - [Edge Deployment] (support coming soon...)
 
 The easiest way to get started is using a Cloud Deployment.
