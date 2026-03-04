@@ -47,7 +47,7 @@ But most `FrameSet` operations were migrated to `Frame` class, so you can still 
 
 Below section shows you how to fix the backward incompatible changes when you upgrade the version to `0.1.0`.
 
-1. Generate your v2 API key from LandingLens. See [here](https://support.landing.ai/docs/api-key) for more information.
+1. Generate your v2 API key from LandingLens. See [here](https://landinglens.docs.landing.ai/api-key) for more information.
 2. The `api_secret` parameter is removed in the `Predictor` and `OcrPredictor` class. `api_key` is a named parameter now, which means you must specify the parameter name, i.e. `api_key`, if you want to pass it to a `Predictor` as an argument.
     See below code as an example:
 

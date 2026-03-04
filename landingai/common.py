@@ -36,7 +36,7 @@ class APIKey(BaseSettings):
         """Check if the API key is a v2 key."""
         if not key.startswith("land_sk_"):
             raise InvalidApiKeyError(
-                f"API key (v2) must start with 'land_sk_' prefix, but it's {key}. See https://support.landing.ai/docs/api-key for more information."
+                f"API key (v2) must start with 'land_sk_' prefix, but it's {key}. See https://landinglens.docs.landing.ai/api-key for more information."
             )
         return key
 
@@ -69,7 +69,7 @@ class ClassificationPrediction(Prediction):
     label_index: int
     """The predicted label index.
     A label index is an unique integer that identifies a label in your label book.
-    For more information, see https://support.landing.ai/docs/manage-label-book.
+    For more information, see https://landinglens.docs.landing.ai/manage-label-book.
     """
 
 

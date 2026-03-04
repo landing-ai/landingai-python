@@ -56,7 +56,7 @@ if __name__ == "__main__":
             cloud_sky_model = EdgePredictor()
         except ConnectionError:
             _LOGGER.error(
-                f"""Failed to connect to the local LandingLens docker inference service. Have you launched the LandingLens container? If not please read the guide here (https://support.landing.ai/docs/docker-deploy)\nOnce you have installed it and obtained a license, run:
+                f"""Failed to connect to the local LandingLens docker inference service. Have you launched the LandingLens container? If not please read the guide here (https://landinglens.docs.landing.ai/landingedge/docker-deploy)\nOnce you have installed it and obtained a license, run:
                 docker run -p 8000:8000 --rm --name landingedge\\
                 -e LANDING_LICENSE_KEY=YOUR_LICENSE_KEY  \\
                 public.ecr.aws/landing-ai/deploy:latest \\

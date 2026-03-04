@@ -3,7 +3,7 @@ Once you are ready to [acquire images](image-acquisition/image-acquisition.md), 
 
 ## Building your first model
 
-To run inferences using LandingLens, you must first build a model. If you didn't sign up before, visit https://app.landing.ai/, sign up for a free account and create a new project. If you are not familiar with LandingLens, you can find a lot of useful information in the [LandingLens support center](https://support.landing.ai/docs/landinglens-workflow).
+To run inferences using LandingLens, you must first build a model. If you didn't sign up before, visit https://app.landing.ai/, sign up for a free account and create a new project. If you are not familiar with LandingLens, you can find a lot of useful information in the [LandingLens documentation](https://landinglens.docs.landing.ai/).
 
 Long story short, after creating a project in LandingLens you will need to:
 
