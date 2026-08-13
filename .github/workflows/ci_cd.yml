@@ -44,6 +44,10 @@ jobs:
       run: |
         poetry run mypy landingai
     - name: Test with pytest
+      env:
+        # Not available to pull requests from forks; the integration tests that
+        # need it skip themselves when it is empty.
+        LANDINGAI_API_KEY: ${{ secrets.LANDINGAI_API_KEY }}
       run: |
         poetry run pytest -v tests
 

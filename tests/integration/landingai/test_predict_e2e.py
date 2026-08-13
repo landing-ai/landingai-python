@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +10,17 @@ from landingai.common import InferenceMetadata
 from landingai.predict import OcrPredictor, Predictor
 from landingai.visualize import overlay_predictions
 
-_API_KEY = "land_sk_aMemWbpd41yXnQ0tXvZMh59ISgRuKNRKjJEIUHnkiH32NBJAwf"
+# These tests call live LandingLens endpoints, so they need a real API key.
+# It is read from the LANDINGAI_API_KEY environment variable, which CI populates
+# from the repository secret of the same name. Secrets are not exposed to
+# workflow runs triggered by pull requests from forks, so skip instead of
+# failing when the key is absent.
+_API_KEY = os.environ.get("LANDINGAI_API_KEY", "")
+
+pytestmark = pytest.mark.skipif(
+    not _API_KEY,
+    reason="LANDINGAI_API_KEY is not set; skipping tests that call live endpoints.",
+)
 
 _EXPECTED_VP_PREDS = [
     {
