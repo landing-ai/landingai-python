@@ -10,10 +10,14 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
-        os: [ ubuntu-22.04, windows-2022, macos-12 ]
+        os: [ ubuntu-22.04, windows-2022, macos-26 ]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
+    - name: Install ffmpeg
+      # imageio-ffmpeg 0.5.1 bundles no arm64 macOS binary, so the runner needs a system ffmpeg
+      if: runner.os == 'macOS'
+      run: brew install ffmpeg
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
