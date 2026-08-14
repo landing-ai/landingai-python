@@ -60,6 +60,8 @@ jobs:
     # https://github.community/t/how-do-i-specify-job-dependency-running-in-another-workflow/16482
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):') && !contains(github.event.head_commit.message, '[skip release]')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/setup-python@v4
         with:
@@ -73,8 +75,6 @@ jobs:
         run: poetry config virtualenvs.in-project true
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GH_TOKEN }}
       - name: setup git config
         run: |
           git config user.name "GitHub Actions Bot"
