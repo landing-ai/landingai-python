@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "landingai"
-version = "0.3.49"
+version = "0.3.50"
 description = "Helper library for interacting with LandingAI LandingLens"
 authors = ["LandingAI <dev@landing.ai>"]
 readme = "README.md"
