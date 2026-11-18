@@ -1,0 +1,55 @@
+name: Publish
+
+# Publishes the pyproject.toml version if it is not yet on PyPI.
+# Bump the version in a reviewed PR; then run this workflow from main.
+on:
+  workflow_dispatch:
+
+# One release at a time; never cancel a publish midway.
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    # Also enforced by the environment; this catches a dispatch from another ref
+    # if that setting ever changes.
+    if: github.ref == 'refs/heads/main'
+    # Required reviewer, and deploys only from main.
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # PyPI trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14'
+
+      - name: Check whether this version is already on PyPI
+        id: version
+        run: |
+          version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["tool"]["poetry"]["version"])')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          status=$(curl -s -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/landingai/$version/json")
+          if [ "$status" = 200 ]; then
+            echo "landingai $version is already on PyPI; skipping"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ "$status" = 404 ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PyPI answered $status; not publishing"
+            exit 1
+          fi
+
+      - name: Build
+        if: steps.version.outputs.publish == 'true'
+        run: pipx run build
+
+      - name: Publish
+        if: steps.version.outputs.publish == 'true'
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
